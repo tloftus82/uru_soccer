@@ -90,7 +90,8 @@ $ipOrg = "";
   $sql .= "  A.SOC_TWITTER, ";
   $sql .= "  A.SOC_INSTAGRAM, ";
   $sql .= "  A.TXT_WHOAMI, ";
-  $sql .= "  A.TXT_GOALS ";
+  $sql .= "  A.TXT_GOALS, ";
+  $sql .= "  A.COMMITTED_FLAG ";
   $sql .= "FROM PP_PLAYERS A ";
   $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
   $sql .= "LEFT OUTER JOIN PP_POSITIONS C ON C.ID = A.POSITION_SEC ";
@@ -296,6 +297,11 @@ $ipOrg = "";
               <img src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;'>   
               <?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?>                   
 			</h1>
+            <?php if($playerInfo['COMMITTED_FLAG'] == 1){ ?>
+            <div style='margin: 8px 0 4px 0;'>
+              <span style='display:inline-block;background:#27ae60;color:#fff;font-size:15px;font-weight:700;padding:6px 18px;border-radius:20px;letter-spacing:2px;'>&#10003; COMMITTED</span>
+            </div>
+            <?php } ?>
 			  <div class="h-subtitles">
 			    <div class="h-subtitle typing-subtitle">
   			      <p><?php echo $playerInfo['POSITION_PRI']; ?></p>
@@ -337,7 +343,7 @@ $ipOrg = "";
 			  <li><strong>Birthdate:</strong> <?php echo date('M, Y', strtotime($playerInfo['DATE_OF_BIRTH'])); ?></li>
 			  <li><strong>Position:</strong> <?php echo $playerInfo['POSITION_PRI']; ?></li>
 			  <li><strong>Age:</strong> <?php echo $playerInfo['AGE']; ?></li>
-              <li><strong>Secondary:</strong> <?php echo $playerInfo['POSITION_SEC']; ?></li>                            							
+              <li><strong>Secondary:</strong> <?php echo $playerInfo['POSITION_SEC']; ?></li>                            												
               <li><strong>Height:</strong> <?php echo $playerInfo['HEIGHT']; ?></li>
 			  <li><strong>Footed:</strong> <?php echo $playerInfo['DOMINATE_FOOT']; ?></li>
 			</ul>
@@ -387,7 +393,7 @@ $ipOrg = "";
                   echo "    </div>";
                   echo "    <div class=\"single-post-text\">";
                   echo "      <p>";
-                  echo "        ".nl2br($accolade['ACCOLADES_TEXT'])."";
+                  echo "        ".nl2br($accolade['ACCOLADES_TEXT'])."";  
                   echo "      </p>";
                   echo "    </div>";
                   echo "  </div>";
@@ -525,7 +531,7 @@ $ipOrg = "";
   <?php	
     if(strLen($playerInfo['SOC_FACEBOOK'] ?? '') + strLen($playerInfo['SOC_INSTAGRAM'] ?? '') + strLen($playerInfo['SOC_TWITTER'] ?? '') > 0){
       echo "<footer class=\"footer\">";
-      echo "  <div class=\"socials\">";      
+      echo "  <div class=\"socials\">";
         if(strLen($playerInfo['SOC_FACEBOOK'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.facebook.com/".$playerInfo['SOC_FACEBOOK']."/\"><i class=\"icon fab fa-facebook-f\"></i></a>";}
         if(strLen($playerInfo['SOC_INSTAGRAM'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.instagram.com/".$playerInfo['SOC_INSTAGRAM']."/\"><i class=\"icon fab fa-instagram\"></i></a>";}
         if(strLen($playerInfo['SOC_TWITTER'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.twitter.com/".$playerInfo['SOC_TWITTER']."/\"><i class=\"icon fab fa-twitter\"></i></a>";}

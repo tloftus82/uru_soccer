@@ -109,7 +109,8 @@
     $sql .= "  A.SOC_TWITTER, ";
     $sql .= "  A.SOC_INSTAGRAM, ";
     $sql .= "  A.TXT_WHOAMI, ";
-    $sql .= "  A.TXT_GOALS ";
+    $sql .= "  A.TXT_GOALS, ";
+    $sql .= "  A.COMMITTED_FLAG ";
     $sql .= "FROM PP_PLAYERS A ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS C ON C.ID = A.POSITION_SEC ";
@@ -137,7 +138,14 @@
 
       echo "        <div class=\"item\">";
       echo "          <div class=\"pricing-item\">";
-      echo "            <div class=\"icons\"><a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\"><img src='".$imgHeadshot."' style='width: 120px; text-align: center;vertical-align: middle;border-radius: 50%; display:inline-block;'></a></div><br><br><br>";
+      echo "            <div class=\"icons\">";
+      echo "              <div style='position:relative;display:inline-block;'>";
+      echo "                <a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\"><img src='".$imgHeadshot."' style='width: 120px; text-align: center;vertical-align: middle;border-radius: 50%; display:inline-block;'></a>";
+      if($player['COMMITTED_FLAG'] == 1){
+        echo "                <div style='position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;letter-spacing:1px;'>COMMITTED</div>";
+      }
+      echo "              </div>";
+      echo "            </div><br><br><br>";
       echo "            <div class=\"name\"><a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\" style='text-decoration: none;'>".$player['FIRST_NAME']." ".$player['LAST_NAME']."</a></div>";
       echo "            <div class=\"feature-list\">";
       echo "              <ul>";
