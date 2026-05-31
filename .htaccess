@@ -1,0 +1,27 @@
+#SELECT
+#  CONCAT("RewriteRule ^", LOWER(A.FIRST_NAME), "-", LOWER(A.LAST_NAME), "$ playerProfile.php?p=", A.ID, "&v=cz51ts [L,QSA, NC]") AS DATA
+#FROM PP_PLAYERS A
+
+RewriteEngine On
+RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=cz51ts [L,QSA]
+RewriteRule ^michigan-ngoma$ playerProfile.php?p=7&v=cz51ts [L,QSA]
+RewriteRule ^greco-alvarez$ playerProfile.php?p=8&v=cz51ts [L,QSA]
+RewriteRule ^gustavo-garcia$ playerProfile.php?p=9&v=cz51ts [L,QSA]
+RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=cz51ts [L,QSA]
+RewriteRule ^sophia-meyer$ playerProfile.php?p=11&v=cz51ts [L,QSA]
+RewriteRule ^jordyn-wilson$ playerProfile.php?p=12&v=cz51ts [L,QSA]
+RewriteRule ^jasmin-aguilar$ playerProfile.php?p=13&v=cz51ts [L,QSA]
+RewriteRule ^emyrson-torsky$ playerProfile.php?p=14&v=cz51ts [L,QSA]
+RewriteRule ^alexis-stusse$ playerProfile.php?p=15&v=cz51ts [L,QSA]
+RewriteRule ^evyanna-martinez$ playerProfile.php?p=16&v=cz51ts [L,QSA]
+RewriteRule ^grace-jensen$ playerProfile.php?p=17&v=cz51ts [L,QSA]
+RewriteRule ^alondra-prieto$ playerProfile.php?p=18&v=cz51ts [L,QSA]
+RewriteRule ^baylee-reyes$ playerProfile.php?p=19&v=cz51ts [L,QSA]
+RewriteRule ^claudia-lavariega$ playerProfile.php?p=20&v=cz51ts [L,QSA]
+RewriteRule ^sydney-stahlecker$ playerProfile.php?p=21&v=cz51ts [L,QSA]
+RewriteRule ^mya-kleve$ playerProfile.php?p=22&v=cz51ts [L,QSA]
+RewriteRule ^remy-wenzlaff$ playerProfile.php?p=23&v=cz51ts [L,QSA]
+RewriteRule ^ava-squier$ playerProfile.php?p=24&v=cz51ts [L,QSA,NC]
+RewriteRule ^millie-squier$ playerProfile.php?p=25&v=cz51ts [L,QSA,NC]
+RewriteRule ^annabella-reyes$ playerProfile.php?p=26&v=cz51ts [L,QSA,NC]
+RewriteRule ^isabella-mijangos$ playerProfile.php?p=27&v=cz51ts [L,QSA,NC]

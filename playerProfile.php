@@ -1,0 +1,555 @@
+<?php
+  ini_set('display_errors', 1);
+  ini_set('display_startup_errors', 1);
+  error_reporting(E_ALL);
+
+  include('dbConnect/dbConnect.inc.php');
+
+  //get user's IP address
+  $pageName = $_SERVER['REQUEST_URI'];
+  $userIp = $_SERVER['REMOTE_ADDR'];
+  $hostName = gethostbyaddr($userIp);
+  //$ipDetails = json_decode(file_get_contents("http://ipinfo.io/".$userIp."/json"));
+$ipDetails = "";
+  //$ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country;
+$ipLocation = "";
+  //$ipOrg = $ipDetails->org;
+$ipOrg = "";
+
+  //check to see if authorized viewer
+  $viewCode = "NULL";
+  $viewerId = "NULL";
+  $playerId = "NULL";
+  $authenticated = 0;
+
+  $viewAuth = 0;
+  if(isset($_GET['v']) == 1){
+    $viewCode = $_GET['v'];
+    $sql = "SELECT A.ID AS VIEWER_ID FROM PP_ALLOWED_VIEWERS A WHERE A.VIEW_CODE = '".$viewCode."';";
+    $result = mysqli_query($cn, $sql);
+    $viewerInfo = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    if(mysqli_num_rows($result) == 1){$viewAuth = 1; $viewerId = $viewerInfo['VIEWER_ID'];}
+  }
+
+  $playerAuth = 0;
+  if(isset($_GET['p']) == 1){
+    $playerId = $_GET['p'];
+    $sql = "SELECT 'X' AS AUTH FROM PP_PLAYERS A WHERE A.ID = ".$playerId.";";
+    $result = mysqli_query($cn, $sql);
+    if(mysqli_num_rows($result) == 1){$playerAuth = 1;}
+  }
+
+  if($viewAuth == 1 and $playerAuth == 1){$authenticated = 1;}
+
+  //insert view record into tracking table
+  $sql = "";
+  $sql .= "INSERT INTO PP_VIEW_LOG ( ";
+  $sql .= "  PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG ";
+  $sql .= ") VALUES ( ";
+  $sql .= "  ".$playerId.", ".$viewerId.", '".$viewCode."', NOW(), ".$authenticated.", '".$userIp."', '".$hostName."', '".$ipLocation."', '".$ipOrg."' ";
+  $sql .= ");";
+  $result = mysqli_query($cn, $sql);
+
+  //insert view record into tracking table
+  $sql = "";
+  $sql .= "INSERT INTO SITE_VIEW_LOG ( ";
+  $sql .= "  PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG ";
+  $sql .= ") VALUES ( ";
+  $sql .= "  '".$pageName."', NOW(), '".$userIp."', '".$hostName."', '".$ipLocation."', '".$ipOrg."' ";
+  $sql .= ");";
+  $result = mysqli_query($cn, $sql);
+
+  //kill page load if viewer or player isn't validated
+  if($authenticated == 0){echo "Improperly formatted request."; die;}
+
+  //get player information from database
+  $sql = "";
+  $sql .= "SELECT ";
+  $sql .= "  A.FIRST_NAME, ";
+  $sql .= "  A.LAST_NAME, ";
+  $sql .= "  A.GENDER, ";
+  $sql .= "  A.GRAD_CLASS, ";
+  $sql .= "  IFNULL(A.GPA,'--') AS GPA, ";
+  $sql .= "  IFNULL(A.ACT_SCORE,'--') AS ACT_SCORE, ";
+  $sql .= "  IFNULL(A.SAT_SCORE,'--') AS SAT_SCORE, ";
+  $sql .= "  IFNULL(A.CLASS_RANK,'--') AS CLASS_RANK, ";
+  $sql .= "  B.POSITION AS POSITION_PRI, ";
+  $sql .= "  IFNULL(C.POSITION,'--') AS POSITION_SEC, ";
+  $sql .= "  CONCAT(D.CITY,', ',D.STATE) AS FULL_LOCATION, ";
+  $sql .= "  A.DATE_OF_BIRTH, ";
+  $sql .= "  IFNULL(A.HEIGHT_IN,0) AS HEIGHT_IN, ";
+  $sql .= "  IFNULL(A.DOMINATE_FOOT,'--') AS DOMINATE_FOOT, ";
+  $sql .= "  IFNULL(E.ORG_NAME,'--') AS HIGH_SCHOOL_NAME, ";
+  $sql .= "  IFNULL(CONCAT(F.CITY,', ',F.STATE),'--') AS HS_FULL_LOCATION, ";
+  $sql .= "  IFNULL(A.PHONE_NUMBER,'--') AS PHONE_NUMBER, ";
+  $sql .= "  IFNULL(A.EMAIL_ADDRESS,'--') AS EMAIL_ADDRESS, ";
+  $sql .= "  A.IMG_HEADSHOT, ";
+  $sql .= "  A.IMG_ACTION, ";
+  $sql .= "  A.PDF_TRANSCRIPT, ";
+  $sql .= "  A.SOC_FACEBOOK, ";
+  $sql .= "  A.SOC_TWITTER, ";
+  $sql .= "  A.SOC_INSTAGRAM, ";
+  $sql .= "  A.TXT_WHOAMI, ";
+  $sql .= "  A.TXT_GOALS ";
+  $sql .= "FROM PP_PLAYERS A ";
+  $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
+  $sql .= "LEFT OUTER JOIN PP_POSITIONS C ON C.ID = A.POSITION_SEC ";
+  $sql .= "LEFT OUTER JOIN PP_LOCATIONS D ON D.ID = A.LOCATION ";
+  $sql .= "LEFT OUTER JOIN PP_ORGANIZATIONS E ON E.ID = A.HIGH_SCHOOL ";
+  $sql .= "LEFT OUTER JOIN PP_LOCATIONS F ON F.ID = E.LOCATION_ID ";
+  $sql .= "WHERE ";
+  $sql .= "  A.ID = ".$playerId.";";
+
+  $result = mysqli_query($cn, $sql);
+  $playerInfo = mysqli_fetch_array($result, MYSQLI_ASSOC);
+
+  if(mysqli_num_rows($result) == 0){echo "Player not found."; die();}
+
+  $interval = date_diff(date_create(), date_create($playerInfo['DATE_OF_BIRTH']));
+  $playerInfo['AGE'] = $interval->format("%Y Years, %m Months");
+
+  if($playerInfo['HEIGHT_IN'] == 0){
+    $playerInfo['HEIGHT'] = '--';
+  } else {
+    $heightFt = floor($playerInfo['HEIGHT_IN'] / 12);
+    $heightIn = $playerInfo['HEIGHT_IN'] % 12;
+    $playerInfo['HEIGHT'] = $heightFt.'\' '.$heightIn.'"';
+  }
+
+  $tdy = new DateTime();
+  $grad = new DateTime($playerInfo['GRAD_CLASS'].'-06-01');
+  $diff = $grad->diff($tdy);
+  if($diff->invert == 0){
+    $diffYrs = 0 - ceil($diff->days/365.25);
+  } else {
+    $diffYrs = ceil($diff->days/365.25);
+  }
+
+  if($diffYrs > 7){$playerInfo['GRADE'] = 'Elementary School';}
+  if($diffYrs == 7){$playerInfo['GRADE'] = '6th Grade';}
+  if($diffYrs == 6){$playerInfo['GRADE'] = '7th Grade';}
+  if($diffYrs == 5){$playerInfo['GRADE'] = '8th Grade';}
+  if($diffYrs == 4){$playerInfo['GRADE'] = 'Freshman';}
+  if($diffYrs == 3){$playerInfo['GRADE'] = 'Sophomore';}
+  if($diffYrs == 2){$playerInfo['GRADE'] = 'Junior';}
+  if($diffYrs <= 1){$playerInfo['GRADE'] = 'Senior';}
+
+  $displayRankPct = 0;
+  if($playerInfo['CLASS_RANK'] !== '--'){
+    $rankSplit = explode('/',$playerInfo['CLASS_RANK']);
+    $rankPercent = (intval($rankSplit[0]) / intval($rankSplit[1]));
+    if($rankPercent > 0){$playerInfo['RANK_PERCENT'] = ceil($rankPercent * 100);}
+    if($rankPercent == 0){$playerInfo['RANK_PERCENT'] = 1;}
+    if($playerInfo['RANK_PERCENT'] < 30){$displayRankPct = 1;}
+  }
+
+  $imgHeadshot = "";
+  if(strlen($playerInfo['IMG_HEADSHOT'] ?? '') > 0){
+    $imgHeadshot = $playerInfo['IMG_HEADSHOT'];
+  } else {
+    if($playerInfo['GENDER'] == "M"){$imgHeadshot = 'images/headshots/nophotomale.jpg';}
+    if($playerInfo['GENDER'] == "F"){$imgHeadshot = 'images/headshots/nophotofemale.jpg';}    
+  };
+
+  $imgAction = "";
+  if(strlen($playerInfo['IMG_ACTION'] ?? '') > 0){
+    $imgAction = $playerInfo['IMG_ACTION'];
+  } else {
+    $imgAction = 'images/action/noimage.jpg';  
+  };
+  
+
+  $sql = "";
+  $sql .= "SELECT ";
+  $sql .= "  D.REF_TYPE, ";
+  $sql .= "  CONCAT(B.FIRST_NAME, ' ', B.LAST_NAME) AS CONTACT_NAME, ";
+  $sql .= "  C.ORG_NAME, ";
+  $sql .= "  B.PHONE_NUMBER, ";
+  $sql .= "  B.EMAIL_ADDRESS, ";
+  $sql .= "  C.IMG_LOGO ";
+  $sql .= "FROM PP_REFERENCES A ";
+  $sql .= "INNER JOIN PP_CONTACTS B ON B.ID = A.REF_CONTACT_ID ";
+  $sql .= "INNER JOIN PP_ORGANIZATIONS C ON C.ID = B.ORG_ID ";
+  $sql .= "INNER JOIN PP_REF_TYPES D ON D.ID = A.REF_TYPE_ID ";
+  $sql .= "WHERE ";
+  $sql .= "  A.PLAYER_ID = ".$playerId." ";
+  $sql .= "  AND A.IS_ACTIVE = 1 ";
+  $sql .= "ORDER BY ";
+  $sql .= "  A.SORT_ORDER ASC ";
+  $result = mysqli_query($cn, $sql);
+  $referenceArray = mysqli_fetch_all($result, MYSQLI_ASSOC); 
+
+  $sql = "";
+  $sql .= "SELECT ";
+  $sql .= "  C.TIME_PER_DESC, ";
+  $sql .= "  B.ORG_NAME, ";
+  $sql .= "  CONCAT(D.CITY, ', ', D.STATE) AS ORG_LOCATION, ";
+  $sql .= "  A.ACCOLADES_TEXT ";
+  $sql .= "FROM PP_ACCOLADES A ";
+  $sql .= "INNER JOIN PP_ORGANIZATIONS B ON B.ID = A.ORG_ID ";
+  $sql .= "INNER JOIN PP_TIME_PERIODS C ON C.ID = A.TIME_PERIOD_ID ";
+  $sql .= "INNER JOIN PP_LOCATIONS D ON D.ID = B.LOCATION_ID ";
+  $sql .= "WHERE ";
+  $sql .= "  A.PLAYER_ID = ".$playerId." ";
+  $sql .= "ORDER BY ";
+  $sql .= "  A.SORT_ORDER ASC ";
+  $result = mysqli_query($cn, $sql);
+  $accoladesArray = mysqli_fetch_all($result, MYSQLI_ASSOC); 
+
+  $sql = "";
+  $sql .= "SELECT ";
+  $sql .= "  C.TIME_PER_DESC, ";
+  $sql .= "  B.ORG_NAME, ";
+  $sql .= "  D.VIDEO_TYPE_DESC, ";
+  $sql .= "  A.VIDEO_LENGTH_M, ";
+  $sql .= "  A.IMG_THUMBNAIL, ";
+  $sql .= "  A.VIDEO_URL ";
+  $sql .= "FROM PP_VIDEOS A ";
+  $sql .= "LEFT OUTER JOIN PP_ORGANIZATIONS B ON B.ID = A.ORG_ID ";
+  $sql .= "LEFT OUTER JOIN PP_TIME_PERIODS C ON C.ID = A.TIME_PER_ID ";
+  $sql .= "INNER JOIN PP_VIDEO_TYPES D ON D.ID = A.VIDEO_TYPE_ID ";
+  $sql .= "WHERE ";
+  $sql .= "  A.PLAYER_ID = ".$playerId." ";
+  $sql .= "ORDER BY ";
+  $sql .= "  A.SORT_ORDER ASC ";
+  $result = mysqli_query($cn, $sql);
+  $videosArray = mysqli_fetch_all($result, MYSQLI_ASSOC); 
+?>
+
+<!doctype html>
+
+<html lang="en-US">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' • '.$playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']; ?></title>
+  <link rel="shortcut icon" href="images/favicons/favicon.ico">
+
+  <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Mr+Dafoe&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/basic.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/magnific-popup.css" />
+  <link rel="stylesheet" href="css/animate.css" />
+  <link rel="stylesheet" href="css/jarallax.css" />
+  <link rel="stylesheet" href="css/owl.carousel.css" />
+  <link rel="stylesheet" href="css/swiper.css" />
+  <link rel="stylesheet" href="css/fontawesome.css" />
+  <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->  
+		
+  <!--[if lt IE 9]>
+  <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+
+<body class="home">
+
+  <div class="preloader">
+    <div class="box-1">
+	  <div class="centrize full-width">
+	    <div class="vertical-center">
+	      <div class="spinner">
+	        <div class="lines"></div>
+	      </div>
+		</div>
+	  </div>
+    </div>
+	<div class="box-2"></div>
+  </div>
+	
+  <div class="container">
+    <header class="header">
+  	  <div class="logo"><a href='#' onclick="history.back();"><img class="logo-img" src="images/logos/uru_logoOnly.png" style='vertical-align: middle' alt="" /></a><span class="logo-lnk"><?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?></span></div>
+      <a href="#" class="menu-btn"><span></span></a>
+	  <div class="header-sidebar">
+        <div class="top-menu">
+		  <div class="top-menu-nav">	
+		    <div class="menu-topmenu-container">
+			  <ul class="menu">
+			    <li class="menu-item current-menu-item"><a href="#section-started"><span class="animated-button"><span>Home</span></span></a></li>
+				<li class="menu-item"><a href="#section-about"><span class="animated-button"><span>About Me</span></span></a></li>
+                <li class="menu-item"><a href="#section-experience"><span class="animated-button"><span>Accolades</span></span></a></li>
+			    <li class="menu-item"><a href="#section-portfolio"><span class="animated-button"><span>Video</span></span></a></li>
+			    <li class="menu-item"><a href="#section-services"><span class="animated-button"><span>References</span></span></a></li>
+				<li class="menu-item"><a href="#section-contacts"><span class="animated-button"><span>Contact</span></span></a></li>
+			  </ul>
+			</div>
+		  </div>
+	    </div>
+      </div>
+	</header>
+	
+    <div class="wrapper">
+      <div class="background-bg">
+	    <div class="background-filter circle" style="background-image: url('<?php echo $imgAction; ?>');"></div>
+	  </div>
+
+	  <div class="section started" id="section-started">
+	    <div class="centrize full-width">
+		  <div class="vertical-center">
+
+            <div class="started-content">
+            <h1 class="h-title">
+              <img src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;'>   
+              <?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?>                   
+			</h1>
+			  <div class="h-subtitles">
+			    <div class="h-subtitle typing-subtitle">
+  			      <p><?php echo $playerInfo['POSITION_PRI']; ?></p>
+ 			      <p>Class of <?php echo $playerInfo['GRAD_CLASS']; ?></p>
+			    </div>
+			    <span class="typed-subtitle"></span>
+			  </div>
+              <div class="h-text">
+			    Hello Coach, thank you for your interest!  My name is <?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']; ?> and I am a <?php echo strtolower($playerInfo['POSITION_PRI']); ?> from <?php echo $playerInfo['FULL_LOCATION']; ?>.  I would love to talk with you and see if I might be a good fit for your program!</i>
+			  </div>
+              <a href="#section-contacts" class="btn"><span class="animated-button"><span>Contact Me</span></span><i class="icon fas fa-chevron-right"></i></a>
+              <a href="#" class="btn mouse-btn" style="display: none;"><i class="icon fas fa-chevron-down"></i></a>
+            </div>
+          </div>
+          <div class="clear"></div>
+		</div>
+	  </div>
+
+      <div class="section about" id="section-about">
+        <div class="content">
+          <div class="titles">
+            <div class="title">About Me</div>
+            <div class="subtitle">Who Am I</div>
+          </div>
+          <div class="cols">
+		    <div class="col">
+              <div class="single-post-text">
+                <p><?php echo $playerInfo['TXT_WHOAMI']; ?></p>
+			  </div>
+            </div>
+            <div class="col">
+			  <div class="single-post-text">
+			    <p><?php echo $playerInfo['TXT_GOALS']; ?></p>
+              </div>
+			</div>
+          </div>
+          <div class="info-list">
+		    <ul>
+			  <li><strong>Birthdate:</strong> <?php echo date('M, Y', strtotime($playerInfo['DATE_OF_BIRTH'])); ?></li>
+			  <li><strong>Position:</strong> <?php echo $playerInfo['POSITION_PRI']; ?></li>
+			  <li><strong>Age:</strong> <?php echo $playerInfo['AGE']; ?></li>
+              <li><strong>Secondary:</strong> <?php echo $playerInfo['POSITION_SEC']; ?></li>                            							
+              <li><strong>Height:</strong> <?php echo $playerInfo['HEIGHT']; ?></li>
+			  <li><strong>Footed:</strong> <?php echo $playerInfo['DOMINATE_FOOT']; ?></li>
+			</ul>
+		  </div>
+          <div class="info-list">
+		    <ul>
+			  <li><strong>School:</strong> <?php echo $playerInfo['HIGH_SCHOOL_NAME']; ?></li>
+			  <li><strong>City:</strong> <?php echo $playerInfo['HS_FULL_LOCATION']; ?></li>
+			  <li><strong>Grade:</strong> <?php echo $playerInfo['GRADE']; ?></li>
+              <li><strong>GPA:</strong> <?php echo $playerInfo['GPA']; ?></li>
+              <li><strong>Class:</strong> <?php echo $playerInfo['GRAD_CLASS']; ?></li>
+              <li><strong>ACT / SAT:</strong> <?php echo $playerInfo['ACT_SCORE']; ?> / <?php echo $playerInfo['SAT_SCORE']; ?></li>
+              <li><strong>Rank:</strong> <?php echo $playerInfo['CLASS_RANK']; if($displayRankPct == 1){echo ' • Top '.$playerInfo['RANK_PERCENT'].'%';} ?></li>
+              <li><strong>Transcript:</strong>
+                <?php
+                  if(strlen($playerInfo['PDF_TRANSCRIPT'] ?? '') > 0){
+                    echo "<a href='".$playerInfo['PDF_TRANSCRIPT']."' target='_BLANK'><i class=\"icon fas fa-link\"></i></a>";
+                  } else {
+                    echo "--";
+                  }
+                ?>
+              </li>
+			</ul>
+		  </div>
+          <div class="clear"></div>
+		</div>
+	  </div>
+
+      <div class="section resume" id="section-experience">
+        <div class="content">
+          <div class="titles">
+            <div class="title">Accolades</div>
+            <div class="subtitle">
+              Awards & Recognition
+              <?php if(sizeof($accoladesArray) == 0){echo "• Coming Soon";} ?>
+            </div>
+          </div>
+          <div class="content-carousel">
+            <div class="owl-carousel" data-slidesview="2" data-slidesview_mobile="1">
+              <?php
+                foreach($accoladesArray as $accolade){
+                  echo "<div class=\"item\">";
+                  echo "  <div class=\"resume-item active\">";
+                  echo "    <div class=\"date\">".$accolade['TIME_PER_DESC']."</div>";
+                  echo "    <div class=\"name\">".$accolade['ORG_NAME'];
+                  //if(strlen($accolade['ORG_LOCATION'] ?? '') > 2){echo "<br />".$accolade['ORG_LOCATION'];} else {echo "<br />&nbsp;";}
+                  echo "    </div>";
+                  echo "    <div class=\"single-post-text\">";
+                  echo "      <p>";
+                  echo "        ".nl2br($accolade['ACCOLADES_TEXT'])."";
+                  echo "      </p>";
+                  echo "    </div>";
+                  echo "  </div>";
+                  echo "</div>";
+                }
+              ?>
+            </div>
+            <div class="navs">
+              <span class="prev fas fa-chevron-left"></span>
+              <span class="next fas fa-chevron-right"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section works" id="section-portfolio">
+        <div class="content">
+          <div class="titles">
+            <div class="title">Video</div>
+            <div class="subtitle">
+              Highlight Reels & Match Videos
+              <?php if(sizeof($videosArray) == 0){echo "• Coming Soon";} ?>
+            </div>
+          </div>
+
+          <div class="box-items">
+            <?php
+              if(sizeof($videosArray) > 0){
+                foreach($videosArray as $video){
+                  echo "<div class=\"box-col f-video\">";
+                  echo "  <div class=\"box-item\">";
+                  echo "    <div class=\"image\">";
+                  echo "      <a href=\"".$video['VIDEO_URL']."\" class=\"has-popup-video\"><img src=\"".$video['IMG_THUMBNAIL']."\" alt=\"\" />";
+			      echo "      <span class=\"info\"><span class=\"centrize full-width\"><span class=\"vertical-center\"><i class=\"icon fas fa-video\"></i></span></span></span>";
+			      echo "      </a>";
+                  echo "    </div>";
+                  echo "    <div class=\"desc\">";
+                  if(strlen($video['TIME_PER_DESC'] ?? '') > 0 && strlen($video['ORG_NAME'] ?? '') > 0){
+                    echo "      <div class=\"category\">".$video['TIME_PER_DESC']." • ".$video['ORG_NAME']."</div>";
+                  }
+                  if(strlen($video['TIME_PER_DESC'] ?? '') > 0 && strlen($video['ORG_NAME'] ?? '') == 0){
+                    echo "      <div class=\"category\">".$video['TIME_PER_DESC']."</div>";
+                  }
+                  if(strlen($video['TIME_PER_DESC'] ?? '') == 0 && strlen($video['ORG_NAME'] ?? '') > 0){
+                    echo "      <div class=\"category\">".$video['ORG_NAME']."</div>";
+                  }
+                  echo "      <a href=\"https://youtu.be/S4L8T2kFFck\" class=\"name has-popup-video\">".$video['VIDEO_TYPE_DESC']." (".$video['VIDEO_LENGTH_M']." mins)</a>";
+                  echo "    </div>";
+                  echo "  </div>";
+                  echo "</div>";
+                }
+              }
+            ?>
+          </div>
+          <div class="clear"></div>
+        </div>
+      </div>
+
+      <div class="section service" id="section-services">
+        <div class="content">
+          <div class="titles">
+            <div class="title">References</div>
+            <div class="subtitle">
+              Who You Can Talk To
+              <?php if(sizeof($referenceArray) == 0){echo "• Coming Soon";} ?>
+            </div>
+          </div>
+          <div class="service-items">
+            <?php
+              foreach($referenceArray as $reference){
+                echo "<div class=\"service-col\">";
+                echo "  <div class=\"service-item\">";
+                echo "    <img src=\"".$reference['IMG_LOGO']."\" alt=\"\" style=\"height:100px;\">";
+                echo "    <div class=\"name\">".$reference['REF_TYPE']."</div>";
+                echo "    <div class=\"single-post-text\"><p>".$reference['CONTACT_NAME']."<br />".$reference['ORG_NAME'];
+                if(strlen($reference['EMAIL_ADDRESS'] ?? '') > 0){echo "<br />".$reference['EMAIL_ADDRESS'];}
+                if(strlen($reference['PHONE_NUMBER'] ?? '') > 0){echo "<br />".$reference['PHONE_NUMBER'];}
+                echo "    <br /></p></div>";
+                echo "  </div>";
+                echo "</div>";
+              }
+            ?>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+
+    <div class="section contacts" id="section-contacts">
+      <div class="content">
+        <div class="titles">
+          <div class="title">Contact</div>
+          <div class="subtitle">Let's talk</div>
+        </div>
+
+        <div class="contact-info">
+          <div class="name"><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']; ?></div>
+          <div class="subname"><?php echo $playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']; ?></div>
+          <div class="info-list">
+            <ul>
+              <li><strong>Address:</strong> <?php echo $playerInfo['FULL_LOCATION']; ?></li>
+              <li><strong>Phone:</strong> <i>Available Upon Request</i></li>
+              <li><strong>E-mail:</strong> <a href='mailto:<?php echo $playerInfo['EMAIL_ADDRESS']; ?>'><?php echo $playerInfo['EMAIL_ADDRESS']; ?></a></li>
+              <li><strong>Download/Print:</strong> <a href='playerProfilePdf.php?p=<?php echo $playerId; ?>&v=<?php echo $viewCode; ?>' target='_blank'><i class="icon fas fa-link"></i></a></li>
+            </ul>
+          </div>
+          <div class="author"><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']; ?></div>
+        </div>
+
+		<!--<div class="contact-form">
+          <form id="cform" method="post">
+            <div class="group-val">
+              <div class="label">Full name <strong>*</strong></div>
+              <input type="text" name="name" placeholder="eg. John Smith" />
+            </div>
+            <div class="group-val">
+              <div class="label">Email address <strong>*</strong></div>
+              <input type="email" name="email" placeholder="example@domain.com" />
+            </div>
+            <div class="group-val">
+              <div class="label">Message <strong>*</strong></div>
+              <textarea name="message" placeholder="Message"></textarea>
+            </div>
+            <div class="group-bts">
+              <button type="submit" class="btn"><span class="animated-button"><span>Send Message</span></span><i class="icon fas fa-chevron-right"></i></button>
+		    </div>
+          </form>
+          <div class="alert-success"><p>Thanks, your message is sent successfully.</p></div>
+        </div>-->
+
+        <div class="clear"></div>
+      </div>
+    </div>
+  </div>
+  
+  <?php	
+    if(strLen($playerInfo['SOC_FACEBOOK'] ?? '') + strLen($playerInfo['SOC_INSTAGRAM'] ?? '') + strLen($playerInfo['SOC_TWITTER'] ?? '') > 0){
+      echo "<footer class=\"footer\">";
+      echo "  <div class=\"socials\">";      
+        if(strLen($playerInfo['SOC_FACEBOOK'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.facebook.com/".$playerInfo['SOC_FACEBOOK']."/\"><i class=\"icon fab fa-facebook-f\"></i></a>";}
+        if(strLen($playerInfo['SOC_INSTAGRAM'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.instagram.com/".$playerInfo['SOC_INSTAGRAM']."/\"><i class=\"icon fab fa-instagram\"></i></a>";}
+        if(strLen($playerInfo['SOC_TWITTER'] ?? '') > 0){echo "<a target=\"_blank\" href=\"https://www.twitter.com/".$playerInfo['SOC_TWITTER']."/\"><i class=\"icon fab fa-twitter\"></i></a>";}
+	  echo "  </div>";
+      echo "</footer>";
+    }
+  ?>
+  
+  </div>
+
+<!-- Scripts -->
+<script src="js/jquery.min.js"></script>
+<script src="js/velocity.min.js"></script>
+<script src="js/jquery.validate.js"></script>
+<script src="js/magnific-popup.js"></script>
+<script src="js/typed.js"></script>
+<script src="js/jarallax.js"></script>
+<script src="js/jarallax-video.js"></script>
+<script src="js/jarallax-element.js"></script>
+<script src="js/imagesloaded.pkgd.js"></script>
+<script src="js/isotope.pkgd.js"></script>
+<script src="js/owl.carousel.js"></script>
+<script src="js/swiper.js"></script>
+<script src="js/scripts.js"></script>
+
+</body>
+</html>
