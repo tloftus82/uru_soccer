@@ -1,6 +1,7 @@
 <?php include('dbConnect/dbConnect.inc.php'); ?>
 
 <!doctype html>
+<!-- GitHub auto-deploy test: OK -->
 <html lang="en-US">
 
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
