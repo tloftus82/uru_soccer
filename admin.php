@@ -802,7 +802,7 @@ $fa         = "admin.php?section=lookups";
 
 <?php endif; // search vs edit ?>
 
-<?php else: ?>
+<?php elseif ($section === 'lookups'): ?>
 <!-- ═══ LOOKUP TABLES ════════════════════════════════════════════════════════ -->
 <?php
 function rowActions($fa, $table, $id, $activeTab) {
