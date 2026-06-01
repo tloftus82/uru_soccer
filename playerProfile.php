@@ -249,7 +249,7 @@ $ipOrg = "";
     .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
     @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
     /* Accolade cards */
-    .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
+    .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     @media(max-width:700px){.accolade-group{grid-template-columns:1fr;}}
     .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:0;transition:background .2s;}
     .accolade-card:hover{background:rgba(255,255,255,0.13);}
@@ -260,7 +260,7 @@ $ipOrg = "";
     .accolade-card .ac-org{font-size:13px;font-weight:700;line-height:1.3;}
     .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:2px;}
     .accolade-card .ac-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 9px;}
-    .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;}
+    .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;flex:1;}
     /* Equal-height carousel */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
