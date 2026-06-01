@@ -27,20 +27,25 @@
             <?php if($_SESSION['lang'] == 'es'){ echo "Hablemos"; } ?>
           </div>
         </div>
-        <div class="contact-info">
-          <img src="images/headshots/carlos.jpg" alt="Carlos Saenz" style="width:160px;height:160px;object-fit:cover;border-radius:50%;display:block;margin:0 auto 20px;">
-          <div class="name">Carlos Saenz</div>
-          <div class="subname">
-            <?php if($_SESSION['lang'] == 'en'){ echo "Head Coach"; } ?>
-            <?php if($_SESSION['lang'] == 'es'){ echo "Entrenador Principal"; } ?>
+        <div style="display:flex;align-items:flex-start;gap:40px;flex-wrap:wrap;">
+          <div class="contact-info" style="flex:1;min-width:220px;">
+            <div class="name">Carlos Saenz</div>
+            <div class="subname">
+              <?php if($_SESSION['lang'] == 'en'){ echo "Head Coach"; } ?>
+              <?php if($_SESSION['lang'] == 'es'){ echo "Entrenador Principal"; } ?>
+            </div>
+            <div class="info-list">
+              <ul>
+                <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "Phone:"; } if($_SESSION['lang'] == 'es'){ echo "Telefono:"; } ?></strong>(402) 508-0568</li>
+                <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "E-mail:"; } if($_SESSION['lang'] == 'es'){ echo "Correo:"; } ?></strong><a href='mailto:uruhighperformance@gmail.com'>uruhighperformance@gmail.com</a></li>
+              </ul>
+            </div>
+            <div class="author">Carlos Saenz</div>
           </div>
-          <div class="info-list">
-            <ul>
-              <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "Phone:"; } if($_SESSION['lang'] == 'es'){ echo "Telefono:"; } ?></strong>(402) 508-0568</li>
-              <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "E-mail:"; } if($_SESSION['lang'] == 'es'){ echo "Correo:"; } ?></strong><a href='mailto:uruhighperformance@gmail.com'>uruhighperformance@gmail.com</a></li>
-            </ul>
+          <div style="flex-shrink:0;">
+            <img src="images/headshots/carlos.jpg" alt="Carlos Saenz"
+                 style="width:220px;height:auto;object-fit:contain;border-radius:10px;display:block;box-shadow:0 4px 18px rgba(0,0,0,0.25);">
           </div>
-          <div class="author">Carlos Saenz</div>
         </div>
         <div class="clear"></div>
       </div>
