@@ -602,23 +602,16 @@ $ipOrg = "";
           <?php if (!empty($playerInfo['EMAIL_ADDRESS']) && $playerInfo['EMAIL_ADDRESS'] !== '--'): ?>
           <div class="cc-row"><span class="cc-icon"><i class="fas fa-envelope"></i></span><a href="mailto:<?= htmlspecialchars($playerInfo['EMAIL_ADDRESS']) ?>"><?= htmlspecialchars($playerInfo['EMAIL_ADDRESS']) ?></a></div>
           <?php endif; ?>
-          <div class="cc-row"><span class="cc-icon"><i class="fas fa-file-pdf"></i></span><a href="playerProfilePdf.php?p=<?= $playerId ?>&v=<?= htmlspecialchars($viewCode) ?>" target="_blank">Download / Print Profile</a></div>
-          <?php
-            $hasSocial = strlen($playerInfo['SOC_FACEBOOK'] ?? '') + strlen($playerInfo['SOC_INSTAGRAM'] ?? '') + strlen($playerInfo['SOC_TWITTER'] ?? '') > 0;
-            if ($hasSocial): ?>
-          <hr class="cc-divider" style="margin-top:12px;">
-          <div style="display:flex;gap:14px;align-items:center;">
-            <?php if (!empty($playerInfo['SOC_INSTAGRAM'])): ?>
-            <a href="https://www.instagram.com/<?= htmlspecialchars($playerInfo['SOC_INSTAGRAM']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <?php endif; ?>
-            <?php if (!empty($playerInfo['SOC_TWITTER'])): ?>
-            <a href="https://www.twitter.com/<?= htmlspecialchars($playerInfo['SOC_TWITTER']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Twitter / X"><i class="fab fa-twitter"></i></a>
-            <?php endif; ?>
-            <?php if (!empty($playerInfo['SOC_FACEBOOK'])): ?>
-            <a href="https://www.facebook.com/<?= htmlspecialchars($playerInfo['SOC_FACEBOOK']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <?php endif; ?>
-          </div>
+          <?php if (!empty($playerInfo['SOC_INSTAGRAM'])): ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fab fa-instagram"></i></span><a href="https://www.instagram.com/<?= htmlspecialchars($playerInfo['SOC_INSTAGRAM']) ?>/" target="_blank">@<?= htmlspecialchars($playerInfo['SOC_INSTAGRAM']) ?></a></div>
           <?php endif; ?>
+          <?php if (!empty($playerInfo['SOC_TWITTER'])): ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fab fa-twitter"></i></span><a href="https://www.twitter.com/<?= htmlspecialchars($playerInfo['SOC_TWITTER']) ?>/" target="_blank">@<?= htmlspecialchars($playerInfo['SOC_TWITTER']) ?></a></div>
+          <?php endif; ?>
+          <?php if (!empty($playerInfo['SOC_FACEBOOK'])): ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fab fa-facebook-f"></i></span><a href="https://www.facebook.com/<?= htmlspecialchars($playerInfo['SOC_FACEBOOK']) ?>/" target="_blank"><?= htmlspecialchars($playerInfo['SOC_FACEBOOK']) ?></a></div>
+          <?php endif; ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fas fa-file-pdf"></i></span><a href="playerProfilePdf.php?p=<?= $playerId ?>&v=<?= htmlspecialchars($viewCode) ?>" target="_blank">Download / Print Profile</a></div>
         </div>
 
 		<!--<div class="contact-form">
