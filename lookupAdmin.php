@@ -3,20 +3,20 @@ ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(E_ALL);
 
-session_start();
-
 // ── Auth ──────────────────────────────────────────────────────────────────────
 define('ADMIN_HASH', '63b38ded3ce608f47342f48fe9ac1639');
+define('COOKIE_TOKEN', hash('sha256', ADMIN_HASH . 'uru_admin_salt'));
 
 if (isset($_POST['_pw_attempt'])) {
     if ($_POST['_pw_attempt'] === ADMIN_HASH) {
-        $_SESSION['uru_admin'] = true;
+        setcookie('uru_admin', COOKIE_TOKEN, time() + 86400 * 30, '/', '', false, true);
     }
     header('Location: lookupAdmin.php');
     exit;
 }
 
-if (empty($_SESSION['uru_admin'])) {
+$authed = isset($_COOKIE['uru_admin']) && $_COOKIE['uru_admin'] === COOKIE_TOKEN;
+if (!$authed) {
     ?><!DOCTYPE html>
 <html lang="en">
 <head>
