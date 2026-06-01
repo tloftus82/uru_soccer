@@ -170,15 +170,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
     }
     if ($action === 'UPDATE_REFERENCES') {
         $refIds  = $_POST['REF_ID']     ?? [];
-        $sorts   = $_POST['REF_SORT']   ?? [];
         $actives = $_POST['REF_ACTIVE'] ?? [];
         foreach ($refIds as $i => $rid) {
-            $rid  = (int)$rid;
-            $sort = (int)($sorts[$i]   ?? 0);
-            $act  = (int)($actives[$i] ?? 0);
-            mysqli_query($cn, "UPDATE PP_REFERENCES SET SORT_ORDER=$sort,IS_ACTIVE=$act WHERE ID=$rid AND PLAYER_ID=$playerId");
+            $rid = (int)$rid;
+            $act = (int)($actives[$i] ?? 0);
+            mysqli_query($cn, "UPDATE PP_REFERENCES SET IS_ACTIVE=$act WHERE ID=$rid AND PLAYER_ID=$playerId");
         }
         $flashMsg = "References updated!";
+    }
+    if ($action === 'SAVE_ACCOLADE_ORDER') {
+        $ids = array_map('intval', explode(',', $_POST['ORDER'] ?? ''));
+        foreach ($ids as $i => $id) {
+            if ($id) mysqli_query($cn, "UPDATE PP_ACCOLADES SET SORT_ORDER=".($i+1)." WHERE ID=$id AND PLAYER_ID=$playerId");
+        }
+        $flashMsg = "Accolade order saved!";
+    }
+    if ($action === 'SAVE_VIDEO_ORDER') {
+        $ids = array_map('intval', explode(',', $_POST['ORDER'] ?? ''));
+        foreach ($ids as $i => $id) {
+            if ($id) mysqli_query($cn, "UPDATE PP_VIDEOS SET SORT_ORDER=".($i+1)." WHERE ID=$id AND PLAYER_ID=$playerId");
+        }
+        $flashMsg = "Video order saved!";
+    }
+    if ($action === 'SAVE_REF_ORDER') {
+        $ids = array_map('intval', explode(',', $_POST['ORDER'] ?? ''));
+        foreach ($ids as $i => $id) {
+            if ($id) mysqli_query($cn, "UPDATE PP_REFERENCES SET SORT_ORDER=".($i+1)." WHERE ID=$id AND PLAYER_ID=$playerId");
+        }
+        $flashMsg = "Reference order saved!";
     }
     if ($action === 'DELETE_REFERENCE') {
         $id = (int)($_POST['REF_ID'] ?? 0);
@@ -257,6 +276,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'lookups') {
     if ($action === 'DELETE_TIMEPERIOD') {
         mysqli_query($cn, "DELETE FROM PP_TIME_PERIODS WHERE ID=".(int)$_POST['ID']);
         $flashMsg = 'Time period deleted.'; $flashType = 'warning';
+    }
+    if ($action === 'SAVE_TIMEPERIOD_ORDER') {
+        $ids = array_map('intval', explode(',', $_POST['ORDER'] ?? ''));
+        foreach ($ids as $i => $id) {
+            if ($id) mysqli_query($cn, "UPDATE PP_TIME_PERIODS SET SORT_ORDER=".($i+1)." WHERE ID=$id");
+        }
+        $flashMsg = 'Time period order saved!';
     }
     if ($action === 'SAVE_VIDEOTYPE') {
         $desc = esc($cn, trim($_POST['VIDEO_TYPE_DESC'] ?? ''));
@@ -402,6 +428,10 @@ $fa         = "admin.php?section=lookups";
     .player-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;}
     .avatar-placeholder{width:36px;height:36px;border-radius:50%;background:#c8d6e5;display:inline-flex;align-items:center;justify-content:center;color:#6a8ab0;font-size:14px;}
     #playerSearch{max-width:340px;}
+    .drag-handle{cursor:grab;color:#aab;font-size:15px;padding:0 8px;}
+    .drag-handle:active{cursor:grabbing;}
+    .sortable-ghost{background:#e8f4e8 !important;opacity:.6;}
+    .sortable-drag{background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);}
   </style>
 </head>
 <body>
@@ -576,12 +606,17 @@ $fa         = "admin.php?section=lookups";
     <?php if (count($accolades)): ?>
     <div class="card-section">
       <h5><i class="fas fa-list me-2"></i>Current Accolades</h5>
+      <form method="POST" action="<?= $formAction ?>" id="accoladeOrderForm">
+        <input type="hidden" name="ACTION" value="SAVE_ACCOLADE_ORDER">
+        <input type="hidden" name="ACTIVE_TAB" value="tab-accolades">
+        <input type="hidden" name="ORDER" id="accoladeOrder">
+      </form>
       <table class="table table-hover table-sm align-middle">
-        <thead><tr><th>Sort</th><th>Time Period</th><th>Organization</th><th>Text</th><th style="width:60px"></th></tr></thead>
-        <tbody>
+        <thead><tr><th style="width:30px"></th><th>Time Period</th><th>Organization</th><th>Text</th><th style="width:60px"></th></tr></thead>
+        <tbody id="accoladeBody">
         <?php foreach ($accolades as $acc): ?>
-        <tr>
-          <td class="text-muted"><?= (int)$acc['SORT_ORDER'] ?></td>
+        <tr data-id="<?= $acc['ID'] ?>">
+          <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
           <td><?= htmlspecialchars($acc['TIME_PER_DESC']) ?></td>
           <td><?= htmlspecialchars($acc['ORG_NAME']) ?></td>
           <td><?= nl2br(htmlspecialchars(mb_substr($acc['ACCOLADES_TEXT'],0,100))) ?><?= mb_strlen($acc['ACCOLADES_TEXT'])>100?'&hellip;':'' ?></td>
@@ -613,12 +648,17 @@ $fa         = "admin.php?section=lookups";
     <?php if (count($videos)): ?>
     <div class="card-section">
       <h5><i class="fas fa-list me-2"></i>Current Videos</h5>
+      <form method="POST" action="<?=$formAction?>" id="videoOrderForm">
+        <input type="hidden" name="ACTION" value="SAVE_VIDEO_ORDER">
+        <input type="hidden" name="ACTIVE_TAB" value="tab-videos">
+        <input type="hidden" name="ORDER" id="videoOrder">
+      </form>
       <table class="table table-hover table-sm align-middle">
-        <thead><tr><th>Sort</th><th>Type</th><th>Time Period</th><th>Org</th><th>Length</th><th>URL</th><th style="width:60px"></th></tr></thead>
-        <tbody>
+        <thead><tr><th style="width:30px"></th><th>Type</th><th>Time Period</th><th>Org</th><th>Length</th><th>URL</th><th style="width:60px"></th></tr></thead>
+        <tbody id="videoBody">
         <?php foreach ($videos as $vid): ?>
-        <tr>
-          <td class="text-muted"><?=(int)$vid['SORT_ORDER']?></td>
+        <tr data-id="<?=$vid['ID']?>">
+          <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
           <td><?=htmlspecialchars($vid['VIDEO_TYPE_DESC'])?></td>
           <td><?=htmlspecialchars($vid['TIME_PER_DESC']??'—')?></td>
           <td><?=htmlspecialchars($vid['ORG_NAME']??'—')?></td>
@@ -655,28 +695,33 @@ $fa         = "admin.php?section=lookups";
     <?php if (count($references)): ?>
     <div class="card-section">
       <h5><i class="fas fa-list me-2"></i>Current References</h5>
-      <form method="POST" action="<?=$formAction?>">
+      <form method="POST" action="<?=$formAction?>" id="refActiveForm">
         <input type="hidden" name="ACTION" value="UPDATE_REFERENCES">
         <input type="hidden" name="ACTIVE_TAB" value="tab-references">
+        <form method="POST" action="<?=$formAction?>" id="refOrderForm" style="display:none">
+          <input type="hidden" name="ACTION" value="SAVE_REF_ORDER">
+          <input type="hidden" name="ACTIVE_TAB" value="tab-references">
+          <input type="hidden" name="ORDER" id="refOrder">
+        </form>
         <table class="table table-hover table-sm align-middle">
-          <thead><tr><th>Type</th><th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th style="width:80px">Sort</th><th style="width:100px">Active</th><th style="width:60px"></th></tr></thead>
-          <tbody>
+          <thead><tr><th style="width:30px"></th><th>Type</th><th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th style="width:100px">Active</th><th style="width:60px"></th></tr></thead>
+          <tbody id="refBody">
           <?php foreach ($references as $ref): ?>
-          <tr>
+          <tr data-id="<?=$ref['ID']?>">
+            <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
             <input type="hidden" name="REF_ID[]" value="<?=$ref['ID']?>">
             <td><?=htmlspecialchars($ref['REF_TYPE'])?></td>
             <td><?=htmlspecialchars($ref['CONTACT_NAME'])?></td>
             <td><?=htmlspecialchars($ref['ORG_NAME'])?></td>
             <td><?=htmlspecialchars($ref['EMAIL_ADDRESS']??'')?></td>
             <td><?=htmlspecialchars($ref['PHONE_NUMBER']??'')?></td>
-            <td><input type="number" class="form-control form-control-sm" name="REF_SORT[]" value="<?=(int)$ref['SORT_ORDER']?>"></td>
             <td><select class="form-select form-select-sm" name="REF_ACTIVE[]"><option value="1" <?=sel($ref['IS_ACTIVE'],1)?>>Yes</option><option value="0" <?=sel($ref['IS_ACTIVE'],0)?>>No</option></select></td>
             <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteRef(<?=$ref['ID']?>)"><i class="fas fa-trash"></i></button></td>
           </tr>
           <?php endforeach; ?>
           </tbody>
         </table>
-        <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Sort / Active</button>
+        <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Active Status</button>
       </form>
     </div>
     <?php endif; ?>
@@ -776,7 +821,12 @@ function rowActions($fa, $table, $id, $activeTab) {
 <div class="tab-pane fade <?=$activeTab==='tab-periods'?'show active':''?>" id="tab-periods">
   <div class="card-section">
     <h5><i class="fas fa-calendar me-2"></i>Time Periods</h5>
-    <?php if(count($allTimePer)):?><table class="table table-hover table-sm"><thead><tr><th>ID</th><th>Description</th><th>Sort</th><th>Active</th><th></th></tr></thead><tbody><?php foreach($allTimePer as $row):?><tr><td class="text-muted"><?=(int)$row['ID']?></td><td><?=htmlspecialchars($row['TIME_PER_DESC'])?></td><td><?=(int)$row['SORT_ORDER']?></td><td><?=$row['IS_ACTIVE']?'<span class="badge bg-success">Yes</span>':'<span class="badge bg-secondary">No</span>'?></td><?php rowActions($fa,'TIMEPERIOD',$row['ID'],'tab-periods');?></tr><?php endforeach;?></tbody></table><?php endif;?>
+    <form method="POST" action="<?=$fa?>" id="tpOrderForm">
+      <input type="hidden" name="ACTION" value="SAVE_TIMEPERIOD_ORDER">
+      <input type="hidden" name="ACTIVE_TAB" value="tab-periods">
+      <input type="hidden" name="ORDER" id="tpOrder">
+    </form>
+    <?php if(count($allTimePer)):?><table class="table table-hover table-sm"><thead><tr><th style="width:30px"></th><th>ID</th><th>Description</th><th>Active</th><th></th></tr></thead><tbody id="tpBody"><?php foreach($allTimePer as $row):?><tr data-id="<?=(int)$row['ID']?>"><td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td><td class="text-muted"><?=(int)$row['ID']?></td><td><?=htmlspecialchars($row['TIME_PER_DESC'])?></td><td><?=$row['IS_ACTIVE']?'<span class="badge bg-success">Yes</span>':'<span class="badge bg-secondary">No</span>'?></td><?php rowActions($fa,'TIMEPERIOD',$row['ID'],'tab-periods');?></tr><?php endforeach;?></tbody></table><?php endif;?>
     <?php $ed=($editTable==='TIMEPERIOD'&&$editId&&$editRow); if($ed) echo "<div class='editing-banner'><i class='fas fa-pencil-alt me-2'></i>Editing: ".htmlspecialchars($editRow['TIME_PER_DESC'])."</div>"; ?>
     <div class="add-panel"><form method="POST" action="<?=$fa?>"><input type="hidden" name="ACTION" value="SAVE_TIMEPERIOD"><input type="hidden" name="ACTIVE_TAB" value="tab-periods"><input type="hidden" name="EDIT_ID" value="<?=$ed?$editId:0?>"><div class="row g-2 align-items-end"><div class="col-md-4"><label class="form-label">Description</label><input type="text" class="form-control" name="TIME_PER_DESC" value="<?=$ed?v($editRow,'TIME_PER_DESC'):''?>" required placeholder="e.g. 2024-25 Season"></div><div class="col-md-2"><label class="form-label">Sort Order</label><input type="number" class="form-control" name="SORT_ORDER" value="<?=$ed?v($editRow,'SORT_ORDER'):count($allTimePer)+1?>"></div><div class="col-md-2"><label class="form-label">Active</label><select class="form-select" name="IS_ACTIVE"><option value="1" <?=$ed?sel($editRow['IS_ACTIVE'],1):'selected'?>>Yes</option><option value="0" <?=$ed?sel($editRow['IS_ACTIVE'],0):''?>>No</option></select></div><div class="col-auto"><button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i><?=$ed?'Update':'Add'?></button><?php if($ed):?><a href="<?=$fa?>&tab=tab-periods" class="btn btn-outline-secondary ms-1">Cancel</a><?php endif;?></div></div></form></div>
   </div>
@@ -818,7 +868,28 @@ function rowActions($fa, $table, $id, $activeTab) {
 </form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
+function initSortable(tbodyId, orderInputId, formId) {
+  var tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  Sortable.create(tbody, {
+    handle: '.drag-handle',
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    dragClass: 'sortable-drag',
+    onEnd: function() {
+      var ids = Array.from(tbody.querySelectorAll('tr[data-id]')).map(function(r){ return r.getAttribute('data-id'); });
+      document.getElementById(orderInputId).value = ids.join(',');
+      document.getElementById(formId).submit();
+    }
+  });
+}
+initSortable('accoladeBody', 'accoladeOrder', 'accoladeOrderForm');
+initSortable('videoBody',    'videoOrder',    'videoOrderForm');
+initSortable('refBody',      'refOrder',      'refOrderForm');
+initSortable('tpBody',       'tpOrder',       'tpOrderForm');
+
 function deleteRef(id){
   if(!confirm('Remove this reference?')) return;
   document.getElementById('deleteRefId').value=id;
