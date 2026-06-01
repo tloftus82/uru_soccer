@@ -23,17 +23,75 @@ $filterPlayer   = intval($_GET['player']   ?? 0);
 $filterViewer   = intval($_GET['viewer']   ?? 0);
 $filterDateFrom = $_GET['date_from'] ?? '';
 $filterDateTo   = $_GET['date_to']   ?? '';
-$hideBots       = isset($_GET['hide_bots']) ? (int)$_GET['hide_bots'] : 1;
+$hideBots       = isset($_GET['hide_bots'])   ? (int)$_GET['hide_bots']   : 1;
+$hideUnauth     = isset($_GET['hide_unauth']) ? (int)$_GET['hide_unauth'] : 0;
+$page           = max(1, intval($_GET['pg'] ?? 1));
+$perPage        = 200;
+$offset         = ($page - 1) * $perPage;
+
+// ── Build bot SQL exclusion ────────────────────────────────────────────────────
+$botSqlParts = [];
+foreach ($botPatterns as $p) {
+    $ps = mysqli_real_escape_string($cn, $p);
+    $botSqlParts[] = "LOWER(CONCAT(IFNULL(A.IP_ORG,''),' ',IFNULL(A.HOST_NAME,''))) LIKE '%$ps%'";
+}
+$botSql = implode(' OR ', $botSqlParts);
 
 // ── Build WHERE ────────────────────────────────────────────────────────────────
 $where = ["1=1"];
-if ($filterPlayer)            $where[] = "A.PLAYER_ID = $filterPlayer";
-if ($filterViewer)            $where[] = "A.VIEWER_ID = $filterViewer";
-if ($filterDateFrom !== '')   $where[] = "DATE(A.VIEW_DATE_TIME) >= '".mysqli_real_escape_string($cn, $filterDateFrom)."'";
-if ($filterDateTo   !== '')   $where[] = "DATE(A.VIEW_DATE_TIME) <= '".mysqli_real_escape_string($cn, $filterDateTo)."'";
+if ($filterPlayer)          $where[] = "A.PLAYER_ID = $filterPlayer";
+if ($filterViewer)          $where[] = "A.VIEWER_ID = $filterViewer";
+if ($filterDateFrom !== '') $where[] = "DATE(A.VIEW_DATE_TIME) >= '".mysqli_real_escape_string($cn, $filterDateFrom)."'";
+if ($filterDateTo   !== '') $where[] = "DATE(A.VIEW_DATE_TIME) <= '".mysqli_real_escape_string($cn, $filterDateTo)."'";
+if ($hideBots)              $where[] = "NOT ($botSql)";
+if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 
-$whereStr = implode(' AND ', $where);
+$whereStr    = implode(' AND ', $where);
+$whereBotOff = implode(' AND ', array_filter($where, fn($w) => $w !== "NOT ($botSql)"));
 
+// ── Summary stats via DB (fast, no full fetch) ────────────────────────────────
+$statsRow = mysqli_fetch_assoc(mysqli_query($cn,
+    "SELECT COUNT(*) AS total,
+            COUNT(DISTINCT A.PLAYER_ID) AS u_players,
+            COUNT(DISTINCT A.VIEWER_ID) AS u_viewers,
+            COUNT(DISTINCT A.IP_ADDRESS) AS u_ips
+     FROM PP_VIEW_LOG A
+     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr"));
+
+$totalViews    = (int)$statsRow['total'];
+$uniquePlayers = (int)$statsRow['u_players'];
+$uniqueViewers = (int)$statsRow['u_viewers'];
+$uniqueIPs     = (int)$statsRow['u_ips'];
+$totalPages    = max(1, (int)ceil($totalViews / $perPage));
+
+// Bot count (always without bot filter so stat card is meaningful)
+$botRow  = mysqli_fetch_assoc(mysqli_query($cn,
+    "SELECT COUNT(*) AS cnt FROM PP_VIEW_LOG A
+     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE ($whereBotOff) AND ($botSql)"));
+$botCount = (int)$botRow['cnt'];
+
+// ── Bar chart data (top 10 per group, from DB) ─────────────────────────────────
+$byPlayerRaw = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS NAME, COUNT(*) AS CNT
+     FROM PP_VIEW_LOG A
+     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr GROUP BY A.PLAYER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
+$byPlayer = array_column($byPlayerRaw, 'CNT', 'NAME');
+
+$byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT CONCAT(B.FIRST_NAME,' ',B.LAST_NAME) AS NAME, COUNT(*) AS CNT
+     FROM PP_VIEW_LOG A
+     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr GROUP BY A.VIEWER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
+$byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
+
+// ── Fetch page of rows ────────────────────────────────────────────────────────
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID,
                CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS PLAYER,
@@ -42,54 +100,14 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
         INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
         INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
         WHERE $whereStr
-        ORDER BY A.VIEW_DATE_TIME DESC";
+        ORDER BY A.VIEW_DATE_TIME DESC
+        LIMIT $perPage OFFSET $offset";
 
-$result     = mysqli_query($cn, $sql);
-$viewsRaw   = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-// ── Bot detection ──────────────────────────────────────────────────────────────
-function isBot($row, $patterns) {
-    $haystack = strtolower($row['IP_ORG'] . ' ' . $row['HOST_NAME']);
-    foreach ($patterns as $p) {
-        if (str_contains($haystack, $p)) return true;
-    }
-    return false;
-}
-
-$views    = [];
-$botCount = 0;
-foreach ($viewsRaw as $row) {
-    $row['_is_bot'] = isBot($row, $botPatterns);
-    if ($row['_is_bot']) $botCount++;
-    $views[] = $row;
-}
-
-$displayViews = $hideBots ? array_filter($views, fn($r) => !$r['_is_bot']) : $views;
-$displayViews = array_values($displayViews);
+$displayViews = mysqli_fetch_all(mysqli_query($cn, $sql), MYSQLI_ASSOC);
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 $players = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_PLAYERS WHERE IS_ACTIVE=1 ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
 $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_ALLOWED_VIEWERS ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
-
-// ── Summary stats (on filtered display set) ────────────────────────────────────
-$totalViews     = count($displayViews);
-$uniquePlayers  = count(array_unique(array_column($displayViews, 'PLAYER_ID')));
-$uniqueViewers  = count(array_unique(array_column($displayViews, 'VIEWER_ID')));
-$uniqueIPs      = count(array_unique(array_column($displayViews, 'IP_ADDRESS')));
-
-// Views per player
-$byPlayer = [];
-foreach ($displayViews as $r) {
-    $byPlayer[$r['PLAYER']] = ($byPlayer[$r['PLAYER']] ?? 0) + 1;
-}
-arsort($byPlayer);
-
-// Views per viewer
-$byViewer = [];
-foreach ($displayViews as $r) {
-    $byViewer[$r['VIEWER']] = ($byViewer[$r['VIEWER']] ?? 0) + 1;
-}
-arsort($byViewer);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -201,7 +219,14 @@ arsort($byViewer);
           <option value="0" <?= !$hideBots ? 'selected' : '' ?>>Show all (including bots)</option>
         </select>
       </div>
-      <div class="col-md-2 d-flex gap-2">
+      <div class="col-md-2">
+        <label class="form-label fw-semibold mb-1" style="font-size:12px;">Unauthenticated Views</label>
+        <select name="hide_unauth" class="form-select form-select-sm">
+          <option value="0" <?= !$hideUnauth ? 'selected' : '' ?>>Show all viewers</option>
+          <option value="1" <?= $hideUnauth ? 'selected' : '' ?>>Authenticated only</option>
+        </select>
+      </div>
+      <div class="col-md-1 d-flex gap-2">
         <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="fas fa-filter me-1"></i>Filter</button>
         <a href="playerProfileViewList.php" class="btn btn-sm btn-outline-secondary"><i class="fas fa-times"></i></a>
       </div>
@@ -244,9 +269,36 @@ arsort($byViewer);
 
   <!-- ── Detail Table ───────────────────────────────────────────────────────── -->
   <div class="bg-white rounded-3 p-3 shadow-sm">
-    <div class="section-head mb-3"><i class="fas fa-list me-2"></i>View Detail
-      <?php if (!$hideBots && $botCount > 0): ?>
-      <span class="badge-bot ms-2"><?= $botCount ?> bots included</span>
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div class="section-head mb-0"><i class="fas fa-list me-2"></i>View Detail
+        <span class="text-muted fw-normal" style="font-size:12px;text-transform:none;letter-spacing:0;">
+          — showing <?= number_format(($offset+1)) ?>–<?= number_format(min($offset+$perPage,$totalViews)) ?> of <?= number_format($totalViews) ?>
+          <?php if(!$hideBots && $botCount>0): ?><span class="badge-bot ms-2"><?= $botCount ?> bots included</span><?php endif; ?>
+        </span>
+      </div>
+      <!-- Pagination -->
+      <?php if ($totalPages > 1):
+        $qs = http_build_query(array_filter(['player'=>$filterPlayer,'viewer'=>$filterViewer,'date_from'=>$filterDateFrom,'date_to'=>$filterDateTo,'hide_bots'=>$hideBots,'hide_unauth'=>$hideUnauth]));
+      ?>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item <?= $page<=1 ? 'disabled' : '' ?>">
+            <a class="page-link" href="?<?= $qs ?>&pg=<?= $page-1 ?>"><i class="fas fa-chevron-left"></i></a>
+          </li>
+          <?php
+          $start = max(1, $page-2); $end = min($totalPages, $page+2);
+          if($start>1)        echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+          for($i=$start;$i<=$end;$i++):
+          ?><li class="page-item <?= $i==$page?'active':'' ?>">
+            <a class="page-link" href="?<?= $qs ?>&pg=<?= $i ?>"><?= $i ?></a>
+          </li><?php endfor;
+          if($end<$totalPages) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+          ?>
+          <li class="page-item <?= $page>=$totalPages ? 'disabled' : '' ?>">
+            <a class="page-link" href="?<?= $qs ?>&pg=<?= $page+1 ?>"><i class="fas fa-chevron-right"></i></a>
+          </li>
+        </ul>
+      </nav>
       <?php endif; ?>
     </div>
     <div class="table-responsive">
@@ -264,18 +316,14 @@ arsort($byViewer);
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($views as $row):
-            if ($hideBots && $row['_is_bot']) continue; ?>
-          <tr class="<?= $row['_is_bot'] ? 'bot-row' : '' ?>">
+          <?php foreach ($displayViews as $row): ?>
+          <tr>
             <td class="text-nowrap"><?= htmlspecialchars($row['VIEW_DATE_TIME']) ?></td>
             <td><?= htmlspecialchars($row['PLAYER']) ?></td>
             <td><?= htmlspecialchars($row['VIEWER']) ?></td>
             <td class="text-nowrap text-muted"><?= htmlspecialchars($row['IP_ADDRESS']) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
-            <td>
-              <?= htmlspecialchars($row['IP_ORG']) ?>
-              <?php if ($row['_is_bot']): ?><span class="badge-bot ms-1">bot</span><?php endif; ?>
-            </td>
+            <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['HOST_NAME']) ?>"><?= htmlspecialchars($row['HOST_NAME']) ?></td>
             <td><?php if($row['AUTHENTICATED']): ?><span class="badge-auth">yes</span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
           </tr>
@@ -293,7 +341,7 @@ arsort($byViewer);
 <script>
 $('#viewTable').DataTable({
   order: [[0,'desc']],
-  pageLength: 50,
+  pageLength: 200,
   lengthMenu: [25,50,100,500],
   columnDefs: [{ orderable: false, targets: 7 }]
 });
