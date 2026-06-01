@@ -27,52 +27,8 @@
             <?php if($_SESSION['lang'] == 'es'){ echo "Hablemos"; } ?>
           </div>
         </div>
-		<div class="contact-form">
-          <form id="cform" method="post">
-            <div class="group-val">
-              <div class="label">
-                <?php if($_SESSION['lang'] == 'en'){ echo "Full name"; } ?>
-                <?php if($_SESSION['lang'] == 'es'){ echo "Nombre completo"; } ?>
-                <strong>*</strong>
-              </div>
-              <input type="text" name="name" placeholder="<?php if($_SESSION['lang'] == 'en'){ echo 'eg. John Smith'; } if($_SESSION['lang'] == 'es'){ echo 'ej. Juan Garcia'; } ?>" />
-            </div>
-            <div class="group-val">
-              <div class="label">
-                <?php if($_SESSION['lang'] == 'en'){ echo "Email address"; } ?>
-                <?php if($_SESSION['lang'] == 'es'){ echo "Correo electronico"; } ?>
-                <strong>*</strong>
-              </div>
-              <input type="email" name="email" placeholder="example@domain.com" />
-            </div>
-            <div class="group-val">
-              <div class="label">
-                <?php if($_SESSION['lang'] == 'en'){ echo "Message"; } ?>
-                <?php if($_SESSION['lang'] == 'es'){ echo "Mensaje"; } ?>
-                <strong>*</strong>
-              </div>
-              <textarea name="message" placeholder="<?php if($_SESSION['lang'] == 'en'){ echo 'Message'; } if($_SESSION['lang'] == 'es'){ echo 'Mensaje'; } ?>"></textarea>
-            </div>
-            <div class="group-bts">
-              <button type="submit" class="btn">
-                <span class="animated-button">
-                  <span>
-                    <?php if($_SESSION['lang'] == 'en'){ echo "Send Message"; } ?>
-                    <?php if($_SESSION['lang'] == 'es'){ echo "Enviar Mensaje"; } ?>
-                  </span>
-                </span>
-                <i class="icon fas fa-chevron-right"></i>
-              </button>
-		    </div>
-          </form>
-          <div class="alert-success">
-            <p>
-              <?php if($_SESSION['lang'] == 'en'){ echo "Thanks, your message is sent successfully."; } ?>
-              <?php if($_SESSION['lang'] == 'es'){ echo "Gracias, su mensaje ha sido enviado exitosamente."; } ?>
-            </p>
-          </div>
-        </div>
         <div class="contact-info">
+          <img src="images/headshots/carlos.jpg" alt="Carlos Saenz" style="width:160px;height:160px;object-fit:cover;border-radius:50%;display:block;margin:0 auto 20px;">
           <div class="name">Carlos Saenz</div>
           <div class="subname">
             <?php if($_SESSION['lang'] == 'en'){ echo "Head Coach"; } ?>
