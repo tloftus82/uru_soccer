@@ -241,13 +241,14 @@ $ipOrg = "";
   <link rel="stylesheet" href="css/fontawesome.css" />
   <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->
   <style>
-    .stat-cards{display:flex;flex-wrap:wrap;gap:14px;margin:28px 0 8px;}
-    .stat-card{flex:1 1 140px;min-width:120px;max-width:200px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:16px 12px 14px;text-align:center;transition:background .2s,transform .2s;}
+    .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 8px;}
+    .stat-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:20px 12px 18px;text-align:center;transition:background .2s,transform .2s;}
     .stat-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
-    .stat-card .sc-icon{font-size:22px;margin-bottom:8px;opacity:.75;}
-    .stat-card .sc-value{font-size:17px;font-weight:700;line-height:1.2;word-break:break-word;}
-    .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
-    @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
+    .stat-card .sc-icon{font-size:22px;margin-bottom:10px;opacity:.75;}
+    .stat-card .sc-value{font-size:16px;font-weight:700;line-height:1.3;word-break:break-word;}
+    .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:6px;}
+    @media(max-width:800px){.stat-cards{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:540px){.stat-cards{grid-template-columns:repeat(2,1fr);}}
     /* Accolade cards */
     .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     @media(max-width:700px){.accolade-group{grid-template-columns:1fr;}}
