@@ -329,7 +329,7 @@ $ipOrg = "";
       /* Hide the theme's own sidebar entirely on mobile — we use our own dropdown */
       .header .header-sidebar{display:none !important;}
       /* Custom mobile dropdown */
-      #mobileNav{display:none;position:fixed;top:52px;left:0;right:0;z-index:199;background:rgba(28,31,36,0.98);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.08);overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+      #mobileNav{position:fixed;top:52px;left:0;right:0;z-index:199;background:rgba(28,31,36,0.98);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.08);overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
       #mobileNav.open{max-height:500px;}
       #mobileNav a{display:block;color:#fff;text-decoration:none;padding:14px 20px;font-size:15px;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.06);}
       #mobileNav a:last-child{border-bottom:none;}
@@ -349,7 +349,8 @@ $ipOrg = "";
       .h-title img.desktop-headshot{display:none;}
     }
     @media(min-width:768px){
-      .mobile-hero{display:none;}
+      .mobile-hero{display:none !important;}
+      #mobileNav{display:none !important;}
     }
   </style>
 		
@@ -729,14 +730,19 @@ document.querySelectorAll('.sc-value').forEach(function(el) {
   }
 });
 
-// Mobile nav toggle (replaces theme hamburger behaviour on mobile)
+// Mobile nav toggle — only active on mobile widths
 var mobileNav = document.getElementById('mobileNav');
 var mobileMenuBtn = document.getElementById('mobileMenuBtn');
 if (mobileNav && mobileMenuBtn) {
-  mobileNav.style.display = 'block';
   mobileMenuBtn.addEventListener('click', function(e) {
+    if (window.innerWidth > 767) return; // let theme handle desktop
     e.preventDefault();
+    e.stopPropagation();
     mobileNav.classList.toggle('open');
+  });
+  // Close if resized to desktop
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 767) mobileNav.classList.remove('open');
   });
 }
 function closeMobileNav() {
