@@ -313,6 +313,7 @@ $ipOrg = "";
     #section-experience .owl-item .accolade-group{flex:1;}
     /* Mobile hero */
     @media(max-width:767px){
+      .background-bg{display:none !important;}
       .mobile-hero{display:flex;flex-direction:column;align-items:stretch;margin:-20px -20px 24px;position:relative;min-height:60vw;max-height:75vw;overflow:hidden;border-radius:0 0 18px 18px;}
       .mobile-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;}
       .mobile-hero-grad{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.05) 30%,rgba(0,0,0,0.78) 100%);}
