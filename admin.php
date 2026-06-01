@@ -1007,9 +1007,12 @@ function saveCrop() {
   .catch(function(){ alert('Network error saving image.'); });
 }
 </script>
+var _sortableInited = {};
 function initSortable(tbodyId, orderInputId, formId) {
+  if (_sortableInited[tbodyId]) return;
   var tbody = document.getElementById(tbodyId);
   if (!tbody) return;
+  _sortableInited[tbodyId] = true;
   Sortable.create(tbody, {
     handle: '.drag-handle',
     animation: 150,
@@ -1022,10 +1025,27 @@ function initSortable(tbodyId, orderInputId, formId) {
     }
   });
 }
-initSortable('accoladeBody', 'accoladeOrder', 'accoladeOrderForm');
-initSortable('videoBody',    'videoOrder',    'videoOrderForm');
-initSortable('refBody',      'refOrder',      'refOrderForm');
-initSortable('tpBody',       'tpOrder',       'tpOrderForm');
+
+// Initialize sortables lazily when each tab becomes visible
+document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function(tabEl) {
+  tabEl.addEventListener('shown.bs.tab', function(e) {
+    var target = e.target.getAttribute('href');
+    if (target === '#tab-accolades') initSortable('accoladeBody', 'accoladeOrder', 'accoladeOrderForm');
+    if (target === '#tab-videos')    initSortable('videoBody',    'videoOrder',    'videoOrderForm');
+    if (target === '#tab-references') initSortable('refBody',     'refOrder',      'refOrderForm');
+    if (target === '#tab-periods')   initSortable('tpBody',       'tpOrder',       'tpOrderForm');
+  });
+});
+// Also init whichever tab is active on page load
+(function() {
+  var active = document.querySelector('.tab-pane.show.active');
+  if (!active) return;
+  var id = active.id;
+  if (id === 'tab-accolades') initSortable('accoladeBody', 'accoladeOrder', 'accoladeOrderForm');
+  if (id === 'tab-videos')    initSortable('videoBody',    'videoOrder',    'videoOrderForm');
+  if (id === 'tab-references') initSortable('refBody',     'refOrder',      'refOrderForm');
+  if (id === 'tab-periods')   initSortable('tpBody',       'tpOrder',       'tpOrderForm');
+})();
 
 function deleteRef(id){
   if(!confirm('Remove this reference?')) return;
