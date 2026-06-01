@@ -306,11 +306,6 @@ $ipOrg = "";
     .contact-card .cc-icon{width:18px;text-align:center;opacity:.5;flex-shrink:0;}
     .contact-card .cc-row a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);}
     .contact-card .cc-row a:hover{border-bottom-color:currentColor;}
-    /* Equal-height carousel */
-    #section-experience .owl-stage{display:flex !important;}
-    #section-experience .owl-item{display:flex;}
-    #section-experience .owl-item .item{display:flex;flex:1;}
-    #section-experience .owl-item .accolade-group{flex:1;}
     /* Mobile hero — hidden by default, shown only on mobile */
     .mobile-hero{display:none;}
     #mobileNav{display:none;}
@@ -529,41 +524,24 @@ $ipOrg = "";
           <?php if (empty($accoladesArray)): ?>
           <div class="coming-soon-card"><i class="fas fa-trophy"></i> Coming Soon</div>
           <?php else: ?>
-          <div class="content-carousel">
-            <div class="owl-carousel" data-slidesview="1" data-slidesview_mobile="1">
-              <?php foreach (array_chunk($accoladesArray, 6) as $group):
-                      while (count($group) < 6) $group[] = null; ?>
-              <div class="item">
-                <div class="accolade-group">
-                  <?php foreach ($group as $accolade): ?>
-                  <?php if ($accolade === null): ?>
-                  <div class="accolade-card accolade-card-empty"></div>
-                  <?php else: ?>
-                  <div class="accolade-card">
-                    <div class="ac-header">
-                      <?php if (!empty($accolade['IMG_LOGO'])): ?>
-                        <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="">
-                      <?php else: ?>
-                        <div class="ac-logo-fallback"><i class="fas fa-trophy"></i></div>
-                      <?php endif; ?>
-                      <div class="ac-header-text">
-                        <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
-                        <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
-                      </div>
-                    </div>
-                    <hr class="ac-divider">
-                    <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
-                  </div>
-                  <?php endif; ?>
-                  <?php endforeach; ?>
+          <div class="accolade-group">
+            <?php foreach ($accoladesArray as $accolade): ?>
+            <div class="accolade-card">
+              <div class="ac-header">
+                <?php if (!empty($accolade['IMG_LOGO'])): ?>
+                  <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="">
+                <?php else: ?>
+                  <div class="ac-logo-fallback"><i class="fas fa-trophy"></i></div>
+                <?php endif; ?>
+                <div class="ac-header-text">
+                  <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
+                  <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
                 </div>
               </div>
-              <?php endforeach; ?>
+              <hr class="ac-divider">
+              <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
             </div>
-            <div class="navs">
-              <span class="prev fas fa-chevron-left"></span>
-              <span class="next fas fa-chevron-right"></span>
-            </div>
+            <?php endforeach; ?>
           </div>
           <?php endif; ?>
         </div>
