@@ -323,6 +323,8 @@ $ipOrg = "";
       .mobile-hero-text .mh-name{font-size:24px;font-weight:800;line-height:1.15;color:#fff;}
       .mobile-hero-text .mh-sub{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;opacity:.75;color:#fff;margin-top:4px;}
       .mobile-hero-text .mh-committed{display:inline-block;background:#27ae60;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1.5px;margin-top:6px;}
+      .mobile-hero-avatar{position:absolute;bottom:14px;right:16px;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.6);box-shadow:0 2px 12px rgba(0,0,0,0.4);}
+      .mobile-hero-text{padding-right:110px;}
       /* hide desktop headshot inside h1 on mobile */
       .h-title img.desktop-headshot{display:none;}
     }
@@ -387,6 +389,7 @@ $ipOrg = "";
             <div class="mobile-hero">
               <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="">
               <div class="mobile-hero-grad"></div>
+              <img class="mobile-hero-avatar" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="">
               <div class="mobile-hero-text">
                 <div class="mh-name"><?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?></div>
                 <div class="mh-sub"><?= htmlspecialchars($playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']) ?></div>
