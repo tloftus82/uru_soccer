@@ -311,6 +311,21 @@ $ipOrg = "";
     #section-experience .owl-item{display:flex;}
     #section-experience .owl-item .item{display:flex;flex:1;}
     #section-experience .owl-item .accolade-group{flex:1;}
+    /* Mobile hero */
+    @media(max-width:767px){
+      .mobile-hero{display:flex;flex-direction:column;align-items:stretch;margin:-20px -20px 24px;position:relative;min-height:60vw;max-height:75vw;overflow:hidden;border-radius:0 0 18px 18px;}
+      .mobile-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;}
+      .mobile-hero-grad{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.05) 30%,rgba(0,0,0,0.78) 100%);}
+      .mobile-hero-text{position:relative;margin-top:auto;padding:18px 16px 14px;}
+      .mobile-hero-text .mh-name{font-size:24px;font-weight:800;line-height:1.15;color:#fff;}
+      .mobile-hero-text .mh-sub{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;opacity:.75;color:#fff;margin-top:4px;}
+      .mobile-hero-text .mh-committed{display:inline-block;background:#27ae60;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1.5px;margin-top:6px;}
+      /* hide desktop headshot inside h1 on mobile */
+      .h-title img.desktop-headshot{display:none;}
+    }
+    @media(min-width:768px){
+      .mobile-hero{display:none;}
+    }
   </style>
 		
   <!--[if lt IE 9]>
@@ -365,10 +380,23 @@ $ipOrg = "";
 	    <div class="centrize full-width">
 		  <div class="vertical-center">
 
+            <!-- Mobile full-bleed hero (hidden on desktop) -->
+            <div class="mobile-hero">
+              <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="">
+              <div class="mobile-hero-grad"></div>
+              <div class="mobile-hero-text">
+                <div class="mh-name"><?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?></div>
+                <div class="mh-sub"><?= htmlspecialchars($playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']) ?></div>
+                <?php if($playerInfo['COMMITTED_FLAG'] == 1): ?>
+                <div class="mh-committed">&#10003; COMMITTED</div>
+                <?php endif; ?>
+              </div>
+            </div>
+
             <div class="started-content">
             <h1 class="h-title">
-              <img src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;'>   
-              <?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?>                   
+              <img class="desktop-headshot" src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;'>
+              <?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?>
 			</h1>
             <?php if($playerInfo['COMMITTED_FLAG'] == 1){ ?>
             <div style='margin: 8px 0 4px 0;'>
