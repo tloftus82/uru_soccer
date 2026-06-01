@@ -141,7 +141,7 @@ $ipOrg = "";
     $rankPercent = (intval($rankSplit[0]) / intval($rankSplit[1]));
     if($rankPercent > 0){$playerInfo['RANK_PERCENT'] = ceil($rankPercent * 100);}
     if($rankPercent == 0){$playerInfo['RANK_PERCENT'] = 1;}
-    if($playerInfo['RANK_PERCENT'] < 30){$displayRankPct = 1;}
+    if($playerInfo['RANK_PERCENT'] <= 20){$displayRankPct = 1;}
   }
 
   $imgHeadshot = "";
@@ -432,9 +432,14 @@ $ipOrg = "";
               if ($playerInfo['ACT_SCORE'] !== '--') statCard('fa-pencil-alt', $playerInfo['ACT_SCORE'], 'ACT Score');
               if ($playerInfo['SAT_SCORE'] !== '--') statCard('fa-pencil-alt', $playerInfo['SAT_SCORE'], 'SAT Score');
               if ($playerInfo['CLASS_RANK'] !== '--') {
-                $rankVal = $playerInfo['CLASS_RANK'];
-                if ($displayRankPct) $rankVal .= ' (Top '.$playerInfo['RANK_PERCENT'].'%)';
-                statCard('fa-list-ol', $rankVal, 'Class Rank');
+                echo '<div class="stat-card">';
+                echo   '<div class="sc-icon"><i class="fas fa-list-ol"></i></div>';
+                echo   '<div class="sc-value">'.htmlspecialchars($playerInfo['CLASS_RANK']).'</div>';
+                if ($displayRankPct) {
+                  echo '<div class="sc-value" style="font-size:12px;font-weight:600;opacity:.65;margin-top:3px;">Top '.$playerInfo['RANK_PERCENT'].'%</div>';
+                }
+                echo   '<div class="sc-label">Class Rank</div>';
+                echo '</div>';
               }
               if (strlen($playerInfo['PDF_TRANSCRIPT'] ?? '') > 0) {
                 echo '<div class="stat-card">';
