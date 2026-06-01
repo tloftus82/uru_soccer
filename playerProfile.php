@@ -264,17 +264,17 @@ $ipOrg = "";
     .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;flex:1;}
     .accolade-card-empty{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.05);pointer-events:none;}
     /* Reference cards */
-    .ref-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+    .ref-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-items:stretch;}
     .ref-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:18px 16px;display:flex;flex-direction:column;gap:0;transition:background .2s;}
     .ref-card:hover{background:rgba(255,255,255,0.13);}
     .ref-card .rc-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
     .ref-card .rc-logo{width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:4px;}
     .ref-card .rc-logo-fallback{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.55;flex-shrink:0;}
-    .ref-card .rc-type{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;opacity:.5;}
-    .ref-card .rc-org{font-size:13px;font-weight:700;line-height:1.3;margin-top:1px;}
+    .ref-card .rc-org{font-size:14px;font-weight:700;line-height:1.3;}
+    .ref-card .rc-type{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;opacity:.5;margin-top:2px;}
     .ref-card hr.rc-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 10px;}
     .ref-card .rc-name{font-size:14px;font-weight:600;margin-bottom:6px;}
-    .ref-card .rc-contact{font-size:12px;opacity:.7;line-height:1.7;}
+    .ref-card .rc-contact{font-size:12px;opacity:.7;line-height:1.7;flex:1;}
     .ref-card .rc-contact a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);}
     .ref-card .rc-contact a:hover{opacity:1;border-bottom-color:currentColor;}
     @media(max-width:600px){.ref-cards{grid-template-columns:1fr;}}
@@ -423,9 +423,9 @@ $ipOrg = "";
               }
               statCard('fa-futbol',         $playerInfo['POSITION_PRI'],                         'Position');
               if ($playerInfo['POSITION_SEC'] !== '--') statCard('fa-exchange-alt', $playerInfo['POSITION_SEC'], 'Secondary');
+              statCard('fa-graduation-cap', $playerInfo['GRADE'].' • '.$playerInfo['GRAD_CLASS'],'Grade / Class');
               statCard('fa-ruler-vertical', $playerInfo['HEIGHT'],                               'Height');
               statCard('fa-shoe-prints',    $playerInfo['DOMINATE_FOOT'],                        'Footed');
-              statCard('fa-graduation-cap', $playerInfo['GRADE'].' • '.$playerInfo['GRAD_CLASS'],'Grade / Class');
               statCard('fa-school',         $playerInfo['HIGH_SCHOOL_NAME'],                     'High School');
               statCard('fa-map-marker-alt', $playerInfo['HS_FULL_LOCATION'],                     'Location');
               if ($playerInfo['GPA'] !== '--')       statCard('fa-book-open', $playerInfo['GPA'].' GPA', 'GPA');
@@ -555,8 +555,8 @@ $ipOrg = "";
                   <div class="rc-logo-fallback"><i class="fas fa-user-tie"></i></div>
                 <?php endif; ?>
                 <div>
-                  <div class="rc-type"><?= htmlspecialchars($ref['REF_TYPE']) ?></div>
                   <div class="rc-org"><?= htmlspecialchars($ref['ORG_NAME']) ?></div>
+                  <div class="rc-type"><?= htmlspecialchars($ref['REF_TYPE']) ?></div>
                 </div>
               </div>
               <hr class="rc-divider">

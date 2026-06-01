@@ -63,7 +63,7 @@ $flashMsg  = '';
 $flashType = 'success';
 
 // ── POST: Player actions ──────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_POST['ACTION']) && in_array($_POST['ACTION'], ['SAVE_PLAYER','ADD_ACCOLADE','DELETE_ACCOLADE','ADD_VIDEO','DELETE_VIDEO','ADD_REFERENCE','UPDATE_REFERENCES','DELETE_REFERENCE']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_POST['ACTION']) && in_array($_POST['ACTION'], ['SAVE_PLAYER','ADD_ACCOLADE','EDIT_ACCOLADE','DELETE_ACCOLADE','ADD_VIDEO','DELETE_VIDEO','ADD_REFERENCE','UPDATE_REFERENCES','DELETE_REFERENCE']))) {
     $action = $_POST['ACTION'] ?? '';
 
     if ($action === 'SAVE_PLAYER') {
@@ -135,6 +135,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
         $sort  = (int)($_POST['SORT_ORDER']     ?? 0);
         mysqli_query($cn, "INSERT INTO PP_ACCOLADES (PLAYER_ID,TIME_PERIOD_ID,ORG_ID,ACCOLADES_TEXT,SORT_ORDER) VALUES ($playerId,$tpId,$orgId,'$text',$sort)");
         $flashMsg = "Accolade added!";
+    }
+    if ($action === 'EDIT_ACCOLADE') {
+        $eid  = (int)($_POST['EDIT_ACCOLADE_ID'] ?? 0);
+        $tp   = (int)($_POST['TIME_PERIOD_ID'] ?? 0);
+        $org  = (int)($_POST['ORG_ID'] ?? 0);
+        $txt  = sqlVal($cn, trim($_POST['ACCOLADES_TEXT'] ?? ''));
+        if ($eid && $tp && $org) {
+            mysqli_query($cn, "UPDATE PP_ACCOLADES SET TIME_PERIOD_ID=$tp, ORG_ID=$org, ACCOLADES_TEXT=$txt WHERE ID=$eid AND PLAYER_ID=$playerId");
+            $flashMsg = "Accolade updated!";
+        }
+        header("Location: admin.php?p=$playerId&section=players&tab=tab-accolades&msg=".urlencode($flashMsg));
+        exit;
     }
     if ($action === 'DELETE_ACCOLADE') {
         $id = (int)($_POST['ACCOLADE_ID'] ?? 0);
@@ -388,6 +400,11 @@ if ($editId > 0 && $editTable) {
 
 $pageTitle  = $playerId > 0 ? 'Edit: '.($playerInfo['FIRST_NAME']??'').' '.($playerInfo['LAST_NAME']??'') : ($isNew ? 'New Player' : 'Player Search');
 $formAction = "admin.php" . ($playerId ? "?p=$playerId" : "?new=1");
+$editAccId  = isset($_GET['edit_acc']) ? (int)$_GET['edit_acc'] : 0;
+$editAccRow = [];
+if ($editAccId) {
+    foreach ($accolades as $a) { if ($a['ID'] === $editAccId) { $editAccRow = $a; break; } }
+}
 $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
 $fa         = "admin.php?section=lookups";
 ?>
@@ -647,7 +664,7 @@ $fa         = "admin.php?section=lookups";
           <td><?= htmlspecialchars($acc['TIME_PER_DESC']) ?></td>
           <td><?= htmlspecialchars($acc['ORG_NAME']) ?></td>
           <td><?= nl2br(htmlspecialchars(mb_substr($acc['ACCOLADES_TEXT'],0,100))) ?><?= mb_strlen($acc['ACCOLADES_TEXT'])>100?'&hellip;':'' ?></td>
-          <td><form method="POST" action="<?= $formAction ?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_ACCOLADE"><input type="hidden" name="ACCOLADE_ID" value="<?= $acc['ID'] ?>"><input type="hidden" name="ACTIVE_TAB" value="tab-accolades"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
+          <td class="d-flex gap-1"><a href="?p=<?=$playerId?>&section=players&tab=tab-accolades&edit_acc=<?=$acc['ID']?>" class="btn btn-outline-secondary btn-sm"><i class="fas fa-edit"></i></a><form method="POST" action="<?= $formAction ?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_ACCOLADE"><input type="hidden" name="ACCOLADE_ID" value="<?= $acc['ID'] ?>"><input type="hidden" name="ACTIVE_TAB" value="tab-accolades"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
@@ -655,16 +672,20 @@ $fa         = "admin.php?section=lookups";
     </div>
     <?php endif; ?>
     <div class="card-section">
-      <h5><i class="fas fa-plus-circle me-2"></i>Add Accolade</h5>
+      <h5><i class="fas fa-plus-circle me-2"></i><?= $editAccId ? 'Edit Accolade' : 'Add Accolade' ?></h5>
       <form method="POST" action="<?= $formAction ?>">
-        <input type="hidden" name="ACTION" value="ADD_ACCOLADE">
+        <input type="hidden" name="ACTION" value="<?= $editAccId ? 'EDIT_ACCOLADE' : 'ADD_ACCOLADE' ?>">
         <input type="hidden" name="ACTIVE_TAB" value="tab-accolades">
+        <input type="hidden" name="EDIT_ACCOLADE_ID" value="<?= $editAccId ?>">
         <div class="add-panel"><div class="row g-3">
-          <div class="col-md-4"><label class="form-label">Time Period</label><select class="form-select" name="TIME_PERIOD_ID" required><option value="">&mdash; Select &mdash;</option><?php foreach($timePeriods as $tp):?><option value="<?=$tp['ID']?>"><?=htmlspecialchars($tp['TIME_PER_DESC'])?></option><?php endforeach;?></select></div>
-          <div class="col-md-4"><label class="form-label">Organization</label><select class="form-select" name="ORG_ID" required><option value="">&mdash; Select &mdash;</option><?php foreach($allOrgs as $org):?><option value="<?=$org['ID']?>"><?=htmlspecialchars($org['ORG_NAME'])?></option><?php endforeach;?></select></div>
+          <div class="col-md-4"><label class="form-label">Time Period</label><select class="form-select" name="TIME_PERIOD_ID" required><option value="">&mdash; Select &mdash;</option><?php foreach($timePeriods as $tp):?><option value="<?=$tp['ID']?>"<?= (!empty($editAccRow) && $editAccRow['TIME_PERIOD_ID']==$tp['ID']) ? ' selected' : '' ?>><?=htmlspecialchars($tp['TIME_PER_DESC'])?></option><?php endforeach;?></select></div>
+          <div class="col-md-4"><label class="form-label">Organization</label><select class="form-select" name="ORG_ID" required><option value="">&mdash; Select &mdash;</option><?php foreach($allOrgs as $org):?><option value="<?=$org['ID']?>"<?= (!empty($editAccRow) && $editAccRow['ORG_ID']==$org['ID']) ? ' selected' : '' ?>><?=htmlspecialchars($org['ORG_NAME'])?></option><?php endforeach;?></select></div>
           <div class="col-md-4"><label class="form-label">Sort Order</label><input type="number" class="form-control" name="SORT_ORDER" value="<?=count($accolades)+1?>"></div>
-          <div class="col-12"><label class="form-label">Accolade Text</label><textarea class="form-control" name="ACCOLADES_TEXT" rows="3" required placeholder="e.g. 1st Team All-State, Regional MVP..."></textarea></div>
-          <div class="col-12"><button type="submit" class="btn btn-uru"><i class="fas fa-plus me-1"></i>Add Accolade</button></div>
+          <div class="col-12"><label class="form-label">Accolade Text</label><textarea class="form-control" name="ACCOLADES_TEXT" rows="3" required placeholder="e.g. 1st Team All-State, Regional MVP..."><?= $editAccId && !empty($editAccRow) ? htmlspecialchars($editAccRow['ACCOLADES_TEXT']) : '' ?></textarea></div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-uru"><i class="fas fa-<?= $editAccId ? 'save' : 'plus' ?> me-1"></i><?= $editAccId ? 'Update Accolade' : 'Add Accolade' ?></button>
+            <?php if ($editAccId): ?> &nbsp;<a href="?p=<?=$playerId?>&section=players&tab=tab-accolades" class="btn btn-outline-secondary btn-sm">Cancel</a><?php endif; ?>
+          </div>
         </div></div>
       </form>
     </div>
