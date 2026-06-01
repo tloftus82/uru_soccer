@@ -184,6 +184,7 @@ $ipOrg = "";
   $sql .= "SELECT ";
   $sql .= "  C.TIME_PER_DESC, ";
   $sql .= "  B.ORG_NAME, ";
+  $sql .= "  IFNULL(B.IMG_LOGO,'') AS IMG_LOGO, ";
   $sql .= "  CONCAT(D.CITY, ', ', D.STATE) AS ORG_LOCATION, ";
   $sql .= "  A.ACCOLADES_TEXT ";
   $sql .= "FROM PP_ACCOLADES A ";
@@ -248,17 +249,19 @@ $ipOrg = "";
     .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
     @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
     /* Accolade cards */
-    .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:16px;transition:background .2s;}
-    .accolade-card:hover{background:rgba(255,255,255,0.13);}
-    .accolade-card .ac-icon{font-size:20px;opacity:.65;flex-shrink:0;width:28px;text-align:center;}
-    .accolade-card .ac-body{flex:1;min-width:0;}
-    .accolade-card .ac-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
-    .accolade-card .ac-org{font-size:14px;font-weight:700;}
-    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;}
-    .accolade-card .ac-text{font-size:13px;opacity:.75;line-height:1.5;margin-top:3px;}
-    .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
     @media(max-width:700px){.accolade-group{grid-template-columns:1fr;}}
-    /* Equal-height accolade carousel items */
+    .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:0;transition:background .2s;}
+    .accolade-card:hover{background:rgba(255,255,255,0.13);}
+    .accolade-card .ac-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+    .accolade-card .ac-logo{width:36px;height:36px;object-fit:contain;flex-shrink:0;border-radius:4px;}
+    .accolade-card .ac-logo-fallback{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.6;flex-shrink:0;}
+    .accolade-card .ac-header-text{min-width:0;}
+    .accolade-card .ac-org{font-size:13px;font-weight:700;line-height:1.3;}
+    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:2px;}
+    .accolade-card .ac-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 9px;}
+    .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;}
+    /* Equal-height carousel */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
     #section-experience .owl-item .item{display:flex;flex:1;}
@@ -417,14 +420,19 @@ $ipOrg = "";
                 <div class="accolade-group">
                   <?php foreach ($group as $accolade): ?>
                   <div class="accolade-card">
-                    <div class="ac-icon"><i class="fas fa-trophy"></i></div>
-                    <div class="ac-body">
-                      <div class="ac-top">
-                        <span class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></span>
-                        <span class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></span>
+                    <div class="ac-header">
+                      <?php if (!empty($accolade['IMG_LOGO'])): ?>
+                        <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="">
+                      <?php else: ?>
+                        <div class="ac-logo-fallback"><i class="fas fa-trophy"></i></div>
+                      <?php endif; ?>
+                      <div class="ac-header-text">
+                        <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
+                        <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
                       </div>
-                      <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
                     </div>
+                    <hr class="ac-divider">
+                    <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
                   </div>
                   <?php endforeach; ?>
                 </div>
