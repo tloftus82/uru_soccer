@@ -290,6 +290,19 @@ $ipOrg = "";
     .video-card .vc-type{font-size:13px;font-weight:700;}
     .video-card .vc-meta{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:1px;}
     @media(max-width:600px){.video-cards{grid-template-columns:1fr;}}
+    /* Contact card */
+    .contact-card{display:inline-flex;flex-direction:column;gap:0;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:22px 26px;min-width:280px;max-width:440px;}
+    .contact-card .cc-header{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+    .contact-card .cc-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    .contact-card .cc-avatar-fallback{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.6;flex-shrink:0;}
+    .contact-card .cc-name{font-size:16px;font-weight:700;line-height:1.2;}
+    .contact-card .cc-sub{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:3px;}
+    .contact-card hr.cc-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 14px;}
+    .contact-card .cc-row{display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:9px;}
+    .contact-card .cc-row:last-child{margin-bottom:0;}
+    .contact-card .cc-icon{width:18px;text-align:center;opacity:.5;flex-shrink:0;}
+    .contact-card .cc-row a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);}
+    .contact-card .cc-row a:hover{border-bottom-color:currentColor;}
     /* Equal-height carousel */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
@@ -560,18 +573,25 @@ $ipOrg = "";
           <div class="subtitle">Let's talk</div>
         </div>
 
-        <div class="contact-info">
-          <div class="name"><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']; ?></div>
-          <div class="subname"><?php echo $playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']; ?></div>
-          <div class="info-list">
-            <ul>
-              <li><strong>Address:</strong> <?php echo $playerInfo['FULL_LOCATION']; ?></li>
-              <li><strong>Phone:</strong> <i>Available Upon Request</i></li>
-              <li><strong>E-mail:</strong> <a href='mailto:<?php echo $playerInfo['EMAIL_ADDRESS']; ?>'><?php echo $playerInfo['EMAIL_ADDRESS']; ?></a></li>
-              <li><strong>Download/Print:</strong> <a href='playerProfilePdf.php?p=<?php echo $playerId; ?>&v=<?php echo $viewCode; ?>' target='_blank'><i class="icon fas fa-link"></i></a></li>
-            </ul>
+        <div class="contact-card">
+          <div class="cc-header">
+            <?php if (!empty($imgHeadshot)): ?>
+              <img class="cc-avatar" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="">
+            <?php else: ?>
+              <div class="cc-avatar-fallback"><i class="fas fa-user"></i></div>
+            <?php endif; ?>
+            <div>
+              <div class="cc-name"><?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?></div>
+              <div class="cc-sub"><?= htmlspecialchars($playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']) ?></div>
+            </div>
           </div>
-          <div class="author"><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']; ?></div>
+          <hr class="cc-divider">
+          <div class="cc-row"><span class="cc-icon"><i class="fas fa-map-marker-alt"></i></span><?= htmlspecialchars($playerInfo['FULL_LOCATION']) ?></div>
+          <div class="cc-row"><span class="cc-icon"><i class="fas fa-phone"></i></span><i style="opacity:.5;">Available Upon Request</i></div>
+          <?php if (!empty($playerInfo['EMAIL_ADDRESS']) && $playerInfo['EMAIL_ADDRESS'] !== '--'): ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fas fa-envelope"></i></span><a href="mailto:<?= htmlspecialchars($playerInfo['EMAIL_ADDRESS']) ?>"><?= htmlspecialchars($playerInfo['EMAIL_ADDRESS']) ?></a></div>
+          <?php endif; ?>
+          <div class="cc-row"><span class="cc-icon"><i class="fas fa-file-pdf"></i></span><a href="playerProfilePdf.php?p=<?= $playerId ?>&v=<?= htmlspecialchars($viewCode) ?>" target="_blank">Download / Print Profile</a></div>
         </div>
 
 		<!--<div class="contact-form">
