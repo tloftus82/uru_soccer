@@ -248,17 +248,20 @@ $ipOrg = "";
     .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
     @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
     /* Accolade cards */
-    .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:14px;padding:22px 20px 20px;display:flex;flex-direction:column;gap:10px;height:100%;box-sizing:border-box;transition:background .2s,transform .2s;}
-    .accolade-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
-    .accolade-card .ac-icon{font-size:24px;opacity:.7;}
-    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;margin-top:2px;}
-    .accolade-card .ac-org{font-size:14px;font-weight:700;line-height:1.3;margin-top:2px;}
-    .accolade-card .ac-text{font-size:13px;opacity:.8;line-height:1.6;margin-top:4px;flex:1;}
+    .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:16px;transition:background .2s;}
+    .accolade-card:hover{background:rgba(255,255,255,0.13);}
+    .accolade-card .ac-icon{font-size:20px;opacity:.65;flex-shrink:0;width:28px;text-align:center;}
+    .accolade-card .ac-body{flex:1;min-width:0;}
+    .accolade-card .ac-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+    .accolade-card .ac-org{font-size:14px;font-weight:700;}
+    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;}
+    .accolade-card .ac-text{font-size:13px;opacity:.75;line-height:1.5;margin-top:3px;}
+    .accolade-group{display:flex;flex-direction:column;gap:10px;}
     /* Equal-height accolade carousel items */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
     #section-experience .owl-item .item{display:flex;flex:1;}
-    #section-experience .owl-item .accolade-card{flex:1;}
+    #section-experience .owl-item .accolade-group{flex:1;}
   </style>
 		
   <!--[if lt IE 9]>
@@ -407,14 +410,22 @@ $ipOrg = "";
             </div>
           </div>
           <div class="content-carousel">
-            <div class="owl-carousel" data-slidesview="3" data-slidesview_mobile="1">
-              <?php foreach($accoladesArray as $accolade): ?>
-              <div class="item" style="height:100%;">
-                <div class="accolade-card">
-                  <div class="ac-icon"><i class="fas fa-trophy"></i></div>
-                  <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
-                  <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
-                  <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
+            <div class="owl-carousel" data-slidesview="1" data-slidesview_mobile="1">
+              <?php foreach (array_chunk($accoladesArray, 3) as $group): ?>
+              <div class="item">
+                <div class="accolade-group">
+                  <?php foreach ($group as $accolade): ?>
+                  <div class="accolade-card">
+                    <div class="ac-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="ac-body">
+                      <div class="ac-top">
+                        <span class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></span>
+                        <span class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></span>
+                      </div>
+                      <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
+                    </div>
+                  </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
               <?php endforeach; ?>
