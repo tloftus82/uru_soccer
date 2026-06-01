@@ -254,6 +254,11 @@ $ipOrg = "";
     .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;margin-top:2px;}
     .accolade-card .ac-org{font-size:14px;font-weight:700;line-height:1.3;margin-top:2px;}
     .accolade-card .ac-text{font-size:13px;opacity:.8;line-height:1.6;margin-top:4px;flex:1;}
+    /* Equal-height accolade carousel items */
+    #section-experience .owl-stage{display:flex !important;}
+    #section-experience .owl-item{display:flex;}
+    #section-experience .owl-item .item{display:flex;flex:1;}
+    #section-experience .owl-item .accolade-card{flex:1;}
   </style>
 		
   <!--[if lt IE 9]>
@@ -409,7 +414,7 @@ $ipOrg = "";
                   <div class="ac-icon"><i class="fas fa-trophy"></i></div>
                   <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
                   <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
-                  <div class="ac-text"><?= nl2br(htmlspecialchars($accolade['ACCOLADES_TEXT'])) ?></div>
+                  <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
                 </div>
               </div>
               <?php endforeach; ?>
