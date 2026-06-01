@@ -27,9 +27,11 @@
   .player-card .pc-pos{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.55;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .player-card .pc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}
   .player-card .pc-stat{background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
-  .player-card .pc-committed{background:#27ae60;color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;display:inline-block;margin-bottom:8px;}
   .player-card .pc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-  .player-card .pc-video-badge{background:rgba(231,76,60,0.85);color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:4px;}
+  .player-card .pc-committed,
+  .player-card .pc-video-badge{font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;line-height:1.4;display:inline-flex;align-items:center;gap:4px;}
+  .player-card .pc-committed{background:#27ae60;color:#fff;}
+  .player-card .pc-video-badge{background:rgba(231,76,60,0.85);color:#fff;}
   @media(max-width:540px){.player-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
 </style>
 
@@ -103,7 +105,7 @@
 
     $sql  = "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GENDER, A.GPA, A.ACT_SCORE, A.SAT_SCORE, ";
     $sql .= "  B.POSITION AS POSITION_PRI, A.IMG_HEADSHOT, A.COMMITTED_FLAG, ";
-    $sql .= "  CONCAT(D.CITY,', ',D.STATE) AS FULL_LOCATION, ";
+    $sql .= "  CONCAT(D.CITY,', ',LEFT(D.STATE,2)) AS FULL_LOCATION, ";
     $sql .= "  (SELECT COUNT(*) FROM PP_VIDEOS V WHERE V.PLAYER_ID = A.ID) AS VIDEO_COUNT ";
     $sql .= "FROM PP_PLAYERS A ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
