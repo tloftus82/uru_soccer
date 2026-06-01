@@ -723,14 +723,14 @@ $fa         = "admin.php?section=lookups";
     <?php if (count($references)): ?>
     <div class="card-section">
       <h5><i class="fas fa-list me-2"></i>Current References</h5>
+      <form method="POST" action="<?=$formAction?>" id="refOrderForm" style="display:none">
+        <input type="hidden" name="ACTION" value="SAVE_REF_ORDER">
+        <input type="hidden" name="ACTIVE_TAB" value="tab-references">
+        <input type="hidden" name="ORDER" id="refOrder">
+      </form>
       <form method="POST" action="<?=$formAction?>" id="refActiveForm">
         <input type="hidden" name="ACTION" value="UPDATE_REFERENCES">
         <input type="hidden" name="ACTIVE_TAB" value="tab-references">
-        <form method="POST" action="<?=$formAction?>" id="refOrderForm" style="display:none">
-          <input type="hidden" name="ACTION" value="SAVE_REF_ORDER">
-          <input type="hidden" name="ACTIVE_TAB" value="tab-references">
-          <input type="hidden" name="ORDER" id="refOrder">
-        </form>
         <table class="table table-hover table-sm align-middle">
           <thead><tr><th style="width:30px"></th><th>Type</th><th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th style="width:100px">Active</th><th style="width:60px"></th></tr></thead>
           <tbody id="refBody">
