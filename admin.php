@@ -435,6 +435,8 @@ $fa         = "admin.php?section=lookups";
     #cropModal .modal-dialog{max-width:700px;}
     #cropContainer{max-height:420px;overflow:hidden;background:#111;}
     #cropContainer img{max-width:100%;display:block;}
+    #cropContainer.circle-crop .cropper-view-box,
+    #cropContainer.circle-crop .cropper-face{border-radius:50%;}
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -953,7 +955,9 @@ function _showCropModal(src) {
   var img = document.getElementById('cropImage');
   img.src = src;
   if (!cropModal) cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
-  document.getElementById('cropAspectLabel').textContent = isNaN(cropAspect) ? 'Free aspect ratio' : '1:1 (square)';
+  var isCircle = (cropAspect === 1);
+  document.getElementById('cropContainer').classList.toggle('circle-crop', isCircle);
+  document.getElementById('cropAspectLabel').textContent = isCircle ? 'Circle crop' : 'Free aspect ratio';
   document.getElementById('cropModal').addEventListener('shown.bs.modal', function handler() {
     this.removeEventListener('shown.bs.modal', handler);
     if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
