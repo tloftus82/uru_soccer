@@ -432,7 +432,11 @@ $fa         = "admin.php?section=lookups";
     .drag-handle:active{cursor:grabbing;}
     .sortable-ghost{background:#e8f4e8 !important;opacity:.6;}
     .sortable-drag{background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    #cropModal .modal-dialog{max-width:700px;}
+    #cropContainer{max-height:420px;overflow:hidden;background:#111;}
+    #cropContainer img{max-width:100%;display:block;}
   </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
 <body>
 
@@ -571,8 +575,30 @@ $fa         = "admin.php?section=lookups";
           <div class="card-section">
             <h5><i class="fas fa-images me-2"></i>Media Files</h5>
             <div class="row g-3">
-              <div class="col-12"><label class="form-label">Headshot Image</label><input type="text" class="form-control" name="IMG_HEADSHOT" value="<?= v($playerInfo,'IMG_HEADSHOT') ?>"><div class="field-hint">images/headshots/filename.jpg</div><?php if(!empty($playerInfo['IMG_HEADSHOT'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_HEADSHOT') ?>" style="height:60px;border-radius:50%;" onerror="this.style.display='none'"></div><?php endif;?></div>
-              <div class="col-12"><label class="form-label">Action Image</label><input type="text" class="form-control" name="IMG_ACTION" value="<?= v($playerInfo,'IMG_ACTION') ?>"><div class="field-hint">images/action/filename.jpg</div><?php if(!empty($playerInfo['IMG_ACTION'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:60px;border-radius:4px;" onerror="this.style.display='none'"></div><?php endif;?></div>
+              <div class="col-12">
+                <label class="form-label">Headshot Image</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" name="IMG_HEADSHOT" id="path_IMG_HEADSHOT" value="<?= v($playerInfo,'IMG_HEADSHOT') ?>">
+                  <label class="btn btn-outline-secondary mb-0" title="Upload new photo"><i class="fas fa-upload"></i><input type="file" accept="image/*" style="display:none" onchange="uploadForCrop(this,'IMG_HEADSHOT',1)"></label>
+                </div>
+                <div class="field-hint">images/headshots/filename.jpg</div>
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <img id="preview_IMG_HEADSHOT" src="<?= v($playerInfo,'IMG_HEADSHOT') ?>" style="height:64px;width:64px;border-radius:50%;object-fit:cover;<?= empty($playerInfo['IMG_HEADSHOT'])?'display:none':'' ?>" onerror="this.style.display='none'">
+                  <button type="button" class="btn btn-sm btn-outline-primary" id="cropBtn_IMG_HEADSHOT" style="<?= empty($playerInfo['IMG_HEADSHOT'])?'display:none':'' ?>" onclick="openCrop('IMG_HEADSHOT',1)"><i class="fas fa-crop-alt me-1"></i>Crop / Edit</button>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Action Image</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" name="IMG_ACTION" id="path_IMG_ACTION" value="<?= v($playerInfo,'IMG_ACTION') ?>">
+                  <label class="btn btn-outline-secondary mb-0" title="Upload new photo"><i class="fas fa-upload"></i><input type="file" accept="image/*" style="display:none" onchange="uploadForCrop(this,'IMG_ACTION',NaN)"></label>
+                </div>
+                <div class="field-hint">images/action/filename.jpg</div>
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <img id="preview_IMG_ACTION" src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:64px;border-radius:4px;object-fit:cover;max-width:120px;<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onerror="this.style.display='none'">
+                  <button type="button" class="btn btn-sm btn-outline-primary" id="cropBtn_IMG_ACTION" style="<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onclick="openCrop('IMG_ACTION',NaN)"><i class="fas fa-crop-alt me-1"></i>Crop / Edit</button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="card-section">
@@ -867,9 +893,118 @@ function rowActions($fa, $table, $id, $activeTab) {
   <input type="hidden" name="REF_ID" id="deleteRefId" value="">
 </form>
 
+<!-- Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title fs-6">Edit Photo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2">
+        <div id="cropContainer"><img id="cropImage" src="" alt=""></div>
+        <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.zoom(0.1)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.zoom(-0.1)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.rotate(-90)" title="Rotate Left"><i class="fas fa-undo"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.rotate(90)" title="Rotate Right"><i class="fas fa-redo"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.scaleX(cropperInst.getData().scaleX===-1?1:-1)" title="Flip H"><i class="fas fa-arrows-alt-h"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.scaleY(cropperInst.getData().scaleY===-1?1:-1)" title="Flip V"><i class="fas fa-arrows-alt-v"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropperInst.reset()" title="Reset"><i class="fas fa-sync-alt"></i></button>
+          <span class="ms-auto text-muted small" id="cropAspectLabel"></span>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveCrop()"><i class="fas fa-save me-1"></i>Save Cropped</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
+var cropperInst = null;
+var cropField   = null;
+var cropAspect  = NaN;
+var cropModal   = null;
+
+function openCrop(field, aspectRatio) {
+  cropField  = field;
+  cropAspect = isNaN(aspectRatio) ? NaN : aspectRatio;
+  var src = document.getElementById('preview_' + field).src;
+  if (!src || src === window.location.href) { alert('No image to edit.'); return; }
+  _showCropModal(src);
+}
+
+function uploadForCrop(fileInput, field, aspectRatio) {
+  if (!fileInput.files || !fileInput.files[0]) return;
+  cropField  = field;
+  cropAspect = isNaN(aspectRatio) ? NaN : aspectRatio;
+  var reader = new FileReader();
+  reader.onload = function(e) { _showCropModal(e.target.result); };
+  reader.readAsDataURL(fileInput.files[0]);
+  fileInput.value = '';
+}
+
+function _showCropModal(src) {
+  var img = document.getElementById('cropImage');
+  img.src = src;
+  if (!cropModal) cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+  document.getElementById('cropAspectLabel').textContent = isNaN(cropAspect) ? 'Free aspect ratio' : '1:1 (square)';
+  document.getElementById('cropModal').addEventListener('shown.bs.modal', function handler() {
+    this.removeEventListener('shown.bs.modal', handler);
+    if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
+    cropperInst = new Cropper(img, {
+      aspectRatio: cropAspect,
+      viewMode: 1,
+      autoCropArea: 0.9,
+      responsive: true,
+      checkOrientation: true
+    });
+  });
+  cropModal.show();
+}
+
+function saveCrop() {
+  if (!cropperInst) return;
+  var canvas = cropperInst.getCroppedCanvas({maxWidth:1200, maxHeight:1200, fillColor:'#fff'});
+  var pathInput = document.getElementById('path_' + cropField);
+  var filePath  = pathInput ? pathInput.value.trim() : '';
+
+  // If no path set yet, generate one
+  if (!filePath) {
+    var ext = cropAspect === 1 ? '.jpg' : '.jpg';
+    filePath = 'images/headshots/upload_' + Date.now() + ext;
+    if (pathInput) pathInput.value = filePath;
+  }
+
+  var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+  fetch('imageCrop.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'image_data=' + encodeURIComponent(dataUrl) + '&file_path=' + encodeURIComponent(filePath),
+    credentials: 'same-origin'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.success) {
+      var preview = document.getElementById('preview_' + cropField);
+      preview.src = filePath + '?t=' + Date.now();
+      preview.style.display = '';
+      var cropBtn = document.getElementById('cropBtn_' + cropField);
+      if (cropBtn) cropBtn.style.display = '';
+      cropModal.hide();
+    } else {
+      alert('Save failed: ' + (data.error || 'unknown error'));
+    }
+  })
+  .catch(function(){ alert('Network error saving image.'); });
+}
+</script>
 function initSortable(tbodyId, orderInputId, formId) {
   var tbody = document.getElementById(tbodyId);
   if (!tbody) return;
