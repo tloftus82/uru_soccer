@@ -247,6 +247,13 @@ $ipOrg = "";
     .stat-card .sc-value{font-size:17px;font-weight:700;line-height:1.2;word-break:break-word;}
     .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
     @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
+    /* Accolade cards */
+    .accolade-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:14px;padding:22px 20px 20px;display:flex;flex-direction:column;gap:10px;height:100%;box-sizing:border-box;transition:background .2s,transform .2s;}
+    .accolade-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
+    .accolade-card .ac-icon{font-size:24px;opacity:.7;}
+    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;margin-top:2px;}
+    .accolade-card .ac-org{font-size:14px;font-weight:700;line-height:1.3;margin-top:2px;}
+    .accolade-card .ac-text{font-size:13px;opacity:.8;line-height:1.6;margin-top:4px;flex:1;}
   </style>
 		
   <!--[if lt IE 9]>
@@ -395,24 +402,17 @@ $ipOrg = "";
             </div>
           </div>
           <div class="content-carousel">
-            <div class="owl-carousel" data-slidesview="2" data-slidesview_mobile="1">
-              <?php
-                foreach($accoladesArray as $accolade){
-                  echo "<div class=\"item\">";
-                  echo "  <div class=\"resume-item active\">";
-                  echo "    <div class=\"date\">".$accolade['TIME_PER_DESC']."</div>";
-                  echo "    <div class=\"name\">".$accolade['ORG_NAME'];
-                  //if(strlen($accolade['ORG_LOCATION'] ?? '') > 2){echo "<br />".$accolade['ORG_LOCATION'];} else {echo "<br />&nbsp;";}
-                  echo "    </div>";
-                  echo "    <div class=\"single-post-text\">";
-                  echo "      <p>";
-                  echo "        ".nl2br($accolade['ACCOLADES_TEXT'])."";  
-                  echo "      </p>";
-                  echo "    </div>";
-                  echo "  </div>";
-                  echo "</div>";
-                }
-              ?>
+            <div class="owl-carousel" data-slidesview="3" data-slidesview_mobile="1">
+              <?php foreach($accoladesArray as $accolade): ?>
+              <div class="item" style="height:100%;">
+                <div class="accolade-card">
+                  <div class="ac-icon"><i class="fas fa-trophy"></i></div>
+                  <div class="ac-period"><?= htmlspecialchars($accolade['TIME_PER_DESC']) ?></div>
+                  <div class="ac-org"><?= htmlspecialchars($accolade['ORG_NAME']) ?></div>
+                  <div class="ac-text"><?= nl2br(htmlspecialchars($accolade['ACCOLADES_TEXT'])) ?></div>
+                </div>
+              </div>
+              <?php endforeach; ?>
             </div>
             <div class="navs">
               <span class="prev fas fa-chevron-left"></span>
