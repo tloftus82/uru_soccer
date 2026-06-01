@@ -546,7 +546,7 @@ $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
           <td><?=htmlspecialchars($vid['ORG_NAME']??'&mdash;')?></td>
           <td><?=(int)$vid['VIDEO_LENGTH_M']?> min</td>
           <td><a href="<?=htmlspecialchars($vid['VIDEO_URL'])?>" target="_blank" class="text-truncate d-inline-block" style="max-width:180px"><?=htmlspecialchars($vid['VIDEO_URL'])?></a></td>
-          <td><form method="POST" action="<?=$formAction?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_VIDEO"><input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']"><input type="hidden" name="ACTIVE_TAB" value="tab-videos"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
+          <td><form method="POST" action="<?=$formAction?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_VIDEO"><input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']?>"><input type="hidden" name="ACTIVE_TAB" value="tab-videos"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
@@ -590,7 +590,7 @@ $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
             <td><?=htmlspecialchars($ref['ORG_NAME'])?></td>
             <td><?=htmlspecialchars($ref['EMAIL_ADDRESS']??'')?></td>
             <td><?=htmlspecialchars($ref['PHONE_NUMBER']??'')?></td>
-            <td><input type="number" class="form-control form-control-sm" name="REF_SORT[]" value="<?=(int)$ref['SORT_ORDER']"></td>
+            <td><input type="number" class="form-control form-control-sm" name="REF_SORT[]" value="<?=(int)$ref['SORT_ORDER']?>"></td>
             <td><select class="form-select form-select-sm" name="REF_ACTIVE[]"><option value="1" <?=sel($ref['IS_ACTIVE'],1)?>>Yes</option><option value="0" <?=sel($ref['IS_ACTIVE'],0)?>>No</option></select></td>
             <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteRef(<?=$ref['ID']?>)"><i class="fas fa-trash"></i></button></td>
           </tr>
