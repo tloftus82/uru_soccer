@@ -524,6 +524,7 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php?section=lookups" class="<?= $section === 'lookups' ? 'active' : '' ?>"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
   <a href="admin.php?section=settings" class="<?= $section === 'settings' ? 'active' : '' ?>"><i class="fas fa-cog me-1"></i>Site Settings</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
+  <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
 </div>
 
 <div class="container-fluid px-4 pt-3">
