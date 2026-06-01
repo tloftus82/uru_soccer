@@ -24,12 +24,12 @@
   .player-card .pc-photo{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;display:block;}
   .player-card .pc-body{padding:14px 14px 16px;display:flex;flex-direction:column;flex:1;}
   .player-card .pc-name{font-size:15px;font-weight:700;line-height:1.2;margin-bottom:4px;}
-  .player-card .pc-pos{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.55;margin-bottom:10px;}
+  .player-card .pc-pos{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.55;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .player-card .pc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}
   .player-card .pc-stat{background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
   .player-card .pc-committed{background:#27ae60;color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;display:inline-block;margin-bottom:8px;}
   .player-card .pc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-  .player-card .pc-video-badge{background:rgba(231,76,60,0.85);color:#fff;font-size:9px;font-weight:700;padding:3px 9px;border-radius:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:4px;}
+  .player-card .pc-video-badge{background:rgba(231,76,60,0.85);color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;display:inline-flex;align-items:center;gap:4px;}
   @media(max-width:540px){.player-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
 </style>
 
