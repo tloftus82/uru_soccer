@@ -1007,6 +1007,7 @@ function saveCrop() {
   .catch(function(){ alert('Network error saving image.'); });
 }
 </script>
+<script>
 function initSortable(tbodyId, orderInputId, formId) {
   var tbody = document.getElementById(tbodyId);
   if (!tbody || tbody._sortable) return;
