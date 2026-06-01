@@ -258,8 +258,8 @@ $ipOrg = "";
     .accolade-card .ac-logo{width:36px;height:36px;object-fit:contain;flex-shrink:0;border-radius:4px;}
     .accolade-card .ac-logo-fallback{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.6;flex-shrink:0;}
     .accolade-card .ac-header-text{min-width:0;}
-    .accolade-card .ac-org{font-size:13px;font-weight:700;line-height:1.3;}
-    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:2px;}
+    .accolade-card .ac-org{font-size:13px;font-weight:700;line-height:1.1;}
+    .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:0;}
     .accolade-card .ac-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 9px;}
     .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;flex:1;}
     .accolade-card-empty{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.05);pointer-events:none;}
