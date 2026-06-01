@@ -169,11 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
         $flashMsg = "Reference(s) added!";
     }
     if ($action === 'UPDATE_REFERENCES') {
-        $refIds  = $_POST['REF_ID']     ?? [];
         $actives = $_POST['REF_ACTIVE'] ?? [];
-        foreach ($refIds as $i => $rid) {
+        foreach ($actives as $rid => $act) {
             $rid = (int)$rid;
-            $act = (int)($actives[$i] ?? 0);
+            $act = (int)$act;
             mysqli_query($cn, "UPDATE PP_REFERENCES SET IS_ACTIVE=$act WHERE ID=$rid AND PLAYER_ID=$playerId");
         }
         $flashMsg = "References updated!";
@@ -737,13 +736,12 @@ $fa         = "admin.php?section=lookups";
           <?php foreach ($references as $ref): ?>
           <tr data-id="<?=$ref['ID']?>">
             <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
-            <input type="hidden" name="REF_ID[]" value="<?=$ref['ID']?>">
             <td><?=htmlspecialchars($ref['REF_TYPE'])?></td>
             <td><?=htmlspecialchars($ref['CONTACT_NAME'])?></td>
             <td><?=htmlspecialchars($ref['ORG_NAME'])?></td>
             <td><?=htmlspecialchars($ref['EMAIL_ADDRESS']??'')?></td>
             <td><?=htmlspecialchars($ref['PHONE_NUMBER']??'')?></td>
-            <td><select class="form-select form-select-sm" name="REF_ACTIVE[]"><option value="1" <?=sel($ref['IS_ACTIVE'],1)?>>Yes</option><option value="0" <?=sel($ref['IS_ACTIVE'],0)?>>No</option></select></td>
+            <td><select class="form-select form-select-sm" name="REF_ACTIVE[<?=$ref['ID']?>]"><option value="1" <?=sel($ref['IS_ACTIVE'],1)?>>Yes</option><option value="0" <?=sel($ref['IS_ACTIVE'],0)?>>No</option></select></td>
             <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteRef(<?=$ref['ID']?>)"><i class="fas fa-trash"></i></button></td>
           </tr>
           <?php endforeach; ?>
