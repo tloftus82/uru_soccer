@@ -256,7 +256,8 @@ $ipOrg = "";
     .accolade-card .ac-org{font-size:14px;font-weight:700;}
     .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;}
     .accolade-card .ac-text{font-size:13px;opacity:.75;line-height:1.5;margin-top:3px;}
-    .accolade-group{display:flex;flex-direction:column;gap:10px;}
+    .accolade-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    @media(max-width:700px){.accolade-group{grid-template-columns:1fr;}}
     /* Equal-height accolade carousel items */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
@@ -411,7 +412,7 @@ $ipOrg = "";
           </div>
           <div class="content-carousel">
             <div class="owl-carousel" data-slidesview="1" data-slidesview_mobile="1">
-              <?php foreach (array_chunk($accoladesArray, 3) as $group): ?>
+              <?php foreach (array_chunk($accoladesArray, 6) as $group): ?>
               <div class="item">
                 <div class="accolade-group">
                   <?php foreach ($group as $accolade): ?>
