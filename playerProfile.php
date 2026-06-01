@@ -326,15 +326,14 @@ $ipOrg = "";
       .header .menu-btn:before{top:11px !important;left:9px !important;right:9px !important;}
       .header .menu-btn:after{bottom:11px !important;left:9px !important;right:9px !important;}
       .header .menu-btn span{left:9px !important;right:9px !important;}
-      /* Dropdown menu slides down from header */
-      .header .header-sidebar{position:absolute !important;top:52px !important;left:0 !important;right:0 !important;background:rgba(35,38,44,0.97) !important;backdrop-filter:blur(8px);padding:0 !important;overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
-      .header.active .header-sidebar{max-height:400px !important;}
-      .header .top-menu{position:static !important;width:100% !important;height:auto !important;opacity:0;visibility:hidden;transition:opacity 0.2s ease 0s !important;padding:0 !important;}
-      .header.active .top-menu{opacity:1 !important;visibility:visible !important;padding:10px 0 16px !important;}
-      .header .top-menu ul{display:block !important;}
-      .header .top-menu ul li{display:block !important;margin:0 !important;border-bottom:1px solid rgba(255,255,255,0.06);}
-      .header .top-menu ul li:last-child{border-bottom:none;}
-      .header .top-menu ul li a{display:block !important;padding:13px 20px !important;font-size:15px !important;text-align:left !important;}
+      /* Hide the theme's own sidebar entirely on mobile — we use our own dropdown */
+      .header .header-sidebar{display:none !important;}
+      /* Custom mobile dropdown */
+      #mobileNav{display:none;position:fixed;top:52px;left:0;right:0;z-index:199;background:rgba(28,31,36,0.98);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.08);overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+      #mobileNav.open{max-height:500px;}
+      #mobileNav a{display:block;color:#fff;text-decoration:none;padding:14px 20px;font-size:15px;font-weight:600;letter-spacing:0.3px;border-bottom:1px solid rgba(255,255,255,0.06);}
+      #mobileNav a:last-child{border-bottom:none;}
+      #mobileNav a:active{background:rgba(255,255,255,0.07);}
       /* Push page content below fixed header */
       .wrapper{padding-top:52px;}
     }
@@ -375,10 +374,20 @@ $ipOrg = "";
 	<div class="box-2"></div>
   </div>
 	
+  <!-- Mobile nav dropdown (shown only on mobile via CSS display:none on desktop) -->
+  <div id="mobileNav">
+    <a href="#section-started" onclick="closeMobileNav()">Home</a>
+    <a href="#section-about"   onclick="closeMobileNav()">About Me</a>
+    <a href="#section-experience" onclick="closeMobileNav()">Accolades</a>
+    <a href="#section-portfolio"  onclick="closeMobileNav()">Video</a>
+    <a href="#section-services"   onclick="closeMobileNav()">References</a>
+    <a href="#section-contacts"   onclick="closeMobileNav()">Contact</a>
+  </div>
+
   <div class="container">
     <header class="header">
   	  <div class="logo"><a href='#' onclick="history.back();"><img class="logo-img" src="images/logos/uru_logoOnly.png" style='vertical-align: middle' alt="" /></a><span class="logo-lnk"><?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?></span></div>
-      <a href="#" class="menu-btn"><span></span></a>
+      <a href="#" class="menu-btn" id="mobileMenuBtn"><span></span></a>
 	  <div class="header-sidebar">
         <div class="top-menu">
 		  <div class="top-menu-nav">	
@@ -719,6 +728,20 @@ document.querySelectorAll('.sc-value').forEach(function(el) {
     el.style.fontSize = (--size) + 'px';
   }
 });
+
+// Mobile nav toggle (replaces theme hamburger behaviour on mobile)
+var mobileNav = document.getElementById('mobileNav');
+var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+if (mobileNav && mobileMenuBtn) {
+  mobileNav.style.display = 'block';
+  mobileMenuBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    mobileNav.classList.toggle('open');
+  });
+}
+function closeMobileNav() {
+  if (mobileNav) mobileNav.classList.remove('open');
+}
 </script>
 </body>
 </html>
