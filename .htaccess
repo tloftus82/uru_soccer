@@ -2,6 +2,26 @@
 #  CONCAT("RewriteRule ^", LOWER(A.FIRST_NAME), "-", LOWER(A.LAST_NAME), "$ playerProfile.php?p=", A.ID, "&v=cz51ts [L,QSA, NC]") AS DATA
 #FROM PP_PLAYERS A
 
+# ── Cache Control ─────────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  # PHP pages — no caching
+  <FilesMatch "\.(php)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # Images — short cache (5 minutes), must revalidate
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+    Header set Cache-Control "max-age=300, must-revalidate"
+  </FilesMatch>
+
+  # CSS / JS — short cache (5 minutes), must revalidate
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "max-age=300, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
 RewriteEngine On
 RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=cz51ts [L,QSA]
 RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=cz51ts [L,QSA]

@@ -6,6 +6,7 @@ $_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
 while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
 $hpFlierImg  = $_uruVars['hp_flier_img']  ?? 'images/fliers/uruHighPerformance.jpg';
 $hpFlierLink = $_uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+$hpFlierBust = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
 ?>
 
 <!doctype html>
@@ -69,7 +70,7 @@ $hpFlierLink = $_uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF
 						<div class="col col-full">
 							<div class="single-post-text">
 								<p>Come and experience URU High Performance! We are dedicated to maintaining high coach-to-athlete ratios to ensure that you receive individual attention during our small group sessions. URU High Performance training is built upon an integrated methodology that combines conditioning and technical drills, designed to enhance players' individual skills while fostering a high-intensity environment.  Information for our next session is below!  Register <a href='https://forms.gle/TuvduKCEcqyuR9hF6' target='_BLANK'>HERE</a>!</p>
-<a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>' style='width: 50%'></a>
+<a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width: 50%'></a>
 							</div>
 						</div>
 					</div>
