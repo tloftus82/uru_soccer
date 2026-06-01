@@ -54,7 +54,7 @@
 
     $dispClassName = "";
     $tdy = new DateTime();
-    $grad = new DateTime($playerClassSection['GRAD_CLASS'].'-06-01');
+    $grad = new DateTime($playerClassSection['GRAD_CLASS'].'-08-01');
     $diff = $grad->diff($tdy);
     if($diff->invert == 0){
       $diffYrs = 0 - ceil($diff->days/365.25);
