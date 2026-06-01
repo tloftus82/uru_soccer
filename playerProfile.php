@@ -608,14 +608,14 @@ $ipOrg = "";
             if ($hasSocial): ?>
           <hr class="cc-divider" style="margin-top:12px;">
           <div style="display:flex;gap:14px;align-items:center;">
-            <?php if (!empty($playerInfo['SOC_FACEBOOK'])): ?>
-            <a href="https://www.facebook.com/<?= htmlspecialchars($playerInfo['SOC_FACEBOOK']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <?php endif; ?>
             <?php if (!empty($playerInfo['SOC_INSTAGRAM'])): ?>
             <a href="https://www.instagram.com/<?= htmlspecialchars($playerInfo['SOC_INSTAGRAM']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Instagram"><i class="fab fa-instagram"></i></a>
             <?php endif; ?>
             <?php if (!empty($playerInfo['SOC_TWITTER'])): ?>
             <a href="https://www.twitter.com/<?= htmlspecialchars($playerInfo['SOC_TWITTER']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Twitter / X"><i class="fab fa-twitter"></i></a>
+            <?php endif; ?>
+            <?php if (!empty($playerInfo['SOC_FACEBOOK'])): ?>
+            <a href="https://www.facebook.com/<?= htmlspecialchars($playerInfo['SOC_FACEBOOK']) ?>/" target="_blank" style="font-size:20px;opacity:.65;color:inherit;" title="Facebook"><i class="fab fa-facebook-f"></i></a>
             <?php endif; ?>
           </div>
           <?php endif; ?>
