@@ -317,14 +317,24 @@ $ipOrg = "";
       .h-title{display:none !important;}
       .h-subtitles{display:none !important;}
       /* Always-fixed header pinned to top on mobile */
-      .header{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:52px !important;padding:0 14px !important;background:rgba(35,38,44,0.96) !important;backdrop-filter:blur(8px);display:flex !important;align-items:center !important;border-radius:0 !important;z-index:200 !important;}
+      .header{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:52px !important;padding:0 14px !important;background:rgba(35,38,44,0.96) !important;backdrop-filter:blur(8px);display:flex !important;align-items:center !important;border-radius:0 !important;z-index:200 !important;overflow:visible !important;}
       .header .logo{width:auto !important;height:52px !important;flex:1;}
       .header .logo img.logo-img{max-width:24px !important;margin-right:10px !important;}
       .header .logo .logo-lnk{font-size:13px !important;max-width:none !important;}
-      .header .menu-btn{width:36px !important;height:36px !important;line-height:34px !important;padding:0 !important;margin:0 !important;flex-shrink:0;border-radius:8px !important;border-color:rgba(255,255,255,0.3) !important;}
+      /* Hamburger right-aligned, smaller */
+      .header .menu-btn{float:none !important;margin-left:auto !important;width:36px !important;height:36px !important;line-height:34px !important;padding:0 !important;margin-top:0 !important;flex-shrink:0;border-radius:8px !important;border-color:rgba(255,255,255,0.3) !important;display:flex !important;}
       .header .menu-btn:before{top:11px !important;left:9px !important;right:9px !important;}
       .header .menu-btn:after{bottom:11px !important;left:9px !important;right:9px !important;}
       .header .menu-btn span{left:9px !important;right:9px !important;}
+      /* Dropdown menu slides down from header */
+      .header .header-sidebar{position:absolute !important;top:52px !important;left:0 !important;right:0 !important;background:rgba(35,38,44,0.97) !important;backdrop-filter:blur(8px);padding:0 !important;overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+      .header.active .header-sidebar{max-height:400px !important;}
+      .header .top-menu{position:static !important;width:100% !important;height:auto !important;opacity:0;visibility:hidden;transition:opacity 0.2s ease 0s !important;padding:0 !important;}
+      .header.active .top-menu{opacity:1 !important;visibility:visible !important;padding:10px 0 16px !important;}
+      .header .top-menu ul{display:block !important;}
+      .header .top-menu ul li{display:block !important;margin:0 !important;border-bottom:1px solid rgba(255,255,255,0.06);}
+      .header .top-menu ul li:last-child{border-bottom:none;}
+      .header .top-menu ul li a{display:block !important;padding:13px 20px !important;font-size:15px !important;text-align:left !important;}
       /* Push page content below fixed header */
       .wrapper{padding-top:52px;}
     }
