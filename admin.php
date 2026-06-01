@@ -54,7 +54,7 @@ function sqlVal($cn, $val) {
 }
 
 // ── Routing ───────────────────────────────────────────────────────────────────
-$section  = $_GET['section'] ?? 'players';   // players | lookups
+$section  = $_GET['section'] ?? 'players';   // players | lookups | dbdump
 $playerId = isset($_GET['p']) ? (int)$_GET['p'] : 0;
 $isNew    = isset($_GET['new']) && $_GET['new'] == 1;
 if ($isNew) $playerId = 0;
@@ -473,6 +473,7 @@ $fa         = "admin.php?section=lookups";
 <div class="section-nav">
   <a href="admin.php" class="<?= $section === 'players' ? 'active' : '' ?>"><i class="fas fa-user me-1"></i>Players</a>
   <a href="admin.php?section=lookups" class="<?= $section === 'lookups' ? 'active' : '' ?>"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
+  <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
 </div>
 
 <div class="container-fluid px-4 pt-3">
@@ -905,6 +906,86 @@ function rowActions($fa, $table, $id, $activeTab) {
 </div><!-- /tab-content lookups -->
 
 <?php endif; // section ?>
+
+<?php if ($section === 'dbdump'):
+  $dumpTables = [
+    'PP_PLAYERS'         => 'SELECT ID, FIRST_NAME, LAST_NAME, ACTIVE, GENDER, DATE_OF_BIRTH, EMAIL_ADDRESS, PHONE_NUMBER FROM PP_PLAYERS ORDER BY ID',
+    'PP_POSITIONS'       => 'SELECT * FROM PP_POSITIONS ORDER BY POSITION',
+    'PP_LOCATIONS'       => 'SELECT * FROM PP_LOCATIONS ORDER BY STATE,CITY',
+    'PP_ORGANIZATIONS'   => 'SELECT ID, ORG_NAME, ORG_TYPE, LOCATION_ID FROM PP_ORGANIZATIONS ORDER BY ORG_NAME',
+    'PP_CONTACTS'        => 'SELECT * FROM PP_CONTACTS ORDER BY LAST_NAME,FIRST_NAME',
+    'PP_TIME_PERIODS'    => 'SELECT * FROM PP_TIME_PERIODS ORDER BY SORT_ORDER',
+    'PP_VIDEO_TYPES'     => 'SELECT * FROM PP_VIDEO_TYPES ORDER BY VIDEO_TYPE_DESC',
+    'PP_REF_TYPES'       => 'SELECT * FROM PP_REF_TYPES ORDER BY REF_TYPE',
+    'PP_ACCOLADES'       => 'SELECT A.*, B.ORG_NAME, C.TIME_PER_DESC FROM PP_ACCOLADES A LEFT JOIN PP_ORGANIZATIONS B ON B.ID=A.ORG_ID LEFT JOIN PP_TIME_PERIODS C ON C.ID=A.TIME_PERIOD_ID ORDER BY A.PLAYER_ID,A.SORT_ORDER',
+    'PP_VIDEOS'          => 'SELECT A.ID, A.PLAYER_ID, B.ORG_NAME, C.TIME_PER_DESC, D.VIDEO_TYPE_DESC, A.VIDEO_URL, A.VIDEO_LENGTH_M, A.SORT_ORDER FROM PP_VIDEOS A LEFT JOIN PP_ORGANIZATIONS B ON B.ID=A.ORG_ID LEFT JOIN PP_TIME_PERIODS C ON C.ID=A.TIME_PER_ID LEFT JOIN PP_VIDEO_TYPES D ON D.ID=A.VIDEO_TYPE_ID ORDER BY A.PLAYER_ID,A.SORT_ORDER',
+    'PP_REFERENCES'      => 'SELECT A.ID, A.PLAYER_ID, B.REF_TYPE, C.FIRST_NAME, C.LAST_NAME, C.EMAIL_ADDRESS, C.PHONE_NUMBER, D.ORG_NAME, A.IS_ACTIVE, A.SORT_ORDER FROM PP_REFERENCES A LEFT JOIN PP_REF_TYPES B ON B.ID=A.REF_TYPE_ID LEFT JOIN PP_CONTACTS C ON C.ID=A.REF_CONTACT_ID LEFT JOIN PP_ORGANIZATIONS D ON D.ID=C.ORG_ID ORDER BY A.PLAYER_ID,A.SORT_ORDER',
+    'PP_ALLOWED_VIEWERS' => 'SELECT ID, FIRST_NAME, LAST_NAME, VIEW_CODE FROM PP_ALLOWED_VIEWERS ORDER BY LAST_NAME,FIRST_NAME',
+  ];
+  $selectedTable = $_GET['t'] ?? array_key_first($dumpTables);
+  if (!isset($dumpTables[$selectedTable])) $selectedTable = array_key_first($dumpTables);
+  $dumpResult = mysqli_query($cn, $dumpTables[$selectedTable]);
+  $dumpRows   = mysqli_fetch_all($dumpResult, MYSQLI_ASSOC);
+  $dumpCols   = $dumpRows ? array_keys($dumpRows[0]) : [];
+?>
+<div class="container-fluid px-4 pt-3">
+  <h5 class="fw-bold mb-3"><i class="fas fa-database me-2 text-secondary"></i>DB Dump</h5>
+
+  <!-- Table selector -->
+  <div class="mb-3 d-flex flex-wrap gap-2">
+    <?php foreach (array_keys($dumpTables) as $tbl): ?>
+    <a href="admin.php?section=dbdump&t=<?= urlencode($tbl) ?>"
+       class="btn btn-sm <?= $tbl === $selectedTable ? 'btn-dark' : 'btn-outline-secondary' ?>">
+      <?= $tbl ?>
+    </a>
+    <?php endforeach; ?>
+  </div>
+
+  <!-- Copy button + row count -->
+  <div class="d-flex align-items-center gap-3 mb-2">
+    <span class="text-muted small"><?= count($dumpRows) ?> row<?= count($dumpRows) !== 1 ? 's' : '' ?></span>
+    <button class="btn btn-sm btn-outline-primary" onclick="copyDump()"><i class="fas fa-copy me-1"></i>Copy to clipboard</button>
+  </div>
+
+  <!-- Table -->
+  <?php if (empty($dumpRows)): ?>
+  <p class="text-muted fst-italic">No rows.</p>
+  <?php else: ?>
+  <div class="table-responsive" style="max-height:70vh;overflow-y:auto;">
+    <table class="table table-sm table-bordered table-hover align-middle" id="dumpTable" style="font-size:12px;font-family:monospace;">
+      <thead class="table-dark sticky-top">
+        <tr><?php foreach ($dumpCols as $col): ?><th><?= htmlspecialchars($col) ?></th><?php endforeach; ?></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($dumpRows as $row): ?>
+        <tr><?php foreach ($row as $val): ?><td><?= htmlspecialchars((string)$val) ?></td><?php endforeach; ?></tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php endif; ?>
+</div>
+
+<script>
+function copyDump() {
+  var tbl = document.getElementById('dumpTable');
+  if (!tbl) return;
+  var lines = [];
+  var headers = Array.from(tbl.querySelectorAll('thead th')).map(function(th){ return th.innerText.trim(); });
+  lines.push(headers.join('\t'));
+  tbl.querySelectorAll('tbody tr').forEach(function(tr){
+    var cells = Array.from(tr.querySelectorAll('td')).map(function(td){ return td.innerText.trim(); });
+    lines.push(cells.join('\t'));
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(function(){
+    var btn = document.querySelector('[onclick="copyDump()"]');
+    btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+    setTimeout(function(){ btn.innerHTML = '<i class="fas fa-copy me-1"></i>Copy to clipboard'; }, 2000);
+  });
+}
+</script>
+
+<?php endif; // dbdump ?>
 
 </div><!-- /container -->
 
