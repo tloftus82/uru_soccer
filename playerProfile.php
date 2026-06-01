@@ -261,6 +261,7 @@ $ipOrg = "";
     .accolade-card .ac-period{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:.5;margin-top:2px;}
     .accolade-card .ac-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 9px;}
     .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;flex:1;}
+    .accolade-card-empty{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.05);pointer-events:none;}
     /* Equal-height carousel */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
@@ -415,10 +416,14 @@ $ipOrg = "";
           </div>
           <div class="content-carousel">
             <div class="owl-carousel" data-slidesview="1" data-slidesview_mobile="1">
-              <?php foreach (array_chunk($accoladesArray, 6) as $group): ?>
+              <?php foreach (array_chunk($accoladesArray, 6) as $group):
+                      while (count($group) < 6) $group[] = null; ?>
               <div class="item">
                 <div class="accolade-group">
                   <?php foreach ($group as $accolade): ?>
+                  <?php if ($accolade === null): ?>
+                  <div class="accolade-card accolade-card-empty"></div>
+                  <?php else: ?>
                   <div class="accolade-card">
                     <div class="ac-header">
                       <?php if (!empty($accolade['IMG_LOGO'])): ?>
@@ -434,6 +439,7 @@ $ipOrg = "";
                     <hr class="ac-divider">
                     <div class="ac-text"><?= nl2br($accolade['ACCOLADES_TEXT']) ?></div>
                   </div>
+                  <?php endif; ?>
                   <?php endforeach; ?>
                 </div>
               </div>
