@@ -100,9 +100,11 @@
     }
 
     $sql  = "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GENDER, A.GPA, A.ACT_SCORE, A.SAT_SCORE, ";
-    $sql .= "  B.POSITION AS POSITION_PRI, A.IMG_HEADSHOT, A.COMMITTED_FLAG ";
+    $sql .= "  B.POSITION AS POSITION_PRI, A.IMG_HEADSHOT, A.COMMITTED_FLAG, ";
+    $sql .= "  CONCAT(D.CITY,', ',D.STATE) AS FULL_LOCATION ";
     $sql .= "FROM PP_PLAYERS A ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
+    $sql .= "LEFT OUTER JOIN PP_LOCATIONS D ON D.ID = A.LOCATION ";
     $sql .= "WHERE A.IS_ACTIVE = 1 AND A.GENDER = '".$playerClassSection['GENDER']."' AND A.GRAD_CLASS = '".$playerClassSection['GRAD_CLASS']."' ";
     $sql .= "ORDER BY A.LAST_NAME ASC, A.FIRST_NAME ASC ";
     $result  = mysqli_query($cn, $sql);
@@ -131,6 +133,7 @@
                 <?php endif; ?>
                 <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
                 <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
+                <?php if(!empty($player['FULL_LOCATION'])): ?><div class="pc-pos"><i class="fas fa-map-marker-alt" style="opacity:.5;font-size:9px;margin-right:3px;"></i><?= htmlspecialchars($player['FULL_LOCATION']) ?></div><?php endif; ?>
                 <div class="pc-stats">
                   <?php if(strlen($player['GPA'])       > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['GPA']) ?> GPA</span><?php endif; ?>
                   <?php if(strlen($player['ACT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['ACT_SCORE']) ?> ACT</span><?php endif; ?>
