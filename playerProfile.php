@@ -291,6 +291,8 @@ $ipOrg = "";
     .video-card .vc-type{font-size:13px;font-weight:700;}
     .video-card .vc-meta{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:1px;}
     @media(max-width:600px){.video-cards{grid-template-columns:1fr;}}
+    /* Coming soon card */
+    .coming-soon-card{display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.18);border-radius:12px;padding:18px 26px;font-size:13px;text-transform:uppercase;letter-spacing:2px;opacity:.5;}
     /* Contact card */
     .contact-card{display:inline-flex;flex-direction:column;gap:0;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:22px 26px;min-width:280px;max-width:440px;}
     .contact-card .cc-header{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
@@ -451,11 +453,11 @@ $ipOrg = "";
         <div class="content">
           <div class="titles">
             <div class="title">Accolades</div>
-            <div class="subtitle">
-              Awards & Recognition
-              <?php if(sizeof($accoladesArray) == 0){echo "• Coming Soon";} ?>
-            </div>
+            <div class="subtitle">Awards & Recognition</div>
           </div>
+          <?php if (empty($accoladesArray)): ?>
+          <div class="coming-soon-card"><i class="fas fa-trophy"></i> Coming Soon</div>
+          <?php else: ?>
           <div class="content-carousel">
             <div class="owl-carousel" data-slidesview="1" data-slidesview_mobile="1">
               <?php foreach (array_chunk($accoladesArray, 6) as $group):
@@ -492,19 +494,20 @@ $ipOrg = "";
               <span class="next fas fa-chevron-right"></span>
             </div>
           </div>
+          <?php endif; ?>
         </div>
       </div>
-      
+
       <div class="section works" id="section-portfolio">
         <div class="content">
           <div class="titles">
             <div class="title">Video</div>
-            <div class="subtitle">
-              Highlight Reels & Match Videos
-              <?php if(sizeof($videosArray) == 0){echo "• Coming Soon";} ?>
-            </div>
+            <div class="subtitle">Highlight Reels & Match Videos</div>
           </div>
 
+          <?php if (empty($videosArray)): ?>
+          <div class="coming-soon-card"><i class="fas fa-video"></i> Coming Soon</div>
+          <?php else: ?>
           <div class="video-cards">
             <?php foreach($videosArray as $video): ?>
             <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" style="text-decoration:none;color:inherit;">
@@ -523,6 +526,7 @@ $ipOrg = "";
             </a>
             <?php endforeach; ?>
           </div>
+          <?php endif; ?>
           <div class="clear"></div>
         </div>
       </div>
@@ -531,11 +535,11 @@ $ipOrg = "";
         <div class="content">
           <div class="titles">
             <div class="title">References</div>
-            <div class="subtitle">
-              Who You Can Talk To
-              <?php if(sizeof($referenceArray) == 0){echo "• Coming Soon";} ?>
-            </div>
+            <div class="subtitle">Who You Can Talk To</div>
           </div>
+          <?php if (empty($referenceArray)): ?>
+          <div class="coming-soon-card"><i class="fas fa-user-tie"></i> Coming Soon</div>
+          <?php else: ?>
           <div class="ref-cards">
             <?php foreach($referenceArray as $ref): ?>
             <div class="ref-card">
@@ -563,6 +567,7 @@ $ipOrg = "";
             </div>
             <?php endforeach; ?>
           </div>
+          <?php endif; ?>
         <div class="clear"></div>
       </div>
     </div>
