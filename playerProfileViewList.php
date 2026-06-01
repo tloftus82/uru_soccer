@@ -26,7 +26,7 @@ $filterDateTo   = $_GET['date_to']   ?? '';
 $hideBots       = isset($_GET['hide_bots']) ? (int)$_GET['hide_bots'] : 1;
 
 // ── Build WHERE ────────────────────────────────────────────────────────────────
-$where = ["A.VIEW_DATE_TIME >= DATE_SUB(CURDATE(), INTERVAL 12000 DAY)", "B.ID NOT IN(2)"];
+$where = ["1=1"];
 if ($filterPlayer)            $where[] = "A.PLAYER_ID = $filterPlayer";
 if ($filterViewer)            $where[] = "A.VIEWER_ID = $filterViewer";
 if ($filterDateFrom !== '')   $where[] = "DATE(A.VIEW_DATE_TIME) >= '".mysqli_real_escape_string($cn, $filterDateFrom)."'";
@@ -69,7 +69,7 @@ $displayViews = array_values($displayViews);
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 $players = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_PLAYERS WHERE IS_ACTIVE=1 ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
-$viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_ALLOWED_VIEWERS WHERE ID != 2 ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
+$viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_ALLOWED_VIEWERS ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
 
 // ── Summary stats (on filtered display set) ────────────────────────────────────
 $totalViews     = count($displayViews);
