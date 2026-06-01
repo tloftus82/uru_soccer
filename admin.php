@@ -500,19 +500,19 @@ $fa         = "admin.php?section=lookups";
             <div class="row g-3">
               <div class="col-6"><label class="form-label">First Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="FIRST_NAME" value="<?= v($playerInfo,'FIRST_NAME') ?>" required></div>
               <div class="col-6"><label class="form-label">Last Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="LAST_NAME" value="<?= v($playerInfo,'LAST_NAME') ?>" required></div>
-              <div class="col-6"><label class="form-label">Gender</label><select class="form-select" name="GENDER"><option value="M" <?= sel($playerInfo['GENDER']??'M','M') ?>>Male</option><option value="F" <?= sel($playerInfo['GENDER']??'','F') ?>>Female</option></select></div>
+              <div class="col-6"><label class="form-label">Gender</label><select class="form-select" name="GENDER"><option value="">— Select —</option><option value="M" <?= sel($playerInfo['GENDER']??'','M') ?>>Male</option><option value="F" <?= sel($playerInfo['GENDER']??'','F') ?>>Female</option></select></div>
               <div class="col-6"><label class="form-label">Date of Birth</label><input type="date" class="form-control" name="DATE_OF_BIRTH" value="<?= v($playerInfo,'DATE_OF_BIRTH') ?>"></div>
-              <div class="col-6"><label class="form-label">Phone Number</label><input type="text" class="form-control" name="PHONE_NUMBER" value="<?= v($playerInfo,'PHONE_NUMBER') ?>" placeholder="555-555-5555"></div>
+              <div class="col-6"><label class="form-label">Phone Number</label><input type="text" class="form-control" name="PHONE_NUMBER" value="<?= v($playerInfo,'PHONE_NUMBER') ?>"><div class="field-hint">555-555-5555</div></div>
               <div class="col-6"><label class="form-label">Email Address</label><input type="email" class="form-control" name="EMAIL_ADDRESS" value="<?= v($playerInfo,'EMAIL_ADDRESS') ?>"></div>
-              <div class="col-12"><label class="form-label">Home City</label><select class="form-select" name="LOCATION"><?php foreach ($locations as $loc): ?><option value="<?= $loc['ID'] ?>" <?= sel($playerInfo['LOCATION']??0,$loc['ID']) ?>><?= htmlspecialchars($loc['CITY'].', '.$loc['STATE']) ?></option><?php endforeach; ?></select></div>
+              <div class="col-12"><label class="form-label">Home City</label><select class="form-select" name="LOCATION"><option value="">— Select —</option><?php foreach ($locations as $loc): ?><option value="<?= $loc['ID'] ?>" <?= sel($playerInfo['LOCATION']??'',$loc['ID']) ?>><?= htmlspecialchars($loc['CITY'].', '.$loc['STATE']) ?></option><?php endforeach; ?></select></div>
             </div>
           </div>
           <div class="card-section">
             <h5><i class="fas fa-running me-2"></i>Soccer Info</h5>
             <div class="row g-3">
-              <div class="col-6"><label class="form-label">Primary Position</label><select class="form-select" name="POSITION_PRI"><?php foreach ($positions as $pos): ?><option value="<?= $pos['ID'] ?>" <?= sel($playerInfo['POSITION_PRI']??0,$pos['ID']) ?>><?= htmlspecialchars($pos['POSITION']) ?></option><?php endforeach; ?></select></div>
-              <div class="col-6"><label class="form-label">Secondary Position</label><select class="form-select" name="POSITION_SEC"><option value="">N/A</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['ID'] ?>" <?= sel($playerInfo['POSITION_SEC']??'',$pos['ID']) ?>><?= htmlspecialchars($pos['POSITION']) ?></option><?php endforeach; ?></select></div>
-              <div class="col-6"><label class="form-label">Height (inches)</label><input type="number" class="form-control" name="HEIGHT_IN" value="<?= v($playerInfo,'HEIGHT_IN') ?>" placeholder="68"><div class="field-hint">e.g. 68 = 5'8"</div></div>
+              <div class="col-6"><label class="form-label">Primary Position</label><select class="form-select" name="POSITION_PRI"><option value="">— Select —</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['ID'] ?>" <?= sel($playerInfo['POSITION_PRI']??'',$pos['ID']) ?>><?= htmlspecialchars($pos['POSITION']) ?></option><?php endforeach; ?></select></div>
+              <div class="col-6"><label class="form-label">Secondary Position</label><select class="form-select" name="POSITION_SEC"><option value="">— None —</option><?php foreach ($positions as $pos): ?><option value="<?= $pos['ID'] ?>" <?= sel($playerInfo['POSITION_SEC']??'',$pos['ID']) ?>><?= htmlspecialchars($pos['POSITION']) ?></option><?php endforeach; ?></select></div>
+              <div class="col-6"><label class="form-label">Height (inches)</label><input type="number" class="form-control" name="HEIGHT_IN" value="<?= v($playerInfo,'HEIGHT_IN') ?>"><div class="field-hint">68 = 5'8" &nbsp;|&nbsp; 72 = 6'0"</div></div>
               <div class="col-6"><label class="form-label">Dominant Foot</label><select class="form-select" name="DOMINATE_FOOT"><option value="">N/A</option><?php foreach (['Left','Right','Ambidextrous'] as $foot): ?><option value="<?= $foot ?>" <?= sel($playerInfo['DOMINATE_FOOT']??'',$foot) ?>><?= $foot ?></option><?php endforeach; ?></select></div>
               <div class="col-12"><label class="form-label">Club Team</label><select class="form-select" name="CLUB"><option value="">N/A</option><?php foreach ($clubs as $club): ?><option value="<?= $club['ID'] ?>" <?= sel($playerInfo['CLUB']??'',$club['ID']) ?>><?= htmlspecialchars($club['ORG_NAME']) ?></option><?php endforeach; ?></select></div>
             </div>
@@ -529,20 +529,20 @@ $fa         = "admin.php?section=lookups";
           <div class="card-section">
             <h5><i class="fas fa-graduation-cap me-2"></i>Academic Info</h5>
             <div class="row g-3">
-              <div class="col-8"><label class="form-label">High School</label><select class="form-select" name="HIGH_SCHOOL"><option value="">N/A</option><?php foreach ($highSchools as $hs): ?><option value="<?= $hs['ID'] ?>" <?= sel($playerInfo['HIGH_SCHOOL']??'',$hs['ID']) ?>><?= htmlspecialchars($hs['ORG_NAME']) ?></option><?php endforeach; ?></select></div>
-              <div class="col-4"><label class="form-label">Grad Year</label><select class="form-select" name="GRAD_CLASS"><?php for ($y=date('Y')-1;$y<=date('Y')+7;$y++): ?><option value="<?= $y ?>" <?= sel($playerInfo['GRAD_CLASS']??date('Y')+1,$y) ?>><?= $y ?></option><?php endfor; ?></select></div>
-              <div class="col-4"><label class="form-label">GPA</label><input type="number" step="0.01" min="0" max="5" class="form-control" name="GPA" value="<?= v($playerInfo,'GPA') ?>" placeholder="3.85"></div>
-              <div class="col-4"><label class="form-label">ACT Score</label><input type="number" class="form-control" name="ACT_SCORE" value="<?= v($playerInfo,'ACT_SCORE') ?>" placeholder="28"></div>
-              <div class="col-4"><label class="form-label">SAT Score</label><input type="number" class="form-control" name="SAT_SCORE" value="<?= v($playerInfo,'SAT_SCORE') ?>" placeholder="1200"></div>
-              <div class="col-6"><label class="form-label">Class Rank</label><input type="text" class="form-control" name="CLASS_RANK" value="<?= v($playerInfo,'CLASS_RANK') ?>" placeholder="15/320"><div class="field-hint">rank / total students</div></div>
-              <div class="col-6"><label class="form-label">Transcript PDF</label><input type="text" class="form-control" name="PDF_TRANSCRIPT" value="<?= v($playerInfo,'PDF_TRANSCRIPT') ?>" placeholder="documents/name.pdf"></div>
+              <div class="col-8"><label class="form-label">High School</label><select class="form-select" name="HIGH_SCHOOL"><option value="">— Select —</option><?php foreach ($highSchools as $hs): ?><option value="<?= $hs['ID'] ?>" <?= sel($playerInfo['HIGH_SCHOOL']??'',$hs['ID']) ?>><?= htmlspecialchars($hs['ORG_NAME']) ?></option><?php endforeach; ?></select></div>
+              <div class="col-4"><label class="form-label">Grad Year</label><select class="form-select" name="GRAD_CLASS"><option value="">— Select —</option><?php for ($y=date('Y')-1;$y<=date('Y')+7;$y++): ?><option value="<?= $y ?>" <?= sel($playerInfo['GRAD_CLASS']??'',$y) ?>><?= $y ?></option><?php endfor; ?></select></div>
+              <div class="col-4"><label class="form-label">GPA</label><input type="number" step="0.01" min="0" max="5" class="form-control" name="GPA" value="<?= v($playerInfo,'GPA') ?>"><div class="field-hint">0.00 – 5.00</div></div>
+              <div class="col-4"><label class="form-label">ACT Score</label><input type="number" class="form-control" name="ACT_SCORE" value="<?= v($playerInfo,'ACT_SCORE') ?>"><div class="field-hint">1 – 36</div></div>
+              <div class="col-4"><label class="form-label">SAT Score</label><input type="number" class="form-control" name="SAT_SCORE" value="<?= v($playerInfo,'SAT_SCORE') ?>"><div class="field-hint">400 – 1600</div></div>
+              <div class="col-6"><label class="form-label">Class Rank</label><input type="text" class="form-control" name="CLASS_RANK" value="<?= v($playerInfo,'CLASS_RANK') ?>"><div class="field-hint">rank / total students &nbsp;(e.g. 15/320)</div></div>
+              <div class="col-6"><label class="form-label">Transcript PDF</label><input type="text" class="form-control" name="PDF_TRANSCRIPT" value="<?= v($playerInfo,'PDF_TRANSCRIPT') ?>"><div class="field-hint">documents/filename.pdf</div></div>
             </div>
           </div>
           <div class="card-section">
             <h5><i class="fas fa-images me-2"></i>Media Files</h5>
             <div class="row g-3">
-              <div class="col-12"><label class="form-label">Headshot Image</label><input type="text" class="form-control" name="IMG_HEADSHOT" value="<?= v($playerInfo,'IMG_HEADSHOT') ?>" placeholder="images/headshots/name.jpg"><?php if(!empty($playerInfo['IMG_HEADSHOT'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_HEADSHOT') ?>" style="height:60px;border-radius:50%;" onerror="this.style.display='none'"></div><?php endif;?></div>
-              <div class="col-12"><label class="form-label">Action Image</label><input type="text" class="form-control" name="IMG_ACTION" value="<?= v($playerInfo,'IMG_ACTION') ?>" placeholder="images/action/name.jpg"><?php if(!empty($playerInfo['IMG_ACTION'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:60px;border-radius:4px;" onerror="this.style.display='none'"></div><?php endif;?></div>
+              <div class="col-12"><label class="form-label">Headshot Image</label><input type="text" class="form-control" name="IMG_HEADSHOT" value="<?= v($playerInfo,'IMG_HEADSHOT') ?>"><div class="field-hint">images/headshots/filename.jpg</div><?php if(!empty($playerInfo['IMG_HEADSHOT'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_HEADSHOT') ?>" style="height:60px;border-radius:50%;" onerror="this.style.display='none'"></div><?php endif;?></div>
+              <div class="col-12"><label class="form-label">Action Image</label><input type="text" class="form-control" name="IMG_ACTION" value="<?= v($playerInfo,'IMG_ACTION') ?>"><div class="field-hint">images/action/filename.jpg</div><?php if(!empty($playerInfo['IMG_ACTION'])):?><div class="mt-2"><img src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:60px;border-radius:4px;" onerror="this.style.display='none'"></div><?php endif;?></div>
             </div>
           </div>
           <div class="card-section">
@@ -558,8 +558,8 @@ $fa         = "admin.php?section=lookups";
       <div class="card-section">
         <h5><i class="fas fa-pen me-2"></i>Player Bio</h5>
         <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Who Am I?</label><textarea class="form-control" name="TXT_WHOAMI" rows="7" placeholder="Player's personal introduction..."><?= v($playerInfo,'TXT_WHOAMI') ?></textarea></div>
-          <div class="col-md-6"><label class="form-label">Goals</label><textarea class="form-control" name="TXT_GOALS" rows="7" placeholder="Player's goals and aspirations..."><?= v($playerInfo,'TXT_GOALS') ?></textarea></div>
+          <div class="col-md-6"><label class="form-label">Who Am I?</label><textarea class="form-control" name="TXT_WHOAMI" rows="7"><?= v($playerInfo,'TXT_WHOAMI') ?></textarea><div class="field-hint">Player's personal introduction</div></div>
+          <div class="col-md-6"><label class="form-label">Goals</label><textarea class="form-control" name="TXT_GOALS" rows="7"><?= v($playerInfo,'TXT_GOALS') ?></textarea><div class="field-hint">Player's goals and aspirations</div></div>
         </div>
       </div>
       <div class="d-flex gap-2 mb-5">
