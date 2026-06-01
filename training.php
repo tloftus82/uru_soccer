@@ -1,4 +1,12 @@
-<?php include('dbConnect/dbConnect.inc.php'); ?>
+<?php
+include('dbConnect/dbConnect.inc.php');
+mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+$_uruVars = [];
+$_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
+while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
+$hpFlierImg  = $_uruVars['hp_flier_img']  ?? 'images/fliers/uruHighPerformance.jpg';
+$hpFlierLink = $_uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+?>
 
 <!doctype html>
 <html lang="en-US">
@@ -61,7 +69,7 @@
 						<div class="col col-full">
 							<div class="single-post-text">
 								<p>Come and experience URU High Performance! We are dedicated to maintaining high coach-to-athlete ratios to ensure that you receive individual attention during our small group sessions. URU High Performance training is built upon an integrated methodology that combines conditioning and technical drills, designed to enhance players' individual skills while fostering a high-intensity environment.  Information for our next session is below!  Register <a href='https://forms.gle/TuvduKCEcqyuR9hF6' target='_BLANK'>HERE</a>!</p>
-<a href='https://forms.gle/TuvduKCEcqyuR9hF6' target='_BLANK'><img src='images/fliers/uruHighPerformance.jpg' style='width: 50%'></a>
+<a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>' style='width: 50%'></a>
 							</div>
 						</div>
 					</div>

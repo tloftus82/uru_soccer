@@ -332,11 +332,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'lookups') {
     exit;
 }
 
+// ── POST: Site Settings ───────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
+    $action = $_POST['ACTION'] ?? '';
+
+    if ($action === 'SAVE_HP_FLIER') {
+        // Ensure table exists
+        mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+
+        $link = esc($cn, trim($_POST['HP_LINK'] ?? ''));
+
+        // Handle file upload
+        $uploadMsg = '';
+        if (!empty($_FILES['HP_IMAGE']['name'])) {
+            $tmp  = $_FILES['HP_IMAGE']['tmp_name'];
+            $ext  = strtolower(pathinfo($_FILES['HP_IMAGE']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            if (!in_array($ext, $allowed)) {
+                $flashMsg  = 'Invalid image type. Use JPG, PNG, GIF, or WEBP.';
+                $flashType = 'danger';
+            } else {
+                $dest = __DIR__ . '/images/fliers/uruHighPerformance.' . $ext;
+                if (move_uploaded_file($tmp, $dest)) {
+                    $imgPath = 'images/fliers/uruHighPerformance.' . $ext;
+                    mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_img','$imgPath') ON DUPLICATE KEY UPDATE VAR_VALUE='$imgPath'");
+                    $uploadMsg = 'Image updated. ';
+                } else {
+                    $flashMsg  = 'File upload failed. Check folder permissions.';
+                    $flashType = 'danger';
+                }
+            }
+        }
+
+        if (empty($flashMsg)) {
+            mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_link','$link') ON DUPLICATE KEY UPDATE VAR_VALUE='$link'");
+            $flashMsg  = $uploadMsg . 'Link saved.';
+            $flashType = 'success';
+        }
+    }
+
+    header("Location: admin.php?section=settings&msg=".urlencode($flashMsg)."&msgtype=$flashType");
+    exit;
+}
+
 // ── Flash from GET ────────────────────────────────────────────────────────────
 if (!empty($_GET['msg'])) {
     $flashMsg  = htmlspecialchars($_GET['msg']);
     $flashType = htmlspecialchars($_GET['msgtype'] ?? 'success');
 }
+
+// ── Load site variables ───────────────────────────────────────────────────────
+mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+$uruVars = [];
+$vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
+while ($vrow = mysqli_fetch_assoc($vr)) $uruVars[$vrow['VAR_KEY']] = $vrow['VAR_VALUE'];
 
 // ── Load data ─────────────────────────────────────────────────────────────────
 $positions   = mysqli_fetch_all(mysqli_query($cn, "SELECT * FROM PP_POSITIONS ORDER BY POSITION"), MYSQLI_ASSOC);
@@ -473,6 +522,7 @@ $fa         = "admin.php?section=lookups";
 <div class="section-nav">
   <a href="admin.php" class="<?= $section === 'players' ? 'active' : '' ?>"><i class="fas fa-user me-1"></i>Players</a>
   <a href="admin.php?section=lookups" class="<?= $section === 'lookups' ? 'active' : '' ?>"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
+  <a href="admin.php?section=settings" class="<?= $section === 'settings' ? 'active' : '' ?>"><i class="fas fa-cog me-1"></i>Site Settings</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
 </div>
 
@@ -907,7 +957,45 @@ function rowActions($fa, $table, $id, $activeTab) {
 
 <?php endif; // section ?>
 
-<?php if ($section === 'dbdump'):
+<?php if ($section === 'settings'): ?>
+<div class="container-fluid px-4 pt-3">
+  <h5 class="fw-bold mb-4"><i class="fas fa-cog me-2 text-secondary"></i>Site Settings</h5>
+
+  <!-- URU High Performance Flier -->
+  <div class="card-section mb-4">
+    <h6 class="fw-bold mb-3"><i class="fas fa-futbol me-2"></i>URU High Performance — Training Flier</h6>
+    <div class="row g-4">
+      <!-- Current image preview -->
+      <div class="col-md-4">
+        <div class="mb-2 text-muted small">Current Flier</div>
+        <?php $hpImg = $uruVars['hp_flier_img'] ?? 'images/fliers/uruHighPerformance.jpg'; ?>
+        <img src="<?= htmlspecialchars($hpImg) ?>?t=<?= time() ?>" alt="Current flier"
+             class="img-fluid rounded border" style="max-height:300px;object-fit:contain;background:#f8f9fa;">
+      </div>
+      <!-- Edit form -->
+      <div class="col-md-8">
+        <form method="POST" action="admin.php?section=settings" enctype="multipart/form-data">
+          <input type="hidden" name="ACTION" value="SAVE_HP_FLIER">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Registration / Info Link URL</label>
+            <input type="url" class="form-control" name="HP_LINK"
+                   value="<?= htmlspecialchars($uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF6') ?>"
+                   placeholder="https://...">
+            <div class="form-text">The URL visitors are sent to when they click the flier image.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Replace Flier Image <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="file" class="form-control" name="HP_IMAGE" accept="image/*">
+            <div class="form-text">JPG, PNG, GIF, or WEBP. Will overwrite the existing flier image.</div>
+          </div>
+          <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?php elseif ($section === 'dbdump'):
   $dumpTables = [
     'PP_PLAYERS'         => 'SELECT * FROM PP_PLAYERS ORDER BY ID',
     'PP_POSITIONS'       => 'SELECT * FROM PP_POSITIONS ORDER BY POSITION',
