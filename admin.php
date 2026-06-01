@@ -403,7 +403,7 @@ $formAction = "admin.php" . ($playerId ? "?p=$playerId" : "?new=1");
 $editAccId  = isset($_GET['edit_acc']) ? (int)$_GET['edit_acc'] : 0;
 $editAccRow = [];
 if ($editAccId) {
-    foreach ($accolades as $a) { if ($a['ID'] === $editAccId) { $editAccRow = $a; break; } }
+    foreach ($accolades as $a) { if ((int)$a['ID'] === $editAccId) { $editAccRow = $a; break; } }
 }
 $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
 $fa         = "admin.php?section=lookups";
