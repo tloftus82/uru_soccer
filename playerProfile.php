@@ -238,7 +238,16 @@ $ipOrg = "";
   <link rel="stylesheet" href="css/owl.carousel.css" />
   <link rel="stylesheet" href="css/swiper.css" />
   <link rel="stylesheet" href="css/fontawesome.css" />
-  <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->  
+  <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->
+  <style>
+    .stat-cards{display:flex;flex-wrap:wrap;gap:14px;margin:28px 0 8px;}
+    .stat-card{flex:1 1 140px;min-width:120px;max-width:200px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:16px 12px 14px;text-align:center;transition:background .2s,transform .2s;}
+    .stat-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
+    .stat-card .sc-icon{font-size:22px;margin-bottom:8px;opacity:.75;}
+    .stat-card .sc-value{font-size:17px;font-weight:700;line-height:1.2;word-break:break-word;}
+    .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:5px;}
+    @media(max-width:600px){.stat-card{flex:1 1 calc(50% - 14px);max-width:none;}}
+  </style>
 		
   <!--[if lt IE 9]>
   <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
@@ -338,36 +347,40 @@ $ipOrg = "";
               </div>
 			</div>
           </div>
-          <div class="info-list">
-		    <ul>
-			  <li><strong>Birthdate:</strong> <?php echo date('M, Y', strtotime($playerInfo['DATE_OF_BIRTH'])); ?></li>
-			  <li><strong>Position:</strong> <?php echo $playerInfo['POSITION_PRI']; ?></li>
-			  <li><strong>Age:</strong> <?php echo $playerInfo['AGE']; ?></li>
-              <li><strong>Secondary:</strong> <?php echo $playerInfo['POSITION_SEC']; ?></li>                            												
-              <li><strong>Height:</strong> <?php echo $playerInfo['HEIGHT']; ?></li>
-			  <li><strong>Footed:</strong> <?php echo $playerInfo['DOMINATE_FOOT']; ?></li>
-			</ul>
-		  </div>
-          <div class="info-list">
-		    <ul>
-			  <li><strong>School:</strong> <?php echo $playerInfo['HIGH_SCHOOL_NAME']; ?></li>
-			  <li><strong>City:</strong> <?php echo $playerInfo['HS_FULL_LOCATION']; ?></li>
-			  <li><strong>Grade:</strong> <?php echo $playerInfo['GRADE']; ?></li>
-              <li><strong>GPA:</strong> <?php echo $playerInfo['GPA']; ?></li>
-              <li><strong>Class:</strong> <?php echo $playerInfo['GRAD_CLASS']; ?></li>
-              <li><strong>ACT / SAT:</strong> <?php echo $playerInfo['ACT_SCORE']; ?> / <?php echo $playerInfo['SAT_SCORE']; ?></li>
-              <li><strong>Rank:</strong> <?php echo $playerInfo['CLASS_RANK']; if($displayRankPct == 1){echo ' • Top '.$playerInfo['RANK_PERCENT'].'%';} ?></li>
-              <li><strong>Transcript:</strong>
-                <?php
-                  if(strlen($playerInfo['PDF_TRANSCRIPT'] ?? '') > 0){
-                    echo "<a href='".$playerInfo['PDF_TRANSCRIPT']."' target='_BLANK'><i class=\"icon fas fa-link\"></i></a>";
-                  } else {
-                    echo "--";
-                  }
-                ?>
-              </li>
-			</ul>
-		  </div>
+          <div class="stat-cards">
+            <?php
+              function statCard($icon, $value, $label) {
+                if ($value === '--' || $value === '' || $value === null) return;
+                echo '<div class="stat-card">';
+                echo   '<div class="sc-icon"><i class="fas '.$icon.'"></i></div>';
+                echo   '<div class="sc-value">'.htmlspecialchars($value).'</div>';
+                echo   '<div class="sc-label">'.htmlspecialchars($label).'</div>';
+                echo '</div>';
+              }
+              statCard('fa-futbol',         $playerInfo['POSITION_PRI'],                         'Position');
+              if ($playerInfo['POSITION_SEC'] !== '--') statCard('fa-exchange-alt', $playerInfo['POSITION_SEC'], 'Secondary');
+              statCard('fa-ruler-vertical', $playerInfo['HEIGHT'],                               'Height');
+              statCard('fa-shoe-prints',    $playerInfo['DOMINATE_FOOT'],                        'Footed');
+              statCard('fa-graduation-cap', $playerInfo['GRADE'].' • '.$playerInfo['GRAD_CLASS'],'Grade / Class');
+              statCard('fa-school',         $playerInfo['HIGH_SCHOOL_NAME'],                     'High School');
+              statCard('fa-map-marker-alt', $playerInfo['HS_FULL_LOCATION'],                     'Location');
+              if ($playerInfo['GPA'] !== '--')       statCard('fa-book-open', $playerInfo['GPA'].' GPA', 'GPA');
+              if ($playerInfo['ACT_SCORE'] !== '--') statCard('fa-pencil-alt', $playerInfo['ACT_SCORE'], 'ACT Score');
+              if ($playerInfo['SAT_SCORE'] !== '--') statCard('fa-pencil-alt', $playerInfo['SAT_SCORE'], 'SAT Score');
+              if ($playerInfo['CLASS_RANK'] !== '--') {
+                $rankVal = $playerInfo['CLASS_RANK'];
+                if ($displayRankPct) $rankVal .= ' (Top '.$playerInfo['RANK_PERCENT'].'%)';
+                statCard('fa-list-ol', $rankVal, 'Class Rank');
+              }
+              if (strlen($playerInfo['PDF_TRANSCRIPT'] ?? '') > 0) {
+                echo '<div class="stat-card">';
+                echo   '<div class="sc-icon"><i class="fas fa-file-alt"></i></div>';
+                echo   '<div class="sc-value"><a href="'.htmlspecialchars($playerInfo['PDF_TRANSCRIPT']).'" target="_blank" style="color:inherit;">View PDF</a></div>';
+                echo   '<div class="sc-label">Transcript</div>';
+                echo '</div>';
+              }
+            ?>
+          </div>
           <div class="clear"></div>
 		</div>
 	  </div>
