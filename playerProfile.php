@@ -262,6 +262,34 @@ $ipOrg = "";
     .accolade-card .ac-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 9px;}
     .accolade-card .ac-text{font-size:12px;opacity:.75;line-height:1.55;flex:1;}
     .accolade-card-empty{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.05);pointer-events:none;}
+    /* Reference cards */
+    .ref-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+    .ref-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:18px 16px;display:flex;flex-direction:column;gap:0;transition:background .2s;}
+    .ref-card:hover{background:rgba(255,255,255,0.13);}
+    .ref-card .rc-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+    .ref-card .rc-logo{width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:4px;}
+    .ref-card .rc-logo-fallback{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.55;flex-shrink:0;}
+    .ref-card .rc-type{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;opacity:.5;}
+    .ref-card .rc-org{font-size:13px;font-weight:700;line-height:1.3;margin-top:1px;}
+    .ref-card hr.rc-divider{border:none;border-top:1px solid rgba(255,255,255,0.1);margin:0 0 10px;}
+    .ref-card .rc-name{font-size:14px;font-weight:600;margin-bottom:6px;}
+    .ref-card .rc-contact{font-size:12px;opacity:.7;line-height:1.7;}
+    .ref-card .rc-contact a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);}
+    .ref-card .rc-contact a:hover{opacity:1;border-bottom-color:currentColor;}
+    @media(max-width:600px){.ref-cards{grid-template-columns:1fr;}}
+    /* Video cards */
+    .video-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+    .video-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;overflow:hidden;transition:background .2s,transform .2s;display:flex;flex-direction:column;}
+    .video-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
+    .video-card .vc-thumb{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#000;}
+    .video-card .vc-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+    .video-card .vc-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);transition:background .2s;}
+    .video-card .vc-play i{font-size:36px;color:#fff;opacity:.85;}
+    .video-card:hover .vc-play{background:rgba(0,0,0,0.5);}
+    .video-card .vc-body{padding:12px 14px 14px;flex:1;display:flex;flex-direction:column;gap:4px;}
+    .video-card .vc-type{font-size:13px;font-weight:700;}
+    .video-card .vc-meta{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:1px;}
+    @media(max-width:600px){.video-cards{grid-template-columns:1fr;}}
     /* Equal-height carousel */
     #section-experience .owl-stage{display:flex !important;}
     #section-experience .owl-item{display:flex;}
@@ -463,34 +491,23 @@ $ipOrg = "";
             </div>
           </div>
 
-          <div class="box-items">
-            <?php
-              if(sizeof($videosArray) > 0){
-                foreach($videosArray as $video){
-                  echo "<div class=\"box-col f-video\">";
-                  echo "  <div class=\"box-item\">";
-                  echo "    <div class=\"image\">";
-                  echo "      <a href=\"".$video['VIDEO_URL']."\" class=\"has-popup-video\"><img src=\"".$video['IMG_THUMBNAIL']."\" alt=\"\" />";
-			      echo "      <span class=\"info\"><span class=\"centrize full-width\"><span class=\"vertical-center\"><i class=\"icon fas fa-video\"></i></span></span></span>";
-			      echo "      </a>";
-                  echo "    </div>";
-                  echo "    <div class=\"desc\">";
-                  if(strlen($video['TIME_PER_DESC'] ?? '') > 0 && strlen($video['ORG_NAME'] ?? '') > 0){
-                    echo "      <div class=\"category\">".$video['TIME_PER_DESC']." • ".$video['ORG_NAME']."</div>";
-                  }
-                  if(strlen($video['TIME_PER_DESC'] ?? '') > 0 && strlen($video['ORG_NAME'] ?? '') == 0){
-                    echo "      <div class=\"category\">".$video['TIME_PER_DESC']."</div>";
-                  }
-                  if(strlen($video['TIME_PER_DESC'] ?? '') == 0 && strlen($video['ORG_NAME'] ?? '') > 0){
-                    echo "      <div class=\"category\">".$video['ORG_NAME']."</div>";
-                  }
-                  echo "      <a href=\"https://youtu.be/S4L8T2kFFck\" class=\"name has-popup-video\">".$video['VIDEO_TYPE_DESC']." (".$video['VIDEO_LENGTH_M']." mins)</a>";
-                  echo "    </div>";
-                  echo "  </div>";
-                  echo "</div>";
-                }
-              }
-            ?>
+          <div class="video-cards">
+            <?php foreach($videosArray as $video): ?>
+            <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" style="text-decoration:none;color:inherit;">
+              <div class="vc-thumb">
+                <img src="<?= htmlspecialchars($video['IMG_THUMBNAIL']) ?>" alt="">
+                <div class="vc-play"><i class="fas fa-play-circle"></i></div>
+              </div>
+              <div class="vc-body">
+                <div class="vc-type"><?= htmlspecialchars($video['VIDEO_TYPE_DESC']) ?><?= $video['VIDEO_LENGTH_M'] ? ' <span style="font-weight:400;opacity:.6;">('.htmlspecialchars($video['VIDEO_LENGTH_M']).' min)</span>' : '' ?></div>
+                <?php
+                  $meta = array_filter([trim($video['TIME_PER_DESC'] ?? ''), trim($video['ORG_NAME'] ?? '')]);
+                  if ($meta): ?>
+                <div class="vc-meta"><?= htmlspecialchars(implode(' • ', $meta)) ?></div>
+                <?php endif; ?>
+              </div>
+            </a>
+            <?php endforeach; ?>
           </div>
           <div class="clear"></div>
         </div>
@@ -505,22 +522,33 @@ $ipOrg = "";
               <?php if(sizeof($referenceArray) == 0){echo "• Coming Soon";} ?>
             </div>
           </div>
-          <div class="service-items">
-            <?php
-              foreach($referenceArray as $reference){
-                echo "<div class=\"service-col\">";
-                echo "  <div class=\"service-item\">";
-                echo "    <img src=\"".$reference['IMG_LOGO']."\" alt=\"\" style=\"height:100px;\">";
-                echo "    <div class=\"name\">".$reference['REF_TYPE']."</div>";
-                echo "    <div class=\"single-post-text\"><p>".$reference['CONTACT_NAME']."<br />".$reference['ORG_NAME'];
-                if(strlen($reference['EMAIL_ADDRESS'] ?? '') > 0){echo "<br />".$reference['EMAIL_ADDRESS'];}
-                if(strlen($reference['PHONE_NUMBER'] ?? '') > 0){echo "<br />".$reference['PHONE_NUMBER'];}
-                echo "    <br /></p></div>";
-                echo "  </div>";
-                echo "</div>";
-              }
-            ?>
-        </div>
+          <div class="ref-cards">
+            <?php foreach($referenceArray as $ref): ?>
+            <div class="ref-card">
+              <div class="rc-header">
+                <?php if (!empty($ref['IMG_LOGO'])): ?>
+                  <img class="rc-logo" src="<?= htmlspecialchars($ref['IMG_LOGO']) ?>" alt="">
+                <?php else: ?>
+                  <div class="rc-logo-fallback"><i class="fas fa-user-tie"></i></div>
+                <?php endif; ?>
+                <div>
+                  <div class="rc-type"><?= htmlspecialchars($ref['REF_TYPE']) ?></div>
+                  <div class="rc-org"><?= htmlspecialchars($ref['ORG_NAME']) ?></div>
+                </div>
+              </div>
+              <hr class="rc-divider">
+              <div class="rc-name"><?= htmlspecialchars($ref['CONTACT_NAME']) ?></div>
+              <div class="rc-contact">
+                <?php if (!empty($ref['EMAIL_ADDRESS'])): ?>
+                  <a href="mailto:<?= htmlspecialchars($ref['EMAIL_ADDRESS']) ?>"><?= htmlspecialchars($ref['EMAIL_ADDRESS']) ?></a><br>
+                <?php endif; ?>
+                <?php if (!empty($ref['PHONE_NUMBER'])): ?>
+                  <a href="tel:<?= htmlspecialchars($ref['PHONE_NUMBER']) ?>"><?= htmlspecialchars($ref['PHONE_NUMBER']) ?></a>
+                <?php endif; ?>
+              </div>
+            </div>
+            <?php endforeach; ?>
+          </div>
         <div class="clear"></div>
       </div>
     </div>
