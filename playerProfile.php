@@ -245,7 +245,7 @@ $ipOrg = "";
     .stat-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:20px 12px 18px;text-align:center;transition:background .2s,transform .2s;}
     .stat-card:hover{background:rgba(255,255,255,0.13);transform:translateY(-3px);}
     .stat-card .sc-icon{font-size:22px;margin-bottom:10px;opacity:.75;}
-    .stat-card .sc-value{font-size:16px;font-weight:700;line-height:1.3;word-break:break-word;}
+    .stat-card .sc-value{font-size:16px;font-weight:700;line-height:1.3;overflow-wrap:normal;word-break:normal;hyphens:none;}
     .stat-card .sc-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-top:6px;}
     @media(max-width:800px){.stat-cards{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:540px){.stat-cards{grid-template-columns:repeat(2,1fr);}}
@@ -649,6 +649,13 @@ $ipOrg = "";
 <script src="js/owl.carousel.js"></script>
 <script src="js/swiper.js"></script>
 <script src="js/scripts.js"></script>
-
+<script>
+document.querySelectorAll('.sc-value').forEach(function(el) {
+  var size = 16;
+  while (el.scrollWidth > el.parentElement.clientWidth - 20 && size > 9) {
+    el.style.fontSize = (--size) + 'px';
+  }
+});
+</script>
 </body>
 </html>
