@@ -17,6 +17,20 @@
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 <?php $isEs = ($_SESSION['lang'] == 'es'); ?>
 
+<style>
+  .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;margin-top:20px;}
+  .player-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:background .2s,transform .2s;text-decoration:none;color:inherit;}
+  .player-card:hover{background:rgba(255,255,255,0.14);transform:translateY(-4px);color:inherit;text-decoration:none;}
+  .player-card .pc-photo{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;display:block;}
+  .player-card .pc-body{padding:14px 14px 16px;display:flex;flex-direction:column;flex:1;}
+  .player-card .pc-name{font-size:15px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+  .player-card .pc-pos{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.55;margin-bottom:10px;}
+  .player-card .pc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}
+  .player-card .pc-stat{background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+  .player-card .pc-committed{background:#27ae60;color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;display:inline-block;margin-bottom:8px;}
+  @media(max-width:540px){.player-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
+</style>
+
 <body class="home">
 
   <?php include('includes/sitePreloader.inc.php'); ?>
@@ -85,73 +99,50 @@
       else                { $dispClassName = 'Seniors'              . $classOf; }
     }
 
-    echo "<div class=\"section pricing\" id=\"section-pricing\">";
-    echo "  <div class=\"content\">";
-    echo "    <div class=\"titles\">";
-    echo "      <div class=\"title\">".$dispSectionName."</div>";
-    echo "      <div class=\"subtitle\">".$dispClassName."</div>";
-    echo "    </div>";
-    echo "    <div class=\"content-carousel\">";
-    echo "      <div class=\"owl-carousel\" data-slidesview=\"3\" data-slidesview_mobile=\"1\">";
-
-    $sql  = "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GENDER, A.GRAD_CLASS, A.GPA, A.ACT_SCORE, A.SAT_SCORE, ";
-    $sql .= "  IFNULL(A.CLASS_RANK,'--') AS CLASS_RANK, B.POSITION AS POSITION_PRI, ";
-    $sql .= "  IFNULL(C.POSITION,'--') AS POSITION_SEC, CONCAT(D.CITY,', ',D.STATE) AS FULL_LOCATION, ";
-    $sql .= "  A.DATE_OF_BIRTH, IFNULL(A.HEIGHT_IN,0) AS HEIGHT_IN, IFNULL(A.DOMINATE_FOOT,'--') AS DOMINATE_FOOT, ";
-    $sql .= "  IFNULL(E.ORG_NAME,'--') AS HIGH_SCHOOL_NAME, IFNULL(CONCAT(F.CITY,', ',F.STATE),'--') AS HS_FULL_LOCATION, ";
-    $sql .= "  IFNULL(A.PHONE_NUMBER,'--') AS PHONE_NUMBER, IFNULL(A.EMAIL_ADDRESS,'--') AS EMAIL_ADDRESS, ";
-    $sql .= "  A.IMG_HEADSHOT, A.IMG_ACTION, A.PDF_TRANSCRIPT, A.SOC_FACEBOOK, A.SOC_TWITTER, A.SOC_INSTAGRAM, ";
-    $sql .= "  A.TXT_WHOAMI, A.TXT_GOALS, A.COMMITTED_FLAG ";
+    $sql  = "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GENDER, A.GPA, A.ACT_SCORE, A.SAT_SCORE, ";
+    $sql .= "  B.POSITION AS POSITION_PRI, A.IMG_HEADSHOT, A.COMMITTED_FLAG ";
     $sql .= "FROM PP_PLAYERS A ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
-    $sql .= "LEFT OUTER JOIN PP_POSITIONS C ON C.ID = A.POSITION_SEC ";
-    $sql .= "LEFT OUTER JOIN PP_LOCATIONS D ON D.ID = A.LOCATION ";
-    $sql .= "LEFT OUTER JOIN PP_ORGANIZATIONS E ON E.ID = A.HIGH_SCHOOL ";
-    $sql .= "LEFT OUTER JOIN PP_LOCATIONS F ON F.ID = E.LOCATION_ID ";
     $sql .= "WHERE A.IS_ACTIVE = 1 AND A.GENDER = '".$playerClassSection['GENDER']."' AND A.GRAD_CLASS = '".$playerClassSection['GRAD_CLASS']."' ";
     $sql .= "ORDER BY A.LAST_NAME ASC, A.FIRST_NAME ASC ";
     $result  = mysqli_query($cn, $sql);
     $players = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-    foreach($players as $player) {
-      if(strlen($player['IMG_HEADSHOT']) > 0) {
-        $imgHeadshot = $player['IMG_HEADSHOT'];
-      } else {
-        $imgHeadshot = ($player['GENDER'] == 'M') ? 'images/headshots/nophotomale.jpg' : 'images/headshots/nophotofemale.jpg';
-      }
-
-      $committedLabel = $isEs ? 'COMPROMETIDO' : 'COMMITTED';
-      $moreInfoLabel  = $isEs ? 'Mas Info'     : 'More Info';
-
-      echo "        <div class=\"item\">";
-      echo "          <div class=\"pricing-item\">";
-      echo "            <div class=\"icons\">";
-      echo "              <div style='position:relative;display:inline-block;'>";
-      echo "                <a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\"><img src='".$imgHeadshot."' style='width:120px;text-align:center;vertical-align:middle;border-radius:50%;display:inline-block;'></a>";
-      if($player['COMMITTED_FLAG'] == 1) {
-        echo "                <div style='position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;letter-spacing:1px;'>".$committedLabel."</div>";
-      }
-      echo "              </div>";
-      echo "            </div><br><br><br>";
-      echo "            <div class=\"name\"><a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\" style='text-decoration:none;'>".$player['FIRST_NAME']." ".$player['LAST_NAME']."</a></div>";
-      echo "            <div class=\"feature-list\"><ul>";
-      echo "              <li>".$player['POSITION_PRI']."</li>";
-      if(strlen($player['GPA'])       > 0){ echo "<li>".$player['GPA']."  GPA</li>"; }
-      if(strlen($player['ACT_SCORE']) > 0){ echo "<li>".$player['ACT_SCORE']." ACT</li>"; }
-      if(strlen($player['SAT_SCORE']) > 0){ echo "<li>".$player['SAT_SCORE']." SAT</li>"; }
-      echo "            </ul></div>";
-      echo "            <a href=\"playerProfile.php?p=".$player['ID']."&v=".$trackViewCode."\" class=\"btn\"><span class=\"animated-button\"><span>".$moreInfoLabel."</span></span><i class=\"icon fas fa-chevron-right\"></i></a>";
-      echo "          </div>";
-      echo "        </div>";
-    }
-
-    echo "      </div>";
-    echo "      <div class=\"navs\"><span class=\"prev fas fa-chevron-left\"></span><span class=\"next fas fa-chevron-right\"></span></div>";
-    echo "    </div>";
-    echo "  </div>";
-    echo "</div>";
-  }
+    $committedLabel = $isEs ? 'COMPROMETIDO' : 'COMMITTED';
+    $moreInfoLabel  = $isEs ? 'Mas Info'     : 'More Info';
 ?>
+      <div class="section about" id="section-about">
+        <div class="content">
+          <div class="titles">
+            <div class="title"><?= $dispSectionName ?></div>
+            <div class="subtitle"><?= $dispClassName ?></div>
+          </div>
+          <div class="player-grid">
+            <?php foreach($players as $player):
+              $imgHeadshot = strlen($player['IMG_HEADSHOT']) > 0
+                ? $player['IMG_HEADSHOT']
+                : ($player['GENDER'] == 'M' ? 'images/headshots/nophotomale.jpg' : 'images/headshots/nophotofemale.jpg');
+            ?>
+            <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="player-card">
+              <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>">
+              <div class="pc-body">
+                <?php if($player['COMMITTED_FLAG'] == 1): ?>
+                <span class="pc-committed"><?= $committedLabel ?></span>
+                <?php endif; ?>
+                <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
+                <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
+                <div class="pc-stats">
+                  <?php if(strlen($player['GPA'])       > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['GPA']) ?> GPA</span><?php endif; ?>
+                  <?php if(strlen($player['ACT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['ACT_SCORE']) ?> ACT</span><?php endif; ?>
+                  <?php if(strlen($player['SAT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['SAT_SCORE']) ?> SAT</span><?php endif; ?>
+                </div>
+              </div>
+            </a>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+<?php } ?>
 
     </div>
 
