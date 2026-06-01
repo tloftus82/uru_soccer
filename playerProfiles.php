@@ -9,6 +9,28 @@
   $playerClassSections = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $trackViewCode = 'cz51ts';
+
+  $stateAbbr = [
+    'Alabama'=>'AL','Alaska'=>'AK','Arizona'=>'AZ','Arkansas'=>'AR','California'=>'CA',
+    'Colorado'=>'CO','Connecticut'=>'CT','Delaware'=>'DE','Florida'=>'FL','Georgia'=>'GA',
+    'Hawaii'=>'HI','Idaho'=>'ID','Illinois'=>'IL','Indiana'=>'IN','Iowa'=>'IA',
+    'Kansas'=>'KS','Kentucky'=>'KY','Louisiana'=>'LA','Maine'=>'ME','Maryland'=>'MD',
+    'Massachusetts'=>'MA','Michigan'=>'MI','Minnesota'=>'MN','Mississippi'=>'MS',
+    'Missouri'=>'MO','Montana'=>'MT','Nebraska'=>'NE','Nevada'=>'NV','New Hampshire'=>'NH',
+    'New Jersey'=>'NJ','New Mexico'=>'NM','New York'=>'NY','North Carolina'=>'NC',
+    'North Dakota'=>'ND','Ohio'=>'OH','Oklahoma'=>'OK','Oregon'=>'OR','Pennsylvania'=>'PA',
+    'Rhode Island'=>'RI','South Carolina'=>'SC','South Dakota'=>'SD','Tennessee'=>'TN',
+    'Texas'=>'TX','Utah'=>'UT','Vermont'=>'VT','Virginia'=>'VA','Washington'=>'WA',
+    'West Virginia'=>'WV','Wisconsin'=>'WI','Wyoming'=>'WY','District of Columbia'=>'DC',
+  ];
+  function abbrevState($location, $map) {
+    if (empty($location)) return $location;
+    $parts = explode(', ', $location, 2);
+    if (count($parts) === 2 && isset($map[trim($parts[1])])) {
+      return $parts[0] . ', ' . $map[trim($parts[1])];
+    }
+    return $location;
+  }
 ?>
 
 <!doctype html>
@@ -105,7 +127,7 @@
 
     $sql  = "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GENDER, A.GPA, A.ACT_SCORE, A.SAT_SCORE, ";
     $sql .= "  B.POSITION AS POSITION_PRI, A.IMG_HEADSHOT, A.COMMITTED_FLAG, ";
-    $sql .= "  CONCAT(D.CITY,', ',LEFT(D.STATE,2)) AS FULL_LOCATION, ";
+    $sql .= "  CONCAT(D.CITY,', ',D.STATE) AS FULL_LOCATION, ";
     $sql .= "  (SELECT COUNT(*) FROM PP_VIDEOS V WHERE V.PLAYER_ID = A.ID) AS VIDEO_COUNT ";
     $sql .= "FROM PP_PLAYERS A ";
     $sql .= "LEFT OUTER JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI ";
@@ -141,7 +163,7 @@
                 <?php endif; ?>
                 <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
                 <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
-                <?php if(!empty($player['FULL_LOCATION'])): ?><div class="pc-pos"><i class="fas fa-map-marker-alt" style="opacity:.5;font-size:9px;margin-right:3px;"></i><?= htmlspecialchars($player['FULL_LOCATION']) ?></div><?php endif; ?>
+                <?php if(!empty($player['FULL_LOCATION'])): ?><div class="pc-pos"><i class="fas fa-map-marker-alt" style="opacity:.5;font-size:9px;margin-right:3px;"></i><?= htmlspecialchars(abbrevState($player['FULL_LOCATION'], $stateAbbr)) ?></div><?php endif; ?>
                 <div class="pc-stats">
                   <?php if(strlen($player['GPA'])       > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['GPA']) ?> GPA</span><?php endif; ?>
                   <?php if(strlen($player['ACT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['ACT_SCORE']) ?> ACT</span><?php endif; ?>
