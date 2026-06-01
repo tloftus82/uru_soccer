@@ -311,8 +311,10 @@ $ipOrg = "";
     #section-experience .owl-item{display:flex;}
     #section-experience .owl-item .item{display:flex;flex:1;}
     #section-experience .owl-item .accolade-group{flex:1;}
-    /* Mobile hero */
-    @media(max-width:767px){
+    /* Mobile hero — hidden by default, shown only on mobile */
+    .mobile-hero{display:none;}
+    #mobileNav{display:none;}
+    @media only screen and (max-width:767px){
       .background-bg{display:none !important;}
       .h-title{display:none !important;}
       .h-subtitles{display:none !important;}
@@ -348,7 +350,7 @@ $ipOrg = "";
       /* hide desktop headshot inside h1 on mobile */
       .h-title img.desktop-headshot{display:none;}
     }
-    @media(min-width:768px){
+    @media only screen and (min-width:768px){
       .mobile-hero{display:none !important;}
       #mobileNav{display:none !important;}
     }
