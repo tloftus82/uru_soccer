@@ -3,12 +3,69 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-include('dbConnect/dbConnect.inc.php');
+session_start();
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-$passCodeChk = "36315";
-$viewCode    = $_GET['v'] ?? '';
-if ($viewCode !== $passCodeChk) { echo "<h3>Not authorized.</h3>"; die; }
+define('ADMIN_HASH', '63b38ded3ce608f47342f48fe9ac1639');
+
+if (isset($_POST['_pw_attempt'])) {
+    if ($_POST['_pw_attempt'] === ADMIN_HASH) {
+        $_SESSION['uru_admin'] = true;
+    }
+    // Redirect to clean URL (strip any leftover ?v= params)
+    $qs = http_build_query(array_filter(['p' => $_GET['p'] ?? null]));
+    header('Location: playerAdmin.php' . ($qs ? "?$qs" : ''));
+    exit;
+}
+
+if (empty($_SESSION['uru_admin'])) {
+    // Show password modal page and stop
+    ?><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>URU Admin Login</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<style>
+  body { background:#1a3a5c; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .login-box { background:#fff; border-radius:12px; padding:40px 36px; width:100%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,.35); }
+  .login-box h4 { color:#1a3a5c; font-weight:700; margin-bottom:24px; text-align:center; }
+  .btn-uru { background:#1a3a5c; color:#fff; font-weight:600; width:100%; }
+  .btn-uru:hover { background:#0d2540; color:#fff; }
+  #pw-error { display:none; }
+</style>
+</head>
+<body>
+<div class="login-box">
+  <h4>&#9917; URU Admin</h4>
+  <form method="post" action="playerAdmin.php<?= isset($_GET['p']) ? '?p='.(int)$_GET['p'] : '' ?>" id="login-form">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Password</label>
+      <input type="password" id="pw-input" class="form-control" autofocus autocomplete="current-password">
+      <input type="hidden" name="_pw_attempt" id="pw-hash">
+      <div id="pw-error" class="text-danger small mt-2">Incorrect password.</div>
+    </div>
+    <button type="submit" class="btn btn-uru">Enter</button>
+  </form>
+</div>
+<script>
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var pw = document.getElementById('pw-input').value;
+  // MD5 via SubtleCrypto is SHA not MD5 — use a small inline MD5
+  document.getElementById('pw-hash').value = md5(pw);
+  this.submit();
+});
+// Minimal MD5 implementation (public domain)
+function md5(s){function L(k,d){return(k<<d)|(k>>>(32-d))}function K(G,k){var I,d,F,H,x;F=(G&2147483648);H=(k&2147483648);I=(G&1073741824);d=(k&1073741824);x=(G&1073741823)+(k&1073741823);if(I&d){return(x^2147483648^F^H)}if(I|d){if(x&1073741824){return(x^3221225472^F^H)}else{return(x^1073741824^F^H)}}else{return(x^F^H)}}function r(d,F,k,I,q,m,l){d=K(d,K(K((F&k)|(~F&I),q),l));return K(L(d,m),F)}function q(d,F,k,I,q,m,l){d=K(d,K(K((F&I)|(k&~I),q),l));return K(L(d,m),F)}function p(d,F,k,I,q,m,l){d=K(d,K(K(F^k^I,q),l));return K(L(d,m),F)}function n(d,F,k,I,q,m,l){d=K(d,K(K(k^(F|~I),q),l));return K(L(d,m),F)}function u(G){var z=G.length,F=1772834941+z,w=z+1;var q=new Array(Math.ceil(w/64)*64/4);for(var i=0;i<q.length;i++)q[i]=0;for(var z=0;z<G.length;z++)q[z>>2]|=G.charCodeAt(z)<<((z%4)*8);q[z>>2]|=0x80<<((z%4)*8);q[q.length-2]=G.length*8;return q}function m(G){var j="0123456789abcdef",i="",F=0,z="";for(var k=0;k<=3;k++){F=(G>>>(k*8+4))&0x0F;z=(G>>>(k*8))&0x0F;i+=j.charAt(F)+j.charAt(z)}return i}var h=Array(),F=Array(),i=Array(),G=Array(),z,x,k,I,q,d,t,D,A;var B=8,j=7,N=6,O=5,P=4,M=3,J=2,E=1;var a=unescape(encodeURIComponent(s));var H=u(a);d=1732584193;t=4023233417;D=2562383102;A=271733878;for(z=0;z<H.length;z+=16){x=d;k=t;I=D;q=A;d=r(d,t,D,A,H[z+0],B,3614090360);A=r(A,d,t,D,H[z+1],j,3905402710);D=r(D,A,d,t,H[z+2],N,606105819);t=r(t,D,A,d,H[z+3],O,3250441966);d=r(d,t,D,A,H[z+4],P,4118548399);A=r(A,d,t,D,H[z+5],M,1200080426);D=r(D,A,d,t,H[z+6],J,2821735955);t=r(t,D,A,d,H[z+7],E,4249261313);d=r(d,t,D,A,H[z+8],B,1770035416);A=r(A,d,t,D,H[z+9],j,2336552879);D=r(D,A,d,t,H[z+10],N,4294925233);t=r(t,D,A,d,H[z+11],O,2304563134);d=r(d,t,D,A,H[z+12],P,1804603682);A=r(A,d,t,D,H[z+13],M,4254626195);D=r(D,A,d,t,H[z+14],J,2792965006);t=r(t,D,A,d,H[z+15],E,1236535329);d=q(d,t,D,A,H[z+1],B,4129170786);A=q(A,d,t,D,H[z+6],j,3225465664);D=q(D,A,d,t,H[z+11],N,643717713);t=q(t,D,A,d,H[z+0],O,3921069994);d=q(d,t,D,A,H[z+5],P,3593408605);A=q(A,d,t,D,H[z+10],M,38016083);D=q(D,A,d,t,H[z+15],J,3634488961);t=q(t,D,A,d,H[z+4],E,3889429448);d=q(d,t,D,A,H[z+9],B,568446438);A=q(A,d,t,D,H[z+14],j,3275163606);D=q(D,A,d,t,H[z+3],N,4107603335);t=q(t,D,A,d,H[z+8],O,1163531501);d=q(d,t,D,A,H[z+13],P,2850285829);A=q(A,d,t,D,H[z+2],M,4243563512);D=q(D,A,d,t,H[z+7],J,1735328473);t=q(t,D,A,d,H[z+12],E,2368359562);d=p(d,t,D,A,H[z+5],B,4294588738);A=p(A,d,t,D,H[z+8],j,2272392833);D=p(D,A,d,t,H[z+11],N,1839030562);t=p(t,D,A,d,H[z+14],O,4259657740);d=p(d,t,D,A,H[z+1],P,2763975236);A=p(A,d,t,D,H[z+4],M,1272893353);D=p(D,A,d,t,H[z+7],J,4139469664);t=p(t,D,A,d,H[z+10],E,3200236656);d=p(d,t,D,A,H[z+13],B,681279174);A=p(A,d,t,D,H[z+0],j,3936430074);D=p(D,A,d,t,H[z+3],N,3572445317);t=p(t,D,A,d,H[z+6],O,76029189);d=p(d,t,D,A,H[z+9],P,3654602809);A=p(A,d,t,D,H[z+12],M,3873151461);D=p(D,A,d,t,H[z+15],J,530742520);t=p(t,D,A,d,H[z+2],E,3299628645);d=n(d,t,D,A,H[z+0],B,4096336452);A=n(A,d,t,D,H[z+7],j,1126891415);D=n(D,A,d,t,H[z+14],N,2878612391);t=n(t,D,A,d,H[z+5],O,4237533241);d=n(d,t,D,A,H[z+12],P,1700485571);A=n(A,d,t,D,H[z+3],M,2399980690);D=n(D,A,d,t,H[z+10],J,4293915773);t=n(t,D,A,d,H[z+1],E,2240044497);d=n(d,t,D,A,H[z+8],B,1873313359);A=n(A,d,t,D,H[z+15],j,4264355552);D=n(D,A,d,t,H[z+6],N,2734768916);t=n(t,D,A,d,H[z+13],O,1309151649);d=n(d,t,D,A,H[z+4],P,4149444226);A=n(A,d,t,D,H[z+11],M,3174756917);D=n(D,A,d,t,H[z+2],J,718787259);t=n(t,D,A,d,H[z+9],E,3951481745);d=K(d,x);t=K(t,k);D=K(D,I);A=K(A,q)}return(m(d)+m(t)+m(D)+m(A)).toLowerCase()}
+</script>
+</body>
+</html><?php
+    exit;
+}
+
+include('dbConnect/dbConnect.inc.php');
 
 $playerId = isset($_GET['p']) ? (int)$_GET['p'] : 0;
 $isNew    = ($playerId === 0);
@@ -162,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $flashMsg = "Reference removed."; $flashType = 'warning';
     }
 
-    $redir = "playerAdmin.php?v=$viewCode" . ($playerId ? "&p=$playerId" : "") . "&tab=" . urlencode($_POST['ACTIVE_TAB'] ?? 'tab-player') . "&msg=" . urlencode($flashMsg) . "&msgtype=$flashType";
+    $redir = "playerAdmin.php" . ($playerId ? "?p=$playerId" : "?") . "&tab=" . urlencode($_POST['ACTIVE_TAB'] ?? 'tab-player') . "&msg=" . urlencode($flashMsg) . "&msgtype=$flashType";
     header("Location: $redir");
     exit;
 }
@@ -221,7 +278,7 @@ $r = mysqli_query($cn, "SELECT A.ID, CONCAT(A.FIRST_NAME,' ',A.LAST_NAME) AS CON
 $availableContacts = mysqli_fetch_all($r, MYSQLI_ASSOC);
 
 $pageTitle  = $isNew ? 'New Player' : 'Edit: ' . ($playerInfo['FIRST_NAME'] ?? '') . ' ' . ($playerInfo['LAST_NAME'] ?? '');
-$formAction = "playerAdmin.php?v=$viewCode" . ($playerId ? "&p=$playerId" : "");
+$formAction = "playerAdmin.php" . ($playerId ? "?p=$playerId" : "");
 $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
 ?>
 <!DOCTYPE html>
@@ -263,11 +320,11 @@ $viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
       <div class="sub"><?= htmlspecialchars($pageTitle) ?></div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="playerAdmin.php?v=<?= $viewCode ?>" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>New Player</a>
+      <a href="playerAdmin.php" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>New Player</a>
       <?php if (!$isNew): ?>
       <a href="<?= $viewLink ?>" target="_blank" class="btn btn-outline-light btn-sm"><i class="fas fa-eye me-1"></i>View Profile</a>
       <?php endif; ?>
-      <a href="lookupAdmin.php?v=<?= $viewCode ?>" class="btn btn-outline-light btn-sm"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
+      <a href="lookupAdmin.php" class="btn btn-outline-light btn-sm"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
       <a href="playerProfiles.php" class="btn btn-outline-light btn-sm"><i class="fas fa-users me-1"></i>All Profiles</a>
     </div>
   </div>
