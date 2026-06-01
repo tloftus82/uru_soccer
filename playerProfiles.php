@@ -9,13 +9,13 @@
   $playerClassSections = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $trackViewCode = 'cz51ts';
-  $isEs = ($_SESSION['lang'] == 'es');
 ?>
 
 <!doctype html>
 <html lang="en-US">
 
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
+<?php $isEs = ($_SESSION['lang'] == 'es'); ?>
 
 <body class="home">
 
