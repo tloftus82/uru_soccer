@@ -23,6 +23,10 @@
 </IfModule>
 
 RewriteEngine On
+
+# ── Force HTTPS ────────────────────────────────────────────────────────────────
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=cz51ts [L,QSA]
 RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=cz51ts [L,QSA]
 RewriteRule ^sophia-meyer$ playerProfile.php?p=11&v=cz51ts [L,QSA]
