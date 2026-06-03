@@ -6,11 +6,15 @@ $_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
 while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
 $hpFlierImg      = $_uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
 $hpFlierLink     = $_uruVars['hp_flier_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
-$hpFlierEnabled  = ($_uruVars['hp_flier1_enabled'] ?? '1') === '1';
+$hpFlierExpiry   = $_uruVars['hp_flier1_expiry']   ?? '';
+$hpFlierEnabled  = ($_uruVars['hp_flier1_enabled'] ?? '1') === '1'
+                   && (empty($hpFlierExpiry) || strtotime($hpFlierExpiry) >= strtotime('today'));
 $hpFlierBust     = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
 $hpFlier2Img     = $_uruVars['hp_flier2_img']      ?? 'images/fliers/uruHighPerformance.jpg';
 $hpFlier2Link    = $_uruVars['hp_flier2_link']     ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
-$hpFlier2Enabled = ($_uruVars['hp_flier2_enabled'] ?? '1') === '1';
+$hpFlier2Expiry  = $_uruVars['hp_flier2_expiry']   ?? '';
+$hpFlier2Enabled = ($_uruVars['hp_flier2_enabled'] ?? '1') === '1'
+                   && (empty($hpFlier2Expiry) || strtotime($hpFlier2Expiry) >= strtotime('today'));
 $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 ?>
 
@@ -107,13 +111,13 @@ $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 								  <?php if ($hpFlierEnabled): ?>
 								  <div style="flex:1;min-width:200px;text-align:center;">
 								    <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;'></a>
-								    <?php if (!empty($hpFlierLink)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></div><?php endif; ?>
+								    <?php if (!empty($hpFlierLink)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
 								  </div>
 								  <?php endif; ?>
 								  <?php if ($hpFlier2Enabled): ?>
 								  <div style="flex:1;min-width:200px;text-align:center;">
 								    <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;'></a>
-								    <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></div><?php endif; ?>
+								    <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
 								  </div>
 								  <?php endif; ?>
 								</div>

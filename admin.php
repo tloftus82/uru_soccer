@@ -348,6 +348,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
         mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier1_enabled','$f1en') ON DUPLICATE KEY UPDATE VAR_VALUE='$f1en'");
         mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier2_enabled','$f2en') ON DUPLICATE KEY UPDATE VAR_VALUE='$f2en'");
 
+        // Flier 1 expiry
+        $exp1 = esc($cn, trim($_POST['HP1_EXPIRY'] ?? ''));
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier1_expiry','$exp1') ON DUPLICATE KEY UPDATE VAR_VALUE='$exp1'");
+
         // Flier 1 link
         $link1 = esc($cn, trim($_POST['HP_LINK'] ?? ''));
         mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_link','$link1') ON DUPLICATE KEY UPDATE VAR_VALUE='$link1'");
@@ -371,6 +375,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
                 }
             }
         }
+
+        // Flier 2 expiry
+        $exp2 = esc($cn, trim($_POST['HP2_EXPIRY'] ?? ''));
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier2_expiry','$exp2') ON DUPLICATE KEY UPDATE VAR_VALUE='$exp2'");
 
         // Flier 2 link
         $link2 = esc($cn, trim($_POST['HP2_LINK'] ?? ''));
@@ -995,12 +1003,14 @@ function rowActions($fa, $table, $id, $activeTab) {
 
   <!-- URU High Performance Fliers -->
   <?php
-    $adm_f1img  = $uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
-    $adm_f1link = $uruVars['hp_flier_link']       ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
-    $adm_f1en   = ($uruVars['hp_flier1_enabled']  ?? '1') === '1';
-    $adm_f2img  = $uruVars['hp_flier2_img']       ?? 'images/fliers/uruHighPerformance.jpg';
-    $adm_f2link = $uruVars['hp_flier2_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
-    $adm_f2en   = ($uruVars['hp_flier2_enabled']  ?? '1') === '1';
+    $adm_f1img    = $uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+    $adm_f1link   = $uruVars['hp_flier_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+    $adm_f1en     = ($uruVars['hp_flier1_enabled'] ?? '1') === '1';
+    $adm_f1expiry = $uruVars['hp_flier1_expiry']   ?? '';
+    $adm_f2img    = $uruVars['hp_flier2_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+    $adm_f2link   = $uruVars['hp_flier2_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+    $adm_f2en     = ($uruVars['hp_flier2_enabled']  ?? '1') === '1';
+    $adm_f2expiry = $uruVars['hp_flier2_expiry']    ?? '';
   ?>
   <form method="POST" action="admin.php?section=settings" enctype="multipart/form-data">
     <input type="hidden" name="ACTION" value="SAVE_HP_FLIER">
@@ -1032,6 +1042,11 @@ function rowActions($fa, $table, $id, $activeTab) {
             <input type="file" class="form-control" name="HP_IMAGE" accept="image/*">
             <div class="form-text">JPG, PNG, GIF, or WEBP.</div>
           </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Expiration Date <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="date" class="form-control" name="HP1_EXPIRY" value="<?= htmlspecialchars($adm_f1expiry) ?>" style="max-width:200px;">
+            <div class="form-text">Flier will automatically hide after this date. Leave blank to never expire.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1062,6 +1077,11 @@ function rowActions($fa, $table, $id, $activeTab) {
             <label class="form-label fw-semibold">Replace Image <span class="text-muted fw-normal">(optional)</span></label>
             <input type="file" class="form-control" name="HP2_IMAGE" accept="image/*">
             <div class="form-text">JPG, PNG, GIF, or WEBP. Saved as uruHighPerformance2.{ext}</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Expiration Date <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="date" class="form-control" name="HP2_EXPIRY" value="<?= htmlspecialchars($adm_f2expiry) ?>" style="max-width:200px;">
+            <div class="form-text">Flier will automatically hide after this date. Leave blank to never expire.</div>
           </div>
         </div>
       </div>
