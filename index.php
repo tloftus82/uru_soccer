@@ -55,20 +55,23 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
                   <i>Bienvenidos a URU.soccer!  Nuestra mision es facilitar la progresion del talento futbolistico regional ofreciendoles oportunidades para continuar con sus esfuerzos educativos y futbolisticos a nivel universitario. Nuestro objetivo es equipar a los estudiantes-atletas con las herramientas y recursos necesarios para navegar de manera efectiva el proceso de reclutamiento y completar con exito el procedimiento de admision.</i>
                 <?php endif; ?>
 
-                <?php if ($showFliers): ?>
+                <?php if ($showFliers):
+                  $flierCount = ($hpFlierEnabled ? 1 : 0) + ($hpFlier2Enabled ? 1 : 0);
+                  $flierMaxW  = $flierCount === 1 ? 'max-width:420px;' : '';
+                ?>
                 <div style="margin:18px 0;">
                   <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.55;margin-bottom:10px;">
                     <?= $_SESSION['lang'] == 'es' ? 'Oportunidades de Entrenamiento' : 'Current Training Opportunities' ?>
                   </div>
                   <div style="display:flex;gap:16px;flex-wrap:wrap;">
                     <?php if ($hpFlierEnabled): ?>
-                    <div style="flex:1;min-width:200px;text-align:center;">
+                    <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
                       <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;border-radius:8px;'></a>
                       <?php if (!empty($hpFlierLink)): ?><div style="margin-top:5px;font-size:11px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
                     </div>
                     <?php endif; ?>
                     <?php if ($hpFlier2Enabled): ?>
-                    <div style="flex:1;min-width:200px;text-align:center;">
+                    <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
                       <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;border-radius:8px;'></a>
                       <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:5px;font-size:11px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
                     </div>

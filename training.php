@@ -106,16 +106,19 @@ $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 									}
 									?>
 								</p>
-								<?php if ($hpFlierEnabled || $hpFlier2Enabled): ?>
+								<?php if ($hpFlierEnabled || $hpFlier2Enabled):
+								  $flierCount = ($hpFlierEnabled ? 1 : 0) + ($hpFlier2Enabled ? 1 : 0);
+								  $flierMaxW   = $flierCount === 1 ? 'max-width:420px;' : '';
+								?>
 								<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
 								  <?php if ($hpFlierEnabled): ?>
-								  <div style="flex:1;min-width:200px;text-align:center;">
+								  <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
 								    <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;'></a>
 								    <?php if (!empty($hpFlierLink)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
 								  </div>
 								  <?php endif; ?>
 								  <?php if ($hpFlier2Enabled): ?>
-								  <div style="flex:1;min-width:200px;text-align:center;">
+								  <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
 								    <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;'></a>
 								    <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
 								  </div>
