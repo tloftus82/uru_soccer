@@ -4,9 +4,14 @@ mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100
 $_uruVars = [];
 $_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
 while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
-$hpFlierImg  = $_uruVars['hp_flier_img']  ?? 'images/fliers/uruHighPerformance.jpg';
-$hpFlierLink = $_uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
-$hpFlierBust = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
+$hpFlierImg      = $_uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+$hpFlierLink     = $_uruVars['hp_flier_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+$hpFlierEnabled  = ($_uruVars['hp_flier1_enabled'] ?? '1') === '1';
+$hpFlierBust     = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
+$hpFlier2Img     = $_uruVars['hp_flier2_img']      ?? 'images/fliers/uruHighPerformance.jpg';
+$hpFlier2Link    = $_uruVars['hp_flier2_link']     ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+$hpFlier2Enabled = ($_uruVars['hp_flier2_enabled'] ?? '1') === '1';
+$hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 ?>
 
 <!doctype html>
@@ -90,14 +95,23 @@ $hpFlierBust = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
 								<p>
 									<?php
 									if($_SESSION['lang'] == 'en'){
-										echo "Come and experience URU High Performance! We are dedicated to maintaining high coach-to-athlete ratios to ensure that you receive individual attention during our small group sessions. URU High Performance training is built upon an integrated methodology that combines conditioning and technical drills, designed to enhance players' individual skills while fostering a high-intensity environment. Information for our next session is below! Register <a href='" . htmlspecialchars($hpFlierLink) . "' target='_BLANK'>HERE</a>!";
+										echo "Come and experience URU High Performance! We are dedicated to maintaining high coach-to-athlete ratios to ensure that you receive individual attention during our small group sessions. URU High Performance training is built upon an integrated methodology that combines conditioning and technical drills, designed to enhance players' individual skills while fostering a high-intensity environment.";
 									}
 									if($_SESSION['lang'] == 'es'){
-										echo "Venga y experimente URU Alto Rendimiento! Estamos dedicados a mantener altas proporciones de entrenador por atleta para garantizar que reciba atencion individual durante nuestras sesiones en grupos pequenos. El entrenamiento URU Alto Rendimiento se basa en una metodologia integrada que combina ejercicios de acondicionamiento y tecnicos, disenados para mejorar las habilidades individuales de los jugadores en un entorno de alta intensidad. La informacion para nuestra proxima sesion esta a continuacion! Registrese <a href='" . htmlspecialchars($hpFlierLink) . "' target='_BLANK'>AQUI</a>!";
+										echo "Venga y experimente URU Alto Rendimiento! Estamos dedicados a mantener altas proporciones de entrenador por atleta para garantizar que reciba atencion individual durante nuestras sesiones en grupos pequenos. El entrenamiento URU Alto Rendimiento se basa en una metodologia integrada que combina ejercicios de acondicionamiento y tecnicos, disenados para mejorar las habilidades individuales de los jugadores en un entorno de alta intensidad.";
 									}
 									?>
 								</p>
-								<a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width: 50%'></a>
+								<?php if ($hpFlierEnabled || $hpFlier2Enabled): ?>
+								<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
+								  <?php if ($hpFlierEnabled): ?>
+								  <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="flex:1;min-width:200px;"><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;'></a>
+								  <?php endif; ?>
+								  <?php if ($hpFlier2Enabled): ?>
+								  <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="flex:1;min-width:200px;"><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;'></a>
+								  <?php endif; ?>
+								</div>
+								<?php endif; ?>
 							</div>
 						</div>
 					</div>

@@ -337,36 +337,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
     $action = $_POST['ACTION'] ?? '';
 
     if ($action === 'SAVE_HP_FLIER') {
-        // Ensure table exists
         mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
 
-        $link = esc($cn, trim($_POST['HP_LINK'] ?? ''));
-
-        // Handle file upload
+        $allowed   = ['jpg','jpeg','png','gif','webp'];
         $uploadMsg = '';
+
+        // Save enabled toggles
+        $f1en = isset($_POST['HP1_ENABLED']) ? '1' : '0';
+        $f2en = isset($_POST['HP2_ENABLED']) ? '1' : '0';
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier1_enabled','$f1en') ON DUPLICATE KEY UPDATE VAR_VALUE='$f1en'");
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier2_enabled','$f2en') ON DUPLICATE KEY UPDATE VAR_VALUE='$f2en'");
+
+        // Flier 1 link
+        $link1 = esc($cn, trim($_POST['HP_LINK'] ?? ''));
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_link','$link1') ON DUPLICATE KEY UPDATE VAR_VALUE='$link1'");
+
+        // Flier 1 image
         if (!empty($_FILES['HP_IMAGE']['name'])) {
-            $tmp  = $_FILES['HP_IMAGE']['tmp_name'];
-            $ext  = strtolower(pathinfo($_FILES['HP_IMAGE']['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif','webp'];
+            $tmp = $_FILES['HP_IMAGE']['tmp_name'];
+            $ext = strtolower(pathinfo($_FILES['HP_IMAGE']['name'], PATHINFO_EXTENSION));
             if (!in_array($ext, $allowed)) {
-                $flashMsg  = 'Invalid image type. Use JPG, PNG, GIF, or WEBP.';
+                $flashMsg  = 'Flier 1: Invalid image type. Use JPG, PNG, GIF, or WEBP.';
                 $flashType = 'danger';
             } else {
                 $dest = __DIR__ . '/images/fliers/uruHighPerformance.' . $ext;
                 if (move_uploaded_file($tmp, $dest)) {
                     $imgPath = 'images/fliers/uruHighPerformance.' . $ext;
                     mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_img','$imgPath') ON DUPLICATE KEY UPDATE VAR_VALUE='$imgPath'");
-                    $uploadMsg = 'Image updated. ';
+                    $uploadMsg .= 'Flier 1 image updated. ';
                 } else {
-                    $flashMsg  = 'File upload failed. Check folder permissions.';
+                    $flashMsg  = 'Flier 1: File upload failed. Check folder permissions.';
+                    $flashType = 'danger';
+                }
+            }
+        }
+
+        // Flier 2 link
+        $link2 = esc($cn, trim($_POST['HP2_LINK'] ?? ''));
+        mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier2_link','$link2') ON DUPLICATE KEY UPDATE VAR_VALUE='$link2'");
+
+        // Flier 2 image
+        if (!empty($_FILES['HP2_IMAGE']['name'])) {
+            $tmp = $_FILES['HP2_IMAGE']['tmp_name'];
+            $ext = strtolower(pathinfo($_FILES['HP2_IMAGE']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowed)) {
+                $flashMsg  = 'Flier 2: Invalid image type. Use JPG, PNG, GIF, or WEBP.';
+                $flashType = 'danger';
+            } else {
+                $dest = __DIR__ . '/images/fliers/uruHighPerformance2.' . $ext;
+                if (move_uploaded_file($tmp, $dest)) {
+                    $imgPath = 'images/fliers/uruHighPerformance2.' . $ext;
+                    mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier2_img','$imgPath') ON DUPLICATE KEY UPDATE VAR_VALUE='$imgPath'");
+                    $uploadMsg .= 'Flier 2 image updated. ';
+                } else {
+                    $flashMsg  = 'Flier 2: File upload failed. Check folder permissions.';
                     $flashType = 'danger';
                 }
             }
         }
 
         if (empty($flashMsg)) {
-            mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('hp_flier_link','$link') ON DUPLICATE KEY UPDATE VAR_VALUE='$link'");
-            $flashMsg  = $uploadMsg . 'Link saved.';
+            $flashMsg  = $uploadMsg ?: 'Settings saved.';
             $flashType = 'success';
         }
     }
@@ -962,38 +993,82 @@ function rowActions($fa, $table, $id, $activeTab) {
 <div class="container-fluid px-4 pt-3">
   <h5 class="fw-bold mb-4"><i class="fas fa-cog me-2 text-secondary"></i>Site Settings</h5>
 
-  <!-- URU High Performance Flier -->
-  <div class="card-section mb-4">
-    <h6 class="fw-bold mb-3"><i class="fas fa-futbol me-2"></i>URU High Performance — Training Flier</h6>
-    <div class="row g-4">
-      <!-- Current image preview -->
-      <div class="col-md-4">
-        <div class="mb-2 text-muted small">Current Flier</div>
-        <?php $hpImg = $uruVars['hp_flier_img'] ?? 'images/fliers/uruHighPerformance.jpg'; ?>
-        <img src="<?= htmlspecialchars($hpImg) ?>?t=<?= time() ?>" alt="Current flier"
-             class="img-fluid rounded border" style="max-height:300px;object-fit:contain;background:#f8f9fa;">
+  <!-- URU High Performance Fliers -->
+  <?php
+    $adm_f1img  = $uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+    $adm_f1link = $uruVars['hp_flier_link']       ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+    $adm_f1en   = ($uruVars['hp_flier1_enabled']  ?? '1') === '1';
+    $adm_f2img  = $uruVars['hp_flier2_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+    $adm_f2link = $uruVars['hp_flier2_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
+    $adm_f2en   = ($uruVars['hp_flier2_enabled']  ?? '1') === '1';
+  ?>
+  <form method="POST" action="admin.php?section=settings" enctype="multipart/form-data">
+    <input type="hidden" name="ACTION" value="SAVE_HP_FLIER">
+
+    <!-- Flier 1 -->
+    <div class="card-section mb-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <h6 class="fw-bold mb-0"><i class="fas fa-image me-2"></i>Training Flier 1</h6>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" name="HP1_ENABLED" id="hp1en" value="1" <?= $adm_f1en ? 'checked' : '' ?>>
+          <label class="form-check-label" for="hp1en">Enabled</label>
+        </div>
       </div>
-      <!-- Edit form -->
-      <div class="col-md-8">
-        <form method="POST" action="admin.php?section=settings" enctype="multipart/form-data">
-          <input type="hidden" name="ACTION" value="SAVE_HP_FLIER">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="mb-2 text-muted small">Current Image</div>
+          <img src="<?= htmlspecialchars($adm_f1img) ?>?t=<?= time() ?>" alt="Flier 1"
+               class="img-fluid rounded border" style="max-height:280px;object-fit:contain;background:#f8f9fa;">
+        </div>
+        <div class="col-md-8">
           <div class="mb-3">
-            <label class="form-label fw-semibold">Registration / Info Link URL</label>
+            <label class="form-label fw-semibold">Link URL</label>
             <input type="url" class="form-control" name="HP_LINK"
-                   value="<?= htmlspecialchars($uruVars['hp_flier_link'] ?? 'https://forms.gle/TuvduKCEcqyuR9hF6') ?>"
-                   placeholder="https://...">
-            <div class="form-text">The URL visitors are sent to when they click the flier image.</div>
+                   value="<?= htmlspecialchars($adm_f1link) ?>" placeholder="https://...">
+            <div class="form-text">URL opened when visitor clicks Flier 1.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Replace Flier Image <span class="text-muted fw-normal">(optional)</span></label>
+            <label class="form-label fw-semibold">Replace Image <span class="text-muted fw-normal">(optional)</span></label>
             <input type="file" class="form-control" name="HP_IMAGE" accept="image/*">
-            <div class="form-text">JPG, PNG, GIF, or WEBP. Will overwrite the existing flier image.</div>
+            <div class="form-text">JPG, PNG, GIF, or WEBP.</div>
           </div>
-          <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Changes</button>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- Flier 2 -->
+    <div class="card-section mb-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <h6 class="fw-bold mb-0"><i class="fas fa-image me-2"></i>Training Flier 2</h6>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" name="HP2_ENABLED" id="hp2en" value="1" <?= $adm_f2en ? 'checked' : '' ?>>
+          <label class="form-check-label" for="hp2en">Enabled</label>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="mb-2 text-muted small">Current Image</div>
+          <img src="<?= htmlspecialchars($adm_f2img) ?>?t=<?= time() ?>" alt="Flier 2"
+               class="img-fluid rounded border" style="max-height:280px;object-fit:contain;background:#f8f9fa;">
+        </div>
+        <div class="col-md-8">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Link URL</label>
+            <input type="url" class="form-control" name="HP2_LINK"
+                   value="<?= htmlspecialchars($adm_f2link) ?>" placeholder="https://...">
+            <div class="form-text">URL opened when visitor clicks Flier 2.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Replace Image <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="file" class="form-control" name="HP2_IMAGE" accept="image/*">
+            <div class="form-text">JPG, PNG, GIF, or WEBP. Saved as uruHighPerformance2.{ext}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Changes</button>
+  </form>
 </div>
 
 <?php elseif ($section === 'dbdump'):
