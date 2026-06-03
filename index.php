@@ -78,13 +78,9 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
                 <?php endif; ?>
 
                 <?php if($_SESSION['lang'] == 'en'): ?>
-                  <i>We encourage you to utilize the convenient navigation bar located at the top of the page, which will effortlessly guide you through our site, allowing you to explore all of our offerings and discover the many benefits that await you!</i>
-                  <br /><br />
                   <a href='setLang.php?lang=es'>Ver este sitio en Espanol.</a>
                 <?php endif; ?>
                 <?php if($_SESSION['lang'] == 'es'): ?>
-                  <i>Le recomendamos que utilice la conveniente barra de navegacion ubicada en la parte superior de la pagina, que lo guiara sin esfuerzo a traves de nuestro sitio, permitiendole explorar todas nuestras ofertas y descubrir los muchos beneficios que le esperan.</i>
-                  <br /><br />
                   <a href='setLang.php?lang=en'>View our site in English.</a>
                 <?php endif; ?>
               </div>
