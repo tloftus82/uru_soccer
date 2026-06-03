@@ -1,4 +1,26 @@
-<?php include('dbConnect/dbConnect.inc.php'); ?>
+<?php
+include('dbConnect/dbConnect.inc.php');
+mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
+$_uruVars = [];
+$_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
+while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
+
+$hpFlierImg      = $_uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+$hpFlierLink     = $_uruVars['hp_flier_link']       ?? '';
+$hpFlierExpiry   = $_uruVars['hp_flier1_expiry']    ?? '';
+$hpFlierEnabled  = ($_uruVars['hp_flier1_enabled']  ?? '1') === '1'
+                   && (empty($hpFlierExpiry) || strtotime($hpFlierExpiry) >= strtotime('today'));
+$hpFlierBust     = @filemtime(__DIR__ . '/' . $hpFlierImg) ?: time();
+
+$hpFlier2Img     = $_uruVars['hp_flier2_img']       ?? 'images/fliers/uruHighPerformance.jpg';
+$hpFlier2Link    = $_uruVars['hp_flier2_link']       ?? '';
+$hpFlier2Expiry  = $_uruVars['hp_flier2_expiry']    ?? '';
+$hpFlier2Enabled = ($_uruVars['hp_flier2_enabled']  ?? '1') === '1'
+                   && (empty($hpFlier2Expiry) || strtotime($hpFlier2Expiry) >= strtotime('today'));
+$hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
+
+$showFliers = $hpFlierEnabled || $hpFlier2Enabled;
+?>
 
 <!doctype html>
 <!-- GitHub auto-deploy test: OK -->
@@ -55,7 +77,35 @@
 	  </div>
 
 
-        
+		<?php if ($showFliers): ?>
+		<div class="section about" id="section-about">
+		  <div class="content">
+		    <div class="titles">
+		      <div class="title">
+		        <?= $_SESSION['lang'] == 'es' ? 'Oportunidades de Entrenamiento' : 'Current Training Opportunities' ?>
+		      </div>
+		      <div class="subtitle">
+		        <?= $_SESSION['lang'] == 'es' ? 'URU Alto Rendimiento' : 'URU High Performance' ?>
+		      </div>
+		    </div>
+		    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+		      <?php if ($hpFlierEnabled): ?>
+		      <div style="flex:1;min-width:200px;text-align:center;">
+		        <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;border-radius:8px;'></a>
+		        <?php if (!empty($hpFlierLink)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
+		      </div>
+		      <?php endif; ?>
+		      <?php if ($hpFlier2Enabled): ?>
+		      <div style="flex:1;min-width:200px;text-align:center;">
+		        <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;border-radius:8px;'></a>
+		        <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:6px;font-size:12px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
+		      </div>
+		      <?php endif; ?>
+		    </div>
+		  </div>
+		</div>
+		<?php endif; ?>
+
 		</div>
 	  </div>
 
