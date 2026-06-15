@@ -107,8 +107,7 @@ $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 									?>
 								</p>
 								<?php if ($hpFlierEnabled || $hpFlier2Enabled):
-								  $flierCount = ($hpFlierEnabled ? 1 : 0) + ($hpFlier2Enabled ? 1 : 0);
-								  $flierMaxW   = $flierCount === 1 ? 'max-width:420px;' : '';
+								  $flierMaxW = 'width:calc(50% - 8px);flex:none;';
 								?>
 								<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
 								  <?php if ($hpFlierEnabled): ?>

@@ -56,8 +56,7 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
                 <?php endif; ?>
 
                 <?php if ($showFliers):
-                  $flierCount = ($hpFlierEnabled ? 1 : 0) + ($hpFlier2Enabled ? 1 : 0);
-                  $flierMaxW  = $flierCount === 1 ? 'max-width:420px;' : '';
+                  $flierMaxW = 'width:calc(50% - 8px);flex:none;';
                 ?>
                 <div style="margin:18px 0;">
                   <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.55;margin-bottom:10px;">
