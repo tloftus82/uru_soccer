@@ -62,7 +62,7 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
                   <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.55;margin-bottom:10px;">
                     <?= $_SESSION['lang'] == 'es' ? 'Oportunidades de Entrenamiento' : 'Current Training Opportunities' ?>
                   </div>
-                  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
                     <?php if ($hpFlierEnabled): ?>
                     <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
                       <a href='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' class="flier-popup" data-link='<?= htmlspecialchars($hpFlierLink) ?>'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;border-radius:8px;cursor:zoom-in;'></a>
