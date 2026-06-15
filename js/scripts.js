@@ -22,23 +22,23 @@
 				opacity: '0',
 				translateY: '-40px'
 			}, {
-				duration: 400,
+				duration: 200,
 				complete: function(){
 					preload.find('.box-1').velocity({
-						translateY: '-100%'
-					}, {
-						duration: 1000,
-						easing: [0.7,0,0.3,1]
-					});
-					preload.find('.box-2').velocity({
 						translateY: '-100%'
 					}, {
 						duration: 400,
 						easing: [0.7,0,0.3,1]
 					});
+					preload.find('.box-2').velocity({
+						translateY: '-100%'
+					}, {
+						duration: 200,
+						easing: [0.7,0,0.3,1]
+					});
 				}
 			});
-		}, 1000);
+		}, 300);
 
 		/*
 			Typed Subtitle
@@ -189,13 +189,13 @@
 			preload.find('.box-1').velocity({
 				translateY: '0%'
 			}, {
-				duration: 400,
+				duration: 200,
 				easing: [0.7,0,0.3,1]
 			});
 			preload.find('.box-2').velocity({
 				translateY: '0%'
 			}, {
-				duration: 1000,
+				duration: 400,
 				easing: [0.7,0,0.3,1],
 				complete: function(){
 					location.href = link;
