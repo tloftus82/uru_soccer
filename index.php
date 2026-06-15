@@ -66,13 +66,13 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
                   <div style="display:flex;gap:16px;flex-wrap:wrap;">
                     <?php if ($hpFlierEnabled): ?>
                     <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
-                      <a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;border-radius:8px;'></a>
+                      <a href='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' class="flier-popup" data-link='<?= htmlspecialchars($hpFlierLink) ?>'><img src='<?= htmlspecialchars($hpFlierImg) ?>?v=<?= $hpFlierBust ?>' style='width:100%;border-radius:8px;cursor:zoom-in;'></a>
                       <?php if (!empty($hpFlierLink)): ?><div style="margin-top:5px;font-size:11px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlierLink) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
                     </div>
                     <?php endif; ?>
                     <?php if ($hpFlier2Enabled): ?>
                     <div style="flex:1;min-width:200px;<?= $flierMaxW ?>text-align:center;">
-                      <a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;border-radius:8px;'></a>
+                      <a href='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' class="flier-popup" data-link='<?= htmlspecialchars($hpFlier2Link) ?>'><img src='<?= htmlspecialchars($hpFlier2Img) ?>?v=<?= $hpFlier2Bust ?>' style='width:100%;border-radius:8px;cursor:zoom-in;'></a>
                       <?php if (!empty($hpFlier2Link)): ?><div style="margin-top:5px;font-size:11px;opacity:.7;"><a href='<?= htmlspecialchars($hpFlier2Link) ?>' target='_BLANK' style="color:inherit;"><?= $_SESSION['lang']=='es' ? 'Haz clic para más información' : 'Click for more information' ?></a></div><?php endif; ?>
                     </div>
                     <?php endif; ?>
@@ -99,7 +99,27 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
 	  </div>
 
 <?php include('includes/siteFooter.inc.php'); ?>
-<?php include('includes/extScripts.inc.php'); ?> 
-
+<?php include('includes/extScripts.inc.php'); ?>
+<script>
+$(function(){
+  $('.flier-popup').magnificPopup({
+    type: 'image',
+    closeOnContentClick: true,
+    image: { verticalFit: true },
+    callbacks: {
+      open: function() {
+        var link = this.st.el.data('link');
+        if (link) {
+          setTimeout(function(){
+            $('.mfp-img').css('cursor','pointer').off('click').on('click', function(){
+              window.open(link, '_blank');
+            });
+          }, 100);
+        }
+      }
+    }
+  });
+});
+</script>
 </body>
 </html>
