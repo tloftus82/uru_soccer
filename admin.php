@@ -414,6 +414,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
     exit;
 }
 
+// ── POST: URL Slugs ───────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
+    $slugs     = $_POST['slugs'] ?? [];   // [player_id => slug]
+    $trackCode = 'cz51ts';
+    $errors    = [];
+
+    // Validate slugs
+    $seen = [];
+    foreach ($slugs as $pid => $slug) {
+        $pid  = (int)$pid;
+        $slug = strtolower(trim($slug));
+        $slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
+        $slug = preg_replace('/-+/', '-', trim($slug, '-'));
+        if ($slug === '') { $errors[] = "Player ID $pid: slug cannot be empty."; continue; }
+        if (isset($seen[$slug])) { $errors[] = "Duplicate slug: '$slug'"; continue; }
+        $seen[$slug] = $pid;
+        $slugs[$pid] = $slug;
+    }
+
+    if (empty($errors)) {
+        // Read current .htaccess
+        $htFile  = __DIR__ . '/.htaccess';
+        $content = file_get_contents($htFile);
+
+        // Strip existing RewriteEngine + RewriteRule block
+        $content = preg_replace('/\n*RewriteEngine On\n(RewriteRule[^\n]*\n)*/s', '', $content);
+        $content = rtrim($content);
+
+        // Build new rules
+        $rules = "\n\nRewriteEngine On\n";
+        foreach ($slugs as $pid => $slug) {
+            $rules .= "RewriteRule ^{$slug}$ playerProfile.php?p={$pid}&v={$trackCode} [L,QSA,NC]\n";
+        }
+
+        file_put_contents($htFile, $content . $rules);
+        $flashMsg  = 'URL names saved and .htaccess updated.';
+        $flashType = 'success';
+    } else {
+        $flashMsg  = implode('<br>', $errors);
+        $flashType = 'danger';
+    }
+
+    header("Location: admin.php?section=urlslugs&msg=".urlencode($flashMsg)."&msgtype=$flashType");
+    exit;
+}
+
 // ── Flash from GET ────────────────────────────────────────────────────────────
 if (!empty($_GET['msg'])) {
     $flashMsg  = htmlspecialchars($_GET['msg']);
@@ -562,6 +608,7 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php" class="<?= $section === 'players' ? 'active' : '' ?>"><i class="fas fa-user me-1"></i>Players</a>
   <a href="admin.php?section=lookups" class="<?= $section === 'lookups' ? 'active' : '' ?>"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
   <a href="admin.php?section=settings" class="<?= $section === 'settings' ? 'active' : '' ?>"><i class="fas fa-cog me-1"></i>Site Settings</a>
+  <a href="admin.php?section=urlslugs" class="<?= $section === 'urlslugs' ? 'active' : '' ?>"><i class="fas fa-link me-1"></i>URL Names</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
   <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
 </div>
@@ -1090,6 +1137,75 @@ function rowActions($fa, $table, $id, $activeTab) {
     <button type="submit" class="btn btn-uru"><i class="fas fa-save me-1"></i>Save Changes</button>
   </form>
 </div>
+
+<?php elseif ($section === 'urlslugs'):
+  // Parse current .htaccess slugs into [player_id => slug]
+  $htContent   = file_get_contents(__DIR__ . '/.htaccess');
+  $htSlugMap   = [];
+  preg_match_all('/^RewriteRule \^([a-z0-9\-]+)\$ playerProfile\.php\?p=(\d+)/m', $htContent, $m);
+  foreach ($m[2] as $i => $pid) $htSlugMap[(int)$pid] = $m[1][$i];
+
+  // Load all active players
+  $slugPlayers = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT A.ID, A.FIRST_NAME, A.LAST_NAME, A.GRAD_CLASS, B.POSITION
+     FROM PP_PLAYERS A
+     LEFT JOIN PP_POSITIONS B ON B.ID = A.POSITION_PRI
+     WHERE A.IS_ACTIVE = 1
+     ORDER BY A.LAST_NAME, A.FIRST_NAME"), MYSQLI_ASSOC);
+?>
+<div class="container-fluid px-4 pt-3">
+  <h5 class="fw-bold mb-1"><i class="fas fa-link me-2 text-secondary"></i>URL Names</h5>
+  <p class="text-muted small mb-4">Each active player can have a custom short URL: <code>uru.soccer/first-last</code>. Slugs are lowercase letters, numbers, and hyphens only.</p>
+
+  <form method="POST" action="admin.php?section=urlslugs">
+    <table class="table table-sm table-dark table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Position</th>
+          <th>Class</th>
+          <th style="min-width:220px;">URL Slug <span class="text-muted fw-normal">(uru.soccer/<em>slug</em>)</span></th>
+          <th>Preview</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($slugPlayers as $sp):
+          $defaultSlug = strtolower($sp['FIRST_NAME']) . '-' . strtolower($sp['LAST_NAME']);
+          $currentSlug = $htSlugMap[$sp['ID']] ?? $defaultSlug;
+        ?>
+        <tr>
+          <td><?= htmlspecialchars($sp['FIRST_NAME'] . ' ' . $sp['LAST_NAME']) ?></td>
+          <td class="text-muted small"><?= htmlspecialchars($sp['POSITION'] ?? '') ?></td>
+          <td class="text-muted small"><?= htmlspecialchars($sp['GRAD_CLASS']) ?></td>
+          <td>
+            <input type="hidden" name="slugs[<?= $sp['ID'] ?>]" value="">
+            <input type="text" class="form-control form-control-sm font-monospace slug-input"
+                   name="slugs[<?= $sp['ID'] ?>]"
+                   value="<?= htmlspecialchars($currentSlug) ?>"
+                   pattern="[a-z0-9\-]+"
+                   data-default="<?= htmlspecialchars($defaultSlug) ?>">
+          </td>
+          <td>
+            <a href="https://uru.soccer/<?= htmlspecialchars($currentSlug) ?>" target="_blank"
+               class="text-muted small slug-preview">uru.soccer/<?= htmlspecialchars($currentSlug) ?></a>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-uru mt-2"><i class="fas fa-save me-1"></i>Save & Update .htaccess</button>
+  </form>
+</div>
+<script>
+document.querySelectorAll('.slug-input').forEach(function(inp){
+  inp.addEventListener('input', function(){
+    var val = this.value.toLowerCase().replace(/[^a-z0-9\-]/g,'');
+    this.value = val;
+    var preview = this.closest('tr').querySelector('.slug-preview');
+    if (preview) { preview.textContent = 'uru.soccer/' + val; preview.href = 'https://uru.soccer/' + val; }
+  });
+});
+</script>
 
 <?php elseif ($section === 'dbdump'):
   $dumpTables = [
