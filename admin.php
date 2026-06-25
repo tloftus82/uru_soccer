@@ -414,6 +414,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
     exit;
 }
 
+// ── Helper: write .htaccess rewrite blocks ────────────────────────────────────
+function writeHtaccessRewrites($cn) {
+    $htFile = __DIR__ . '/.htaccess';
+    $raw    = file_get_contents($htFile);
+
+    // Strip everything from RewriteEngine On downward
+    $static = preg_replace('/\n*RewriteEngine On[\s\S]*/s', '', $raw);
+
+    // Custom redirects block
+    $redirRows = mysqli_fetch_all(mysqli_query($cn,
+        "SELECT SLUG, DEST_URL FROM URU_REDIRECTS WHERE IS_ACTIVE=1 ORDER BY SLUG"), MYSQLI_ASSOC);
+    $redirBlock = '';
+    foreach ($redirRows as $r) {
+        $redirBlock .= "RewriteRule ^" . $r['SLUG'] . "$ " . $r['DEST_URL'] . " [R=301,L]\n";
+    }
+
+    // Player profile rules
+    $playerRows = mysqli_fetch_all(mysqli_query($cn,
+        "SELECT A.ID, LOWER(A.FIRST_NAME) AS FN, LOWER(A.LAST_NAME) AS LN
+         FROM PP_PLAYERS A WHERE A.IS_ACTIVE=1 ORDER BY A.ID"), MYSQLI_ASSOC);
+    // Parse current slugs from existing .htaccess player rules
+    $existingSlugMap = [];
+    preg_match_all('/^RewriteRule \^([a-z0-9\-]+)\$ playerProfile\.php\?p=(\d+)/m', $raw, $m);
+    foreach ($m[2] as $i => $pid) $existingSlugMap[(int)$pid] = $m[1][$i];
+
+    $playerBlock = '';
+    foreach ($playerRows as $p) {
+        $slug = $existingSlugMap[$p['ID']] ?? ($p['FN'] . '-' . $p['LN']);
+        $playerBlock .= "RewriteRule ^{$slug}$ playerProfile.php?p={$p['ID']}&v=cz51ts [L,QSA,NC]\n";
+    }
+
+    $newContent = rtrim($static) . "\n\nRewriteEngine On\n";
+    if ($redirBlock) $newContent .= "# ── Custom Redirects ─────────────────────────────────────────────────────────\n" . $redirBlock;
+    if ($playerBlock) $newContent .= "# ── Player Profiles ──────────────────────────────────────────────────────────\n" . $playerBlock;
+
+    file_put_contents($htFile, $newContent);
+}
+
+// ── POST: Custom Redirects ────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'redirects') {
+    $action = $_POST['ACTION'] ?? '';
+    mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_REDIRECTS (
+        ID INT AUTO_INCREMENT PRIMARY KEY,
+        SLUG VARCHAR(200) NOT NULL UNIQUE,
+        DEST_URL TEXT NOT NULL,
+        LABEL VARCHAR(255) NOT NULL DEFAULT '',
+        IS_ACTIVE TINYINT NOT NULL DEFAULT 1,
+        CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    if ($action === 'SAVE_REDIRECT') {
+        $rid   = (int)($_POST['RID'] ?? 0);
+        $slug  = strtolower(trim($_POST['SLUG'] ?? ''));
+        $slug  = preg_replace('/[^a-z0-9\-]/', '', $slug);
+        $dest  = esc($cn, trim($_POST['DEST_URL'] ?? ''));
+        $label = esc($cn, trim($_POST['LABEL'] ?? ''));
+        $active = isset($_POST['IS_ACTIVE']) ? 1 : 0;
+
+        if ($slug === '' || $dest === '') {
+            $flashMsg = 'Slug and destination URL are required.'; $flashType = 'danger';
+        } else {
+            $slug_e = esc($cn, $slug);
+            if ($rid > 0) {
+                mysqli_query($cn, "UPDATE URU_REDIRECTS SET SLUG='$slug_e',DEST_URL='$dest',LABEL='$label',IS_ACTIVE=$active WHERE ID=$rid");
+            } else {
+                mysqli_query($cn, "INSERT INTO URU_REDIRECTS (SLUG,DEST_URL,LABEL,IS_ACTIVE) VALUES ('$slug_e','$dest','$label',$active)");
+            }
+            writeHtaccessRewrites($cn);
+            $flashMsg = 'Redirect saved.'; $flashType = 'success';
+        }
+    } elseif ($action === 'DELETE_REDIRECT') {
+        $rid = (int)($_POST['RID'] ?? 0);
+        if ($rid > 0) {
+            mysqli_query($cn, "DELETE FROM URU_REDIRECTS WHERE ID=$rid");
+            writeHtaccessRewrites($cn);
+        }
+        $flashMsg = 'Redirect deleted.'; $flashType = 'success';
+    } elseif ($action === 'TOGGLE_REDIRECT') {
+        $rid = (int)($_POST['RID'] ?? 0);
+        mysqli_query($cn, "UPDATE URU_REDIRECTS SET IS_ACTIVE = 1 - IS_ACTIVE WHERE ID=$rid");
+        writeHtaccessRewrites($cn);
+        $flashMsg = 'Redirect toggled.'; $flashType = 'success';
+    }
+
+    header("Location: admin.php?section=redirects&msg=".urlencode($flashMsg)."&msgtype=$flashType");
+    exit;
+}
+
 // ── POST: URL Slugs ───────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
     $slugs     = $_POST['slugs'] ?? [];   // [player_id => slug]
@@ -434,21 +522,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
     }
 
     if (empty($errors)) {
-        // Read current .htaccess
+        // Persist slug overrides into a temporary lookup used by writeHtaccessRewrites
+        // We store them directly in .htaccess via the helper, but first we need to
+        // update the existing slug map in .htaccess so the helper can read them back.
+        // Write slugs directly into .htaccess player block, then call helper.
         $htFile  = __DIR__ . '/.htaccess';
-        $content = file_get_contents($htFile);
-
-        // Strip existing RewriteEngine + RewriteRule block
-        $content = preg_replace('/\n*RewriteEngine On\n(RewriteRule[^\n]*\n)*/s', '', $content);
-        $content = rtrim($content);
-
-        // Build new rules
-        $rules = "\n\nRewriteEngine On\n";
+        $raw     = file_get_contents($htFile);
+        // Update player lines with new slugs before calling shared helper
         foreach ($slugs as $pid => $slug) {
-            $rules .= "RewriteRule ^{$slug}$ playerProfile.php?p={$pid}&v={$trackCode} [L,QSA,NC]\n";
+            $raw = preg_replace(
+                '/^(RewriteRule \^)[a-z0-9\-]+(\$ playerProfile\.php\?p=' . $pid . '&)/m',
+                '${1}' . $slug . '${2}',
+                $raw
+            );
         }
-
-        file_put_contents($htFile, $content . $rules);
+        file_put_contents($htFile, $raw);
+        writeHtaccessRewrites($cn);
         $flashMsg  = 'URL names saved and .htaccess updated.';
         $flashType = 'success';
     } else {
@@ -609,6 +698,7 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php?section=lookups" class="<?= $section === 'lookups' ? 'active' : '' ?>"><i class="fas fa-list-alt me-1"></i>Lookup Tables</a>
   <a href="admin.php?section=settings" class="<?= $section === 'settings' ? 'active' : '' ?>"><i class="fas fa-cog me-1"></i>Site Settings</a>
   <a href="admin.php?section=urlslugs" class="<?= $section === 'urlslugs' ? 'active' : '' ?>"><i class="fas fa-link me-1"></i>URL Names</a>
+  <a href="admin.php?section=redirects" class="<?= $section === 'redirects' ? 'active' : '' ?>"><i class="fas fa-external-link-alt me-1"></i>Redirects</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
   <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
 </div>
@@ -1204,6 +1294,121 @@ document.querySelectorAll('.slug-input').forEach(function(inp){
     var preview = this.closest('tr').querySelector('.slug-preview');
     if (preview) { preview.textContent = 'uru.soccer/' + val; preview.href = 'https://uru.soccer/' + val; }
   });
+});
+</script>
+
+<?php elseif ($section === 'redirects'):
+  mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_REDIRECTS (
+      ID INT AUTO_INCREMENT PRIMARY KEY,
+      SLUG VARCHAR(200) NOT NULL UNIQUE,
+      DEST_URL TEXT NOT NULL,
+      LABEL VARCHAR(255) NOT NULL DEFAULT '',
+      IS_ACTIVE TINYINT NOT NULL DEFAULT 1,
+      CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )");
+  $editRedir  = null;
+  $editId     = (int)($_GET['edit'] ?? 0);
+  if ($editId) $editRedir = mysqli_fetch_assoc(mysqli_query($cn, "SELECT * FROM URU_REDIRECTS WHERE ID=$editId"));
+  $allRedirs  = mysqli_fetch_all(mysqli_query($cn, "SELECT * FROM URU_REDIRECTS ORDER BY SLUG"), MYSQLI_ASSOC);
+?>
+<div class="container-fluid px-4 pt-3">
+  <h5 class="fw-bold mb-1"><i class="fas fa-external-link-alt me-2 text-secondary"></i>Custom Redirects</h5>
+  <p class="text-muted small mb-4">Map any <code>uru.soccer/<em>slug</em></code> to any external or internal URL. Uses a 301 permanent redirect.</p>
+
+  <!-- Add / Edit form -->
+  <div class="card-section mb-4">
+    <h6 class="fw-bold mb-3"><?= $editRedir ? 'Edit Redirect' : 'Add New Redirect' ?></h6>
+    <form method="POST" action="admin.php?section=redirects">
+      <input type="hidden" name="ACTION" value="SAVE_REDIRECT">
+      <input type="hidden" name="RID" value="<?= $editRedir['ID'] ?? 0 ?>">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Slug <span class="text-muted fw-normal">(uru.soccer/<em>slug</em>)</span></label>
+          <input type="text" class="form-control font-monospace" name="SLUG"
+                 value="<?= htmlspecialchars($editRedir['SLUG'] ?? '') ?>"
+                 placeholder="collins-nessa" pattern="[a-z0-9\-]+" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Destination URL</label>
+          <input type="url" class="form-control" name="DEST_URL"
+                 value="<?= htmlspecialchars($editRedir['DEST_URL'] ?? '') ?>"
+                 placeholder="https://www.hudl.com/profile/..." required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Label <span class="text-muted fw-normal">(optional note)</span></label>
+          <input type="text" class="form-control" name="LABEL"
+                 value="<?= htmlspecialchars($editRedir['LABEL'] ?? '') ?>"
+                 placeholder="Collins Nessa — Hudl">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label fw-semibold d-block">Active</label>
+          <div class="form-check form-switch mt-1">
+            <input class="form-check-input" type="checkbox" name="IS_ACTIVE" value="1"
+                   <?= ($editRedir['IS_ACTIVE'] ?? 1) ? 'checked' : '' ?>>
+          </div>
+        </div>
+        <div class="col-md-1 d-flex gap-2">
+          <button type="submit" class="btn btn-uru btn-sm"><i class="fas fa-save me-1"></i><?= $editRedir ? 'Update' : 'Add' ?></button>
+          <?php if ($editRedir): ?>
+          <a href="admin.php?section=redirects" class="btn btn-secondary btn-sm">Cancel</a>
+          <?php endif; ?>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Existing redirects -->
+  <?php if ($allRedirs): ?>
+  <div class="card-section">
+    <h6 class="fw-bold mb-3">All Redirects (<?= count($allRedirs) ?>)</h6>
+    <table class="table table-sm table-dark table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Slug</th>
+          <th>Destination</th>
+          <th>Label</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($allRedirs as $r): ?>
+        <tr class="<?= $r['IS_ACTIVE'] ? '' : 'opacity-50' ?>">
+          <td><code>uru.soccer/<?= htmlspecialchars($r['SLUG']) ?></code></td>
+          <td class="text-muted small" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            <a href="<?= htmlspecialchars($r['DEST_URL']) ?>" target="_blank" style="color:inherit;"><?= htmlspecialchars($r['DEST_URL']) ?></a>
+          </td>
+          <td class="text-muted small"><?= htmlspecialchars($r['LABEL']) ?></td>
+          <td>
+            <form method="POST" action="admin.php?section=redirects" class="d-inline">
+              <input type="hidden" name="ACTION" value="TOGGLE_REDIRECT">
+              <input type="hidden" name="RID" value="<?= $r['ID'] ?>">
+              <button type="submit" class="btn btn-sm <?= $r['IS_ACTIVE'] ? 'btn-success' : 'btn-secondary' ?> py-0">
+                <?= $r['IS_ACTIVE'] ? 'Active' : 'Disabled' ?>
+              </button>
+            </form>
+          </td>
+          <td>
+            <a href="admin.php?section=redirects&edit=<?= $r['ID'] ?>" class="btn btn-sm btn-outline-secondary py-0 me-1"><i class="fas fa-edit"></i></a>
+            <form method="POST" action="admin.php?section=redirects" class="d-inline"
+                  onsubmit="return confirm('Delete redirect for /<?= htmlspecialchars($r['SLUG']) ?>?')">
+              <input type="hidden" name="ACTION" value="DELETE_REDIRECT">
+              <input type="hidden" name="RID" value="<?= $r['ID'] ?>">
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php else: ?>
+  <div class="text-muted">No redirects yet. Add one above.</div>
+  <?php endif; ?>
+</div>
+<script>
+document.querySelector('input[name="SLUG"]')?.addEventListener('input', function(){
+  this.value = this.value.toLowerCase().replace(/[^a-z0-9\-]/g,'');
 });
 </script>
 
