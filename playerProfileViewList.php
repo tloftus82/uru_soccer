@@ -56,8 +56,8 @@ $statsRow = mysqli_fetch_assoc(mysqli_query($cn,
             COUNT(DISTINCT A.VIEWER_ID) AS u_viewers,
             COUNT(DISTINCT A.IP_ADDRESS) AS u_ips
      FROM PP_VIEW_LOG A
-     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
      WHERE $whereStr"));
 
 $totalViews    = (int)$statsRow['total'];
@@ -69,8 +69,8 @@ $totalPages    = max(1, (int)ceil($totalViews / $perPage));
 // Bot count (always without bot filter so stat card is meaningful)
 $botRow  = mysqli_fetch_assoc(mysqli_query($cn,
     "SELECT COUNT(*) AS cnt FROM PP_VIEW_LOG A
-     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
      WHERE ($whereBotOff) AND ($botSql)"));
 $botCount = (int)$botRow['cnt'];
 
@@ -78,27 +78,27 @@ $botCount = (int)$botRow['cnt'];
 $byPlayerRaw = mysqli_fetch_all(mysqli_query($cn,
     "SELECT CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS NAME, COUNT(*) AS CNT
      FROM PP_VIEW_LOG A
-     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
      WHERE $whereStr GROUP BY A.PLAYER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
 $byPlayer = array_column($byPlayerRaw, 'CNT', 'NAME');
 
 $byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
     "SELECT CONCAT(B.FIRST_NAME,' ',B.LAST_NAME) AS NAME, COUNT(*) AS CNT
      FROM PP_VIEW_LOG A
-     INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
      WHERE $whereStr GROUP BY A.VIEWER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
 $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 
 // ── Fetch page of rows ────────────────────────────────────────────────────────
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
-               A.PLAYER_ID, A.VIEWER_ID,
-               CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS PLAYER,
-               CONCAT(B.FIRST_NAME,' ',B.LAST_NAME) AS VIEWER
+               A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
+               COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), CONCAT('[→] ',A.VIEW_CODE)) AS PLAYER,
+               COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
-        INNER JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-        INNER JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+        LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+        LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
         WHERE $whereStr
         ORDER BY A.VIEW_DATE_TIME DESC
         LIMIT $perPage OFFSET $offset";
