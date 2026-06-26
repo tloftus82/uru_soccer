@@ -319,8 +319,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
           <?php foreach ($displayViews as $row): ?>
           <tr>
             <td class="text-nowrap"><?php
-              $dt = new DateTime($row['VIEW_DATE_TIME'], new DateTimeZone('UTC'));
-              $dt->setTimezone(new DateTimeZone('America/Chicago'));
+              $dt = new DateTime($row['VIEW_DATE_TIME'], new DateTimeZone('America/Chicago'));
               echo $dt->format('Y-m-d g:i:s A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td><?= htmlspecialchars($row['PLAYER']) ?></td>
