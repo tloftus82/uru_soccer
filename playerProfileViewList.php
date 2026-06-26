@@ -94,7 +94,7 @@ $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 // ── Fetch page of rows ────────────────────────────────────────────────────────
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
-               COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), CONCAT('[→] ',A.VIEW_CODE)) AS PLAYER,
+               COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
         LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID

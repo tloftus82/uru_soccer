@@ -15,15 +15,17 @@ $pageName = $_SERVER['REQUEST_URI'];
 $slug_e = mysqli_real_escape_string($cn, $slug);
 $rr = mysqli_query($cn, "SELECT DEST_URL FROM URU_REDIRECTS WHERE SLUG='$slug_e' AND IS_ACTIVE=1 LIMIT 1");
 if ($rr && $row = mysqli_fetch_assoc($rr)) {
-    // Look up viewer ID from view code if possible
-    $ve  = mysqli_real_escape_string($cn, $v);
-    $hn  = mysqli_real_escape_string($cn, $hostName);
-    $pn  = mysqli_real_escape_string($cn, $pageName);
-    $vr2 = mysqli_query($cn, "SELECT ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE='$ve' LIMIT 1");
-    $vid = ($vr2 && $vrow = mysqli_fetch_assoc($vr2)) ? $vrow['ID'] : 'NULL';
-    // Log to PP_VIEW_LOG so it appears in the view log (NULL player = external redirect)
-    mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
-                       VALUES (NULL, $vid, '$ve', NOW(), 0, '$userIp', '$hn', '', '')");
+    // Ensure REDIRECT_SLUG column exists
+    mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REDIRECT_SLUG VARCHAR(200) NULL");
+
+    $ve   = mysqli_real_escape_string($cn, $v);
+    $hn   = mysqli_real_escape_string($cn, $hostName);
+    $pn   = mysqli_real_escape_string($cn, $pageName);
+    $slug_e = mysqli_real_escape_string($cn, $slug);
+    $vr2  = mysqli_query($cn, "SELECT ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE='$ve' LIMIT 1");
+    $vid  = ($vr2 && $vrow = mysqli_fetch_assoc($vr2)) ? $vrow['ID'] : 'NULL';
+    mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, REDIRECT_SLUG, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
+                       VALUES (NULL, $vid, '$ve', '$slug_e', NOW(), 0, '$userIp', '$hn', '', '')");
     mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
                        VALUES ('$pn', NOW(), '$userIp', '$hn', '', '')");
     header('Location: ' . $row['DEST_URL']);
