@@ -10,9 +10,16 @@ if ($slug === '') { header('Location: /'); exit; }
 $userIp    = $_SERVER['REMOTE_ADDR'];
 $hostName  = @gethostbyaddr($userIp) ?: '';
 $pageName  = $_SERVER['REQUEST_URI'];
-$ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
-$ipLocation = ($ipDetails && $ipDetails->city) ? $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country : "";
-$ipOrg      = ($ipDetails && $ipDetails->org)  ? $ipDetails->org : "";
+$ipLocation = ""; $ipOrg = "";
+try {
+    $prev = ini_set('default_socket_timeout', 3);
+    $ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+    ini_set('default_socket_timeout', $prev);
+    if ($ipDetails && !empty($ipDetails->city)) {
+        $ipLocation = $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country;
+        $ipOrg      = $ipDetails->org ?? "";
+    }
+} catch (Exception $e) {}
 
 // ── Check if this is a custom external redirect ───────────────────────────────
 $slug_e = mysqli_real_escape_string($cn, $slug);
