@@ -20,5 +20,5 @@ foreach ($m[1] as $i => $s) $slugMap[$s] = (int)$m[2][$i];
 if (!isset($slugMap[$slug])) { header('Location: /'); exit; }
 
 $pid = $slugMap[$slug];
-header("Location: playerProfile.php?p={$pid}&v={$v}");
+header("Location: /playerProfile.php?p={$pid}&v={$v}");
 exit;
