@@ -9,12 +9,9 @@
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
   $hostName = gethostbyaddr($userIp);
-  //$ipDetails = json_decode(file_get_contents("http://ipinfo.io/".$userIp."/json"));
-$ipDetails = "";
-  //$ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country;
-$ipLocation = "";
-  //$ipOrg = $ipDetails->org;
-$ipOrg = "";
+  $ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+  $ipLocation = ($ipDetails && $ipDetails->city) ? $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country : "";
+  $ipOrg      = ($ipDetails && $ipDetails->org)  ? $ipDetails->org : "";
 
   //check to see if authorized viewer
   $viewCode = "NULL";

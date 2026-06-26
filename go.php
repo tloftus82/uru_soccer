@@ -7,9 +7,12 @@ if ($v === '') $v = '56ed5e';
 
 if ($slug === '') { header('Location: /'); exit; }
 
-$userIp   = $_SERVER['REMOTE_ADDR'];
-$hostName = @gethostbyaddr($userIp) ?: '';
-$pageName = $_SERVER['REQUEST_URI'];
+$userIp    = $_SERVER['REMOTE_ADDR'];
+$hostName  = @gethostbyaddr($userIp) ?: '';
+$pageName  = $_SERVER['REQUEST_URI'];
+$ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+$ipLocation = ($ipDetails && $ipDetails->city) ? $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country : "";
+$ipOrg      = ($ipDetails && $ipDetails->org)  ? $ipDetails->org : "";
 
 // ── Check if this is a custom external redirect ───────────────────────────────
 $slug_e = mysqli_real_escape_string($cn, $slug);
@@ -24,10 +27,12 @@ if ($rr && $row = mysqli_fetch_assoc($rr)) {
     $slug_e = mysqli_real_escape_string($cn, $slug);
     $vr2  = mysqli_query($cn, "SELECT ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE='$ve' LIMIT 1");
     $vid  = ($vr2 && $vrow = mysqli_fetch_assoc($vr2)) ? $vrow['ID'] : 'NULL';
+    $loc_e = mysqli_real_escape_string($cn, $ipLocation);
+    $org_e = mysqli_real_escape_string($cn, $ipOrg);
     mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, REDIRECT_SLUG, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
-                       VALUES (NULL, $vid, '$ve', '$slug_e', NOW(), 0, '$userIp', '$hn', '', '')");
+                       VALUES (NULL, $vid, '$ve', '$slug_e', NOW(), 0, '$userIp', '$hn', '$loc_e', '$org_e')");
     mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
-                       VALUES ('$pn', NOW(), '$userIp', '$hn', '', '')");
+                       VALUES ('$pn', NOW(), '$userIp', '$hn', '$loc_e', '$org_e')");
     header('Location: ' . $row['DEST_URL']);
     exit;
 }
