@@ -8,7 +8,7 @@
   $result = mysqli_query($cn, $sql);
   $playerClassSections = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-  $trackViewCode = '56ed5e';
+  $trackViewCode = 'cz51ts';
 
   $stateAbbr = [
     'Alabama'=>'AL','Alaska'=>'AK','Arizona'=>'AZ','Arkansas'=>'AR','California'=>'CA',
