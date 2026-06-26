@@ -24,7 +24,7 @@
 
 RewriteEngine On
 # ── player-slug/view-code two-part URLs ───────────────────────────────────────
-RewriteRule ^([a-z0-9-]+)/([a-z0-9]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]
+RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]
 # ── Custom Redirects ──────────────────────────────────────────────────────────
 RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=cz51ts [L,QSA]
 RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=cz51ts [L,QSA]

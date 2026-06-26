@@ -2,7 +2,7 @@
 include('dbConnect/dbConnect.inc.php');
 
 $slug = strtolower(preg_replace('/[^a-z0-9\-]/i', '', $_GET['slug'] ?? ''));
-$v    = preg_replace('/[^a-z0-9]/i', '', $_GET['v'] ?? '');
+$v    = preg_replace('/[^a-z0-9\-]/i', '', $_GET['v'] ?? '');
 
 if ($slug === '' || $v === '') { header('Location: /'); exit; }
 
