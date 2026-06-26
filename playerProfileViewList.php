@@ -92,7 +92,7 @@ $byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
 $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 
 // ── Fetch page of rows ────────────────────────────────────────────────────────
-$sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
+$sql = "SELECT CONVERT_TZ(A.VIEW_DATE_TIME,'UTC','America/Chicago') AS VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
@@ -318,7 +318,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <tbody>
           <?php foreach ($displayViews as $row): ?>
           <tr>
-            <td class="text-nowrap"><?= htmlspecialchars($row['VIEW_DATE_TIME']) ?></td>
+            <td class="text-nowrap"><?= htmlspecialchars($row['VIEW_DATE_TIME']) ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td><?= htmlspecialchars($row['PLAYER']) ?></td>
             <td><?= htmlspecialchars($row['VIEWER']) ?></td>
             <td class="text-nowrap text-muted"><?= htmlspecialchars($row['IP_ADDRESS']) ?></td>
