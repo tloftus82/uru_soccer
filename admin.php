@@ -422,12 +422,13 @@ function writeHtaccessRewrites($cn) {
     // Strip everything from RewriteEngine On downward
     $static = preg_replace('/\n*RewriteEngine On[\s\S]*/s', '', $raw);
 
-    // Custom redirects block
+    // Custom redirects block — route through go.php for tracking
     $redirRows = mysqli_fetch_all(mysqli_query($cn,
-        "SELECT SLUG, DEST_URL FROM URU_REDIRECTS WHERE IS_ACTIVE=1 ORDER BY SLUG"), MYSQLI_ASSOC);
+        "SELECT SLUG FROM URU_REDIRECTS WHERE IS_ACTIVE=1 ORDER BY SLUG"), MYSQLI_ASSOC);
     $redirBlock = '';
     foreach ($redirRows as $r) {
-        $redirBlock .= "RewriteRule ^" . $r['SLUG'] . "$ " . $r['DEST_URL'] . " [R=301,L]\n";
+        $redirBlock .= "RewriteRule ^" . $r['SLUG'] . "$ go.php?slug=" . $r['SLUG'] . "&v=56ed5e [L,QSA,NC]\n";
+        $redirBlock .= "RewriteRule ^" . $r['SLUG'] . "/([a-z0-9-]+)$ go.php?slug=" . $r['SLUG'] . "&v=$1 [L,QSA,NC]\n";
     }
 
     // Player profile rules
@@ -446,6 +447,8 @@ function writeHtaccessRewrites($cn) {
     }
 
     $newContent = rtrim($static) . "\n\nRewriteEngine On\n";
+    $newContent .= "# ── Two-part player/event URLs ───────────────────────────────────────────────\n";
+    $newContent .= "RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]\n";
     if ($redirBlock) $newContent .= "# ── Custom Redirects ─────────────────────────────────────────────────────────\n" . $redirBlock;
     if ($playerBlock) $newContent .= "# ── Player Profiles ──────────────────────────────────────────────────────────\n" . $playerBlock;
 
