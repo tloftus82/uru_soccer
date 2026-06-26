@@ -1,5 +1,5 @@
 #SELECT
-#  CONCAT("RewriteRule ^", LOWER(A.FIRST_NAME), "-", LOWER(A.LAST_NAME), "$ playerProfile.php?p=", A.ID, "&v=cz51ts [L,QSA, NC]") AS DATA
+#  CONCAT("RewriteRule ^", LOWER(A.FIRST_NAME), "-", LOWER(A.LAST_NAME), "$ playerProfile.php?p=", A.ID, "&v=56ed5e [L,QSA, NC]") AS DATA
 #FROM PP_PLAYERS A
 
 # ── Cache Control ─────────────────────────────────────────────────────────────
@@ -26,18 +26,18 @@ RewriteEngine On
 # ── player-slug/view-code two-part URLs ───────────────────────────────────────
 RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]
 # ── Custom Redirects ──────────────────────────────────────────────────────────
-RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=cz51ts [L,QSA]
-RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=cz51ts [L,QSA]
-RewriteRule ^sophia-meyer$ playerProfile.php?p=11&v=cz51ts [L,QSA]
-RewriteRule ^jordyn-wilson$ playerProfile.php?p=12&v=cz51ts [L,QSA]
-RewriteRule ^jasmin-aguilar$ playerProfile.php?p=13&v=cz51ts [L,QSA]
-RewriteRule ^alexis-stusse$ playerProfile.php?p=15&v=cz51ts [L,QSA]
-RewriteRule ^grace-jensen$ playerProfile.php?p=17&v=cz51ts [L,QSA]
-RewriteRule ^baylee-reyes$ playerProfile.php?p=19&v=cz51ts [L,QSA]
-RewriteRule ^mya-kleve$ playerProfile.php?p=22&v=cz51ts [L,QSA]
-RewriteRule ^remy-wenzlaff$ playerProfile.php?p=23&v=cz51ts [L,QSA]
-RewriteRule ^ava-squier$ playerProfile.php?p=24&v=cz51ts [L,QSA,NC]
-RewriteRule ^millie-squier$ playerProfile.php?p=25&v=cz51ts [L,QSA,NC]
-RewriteRule ^annabella-reyes$ playerProfile.php?p=26&v=cz51ts [L,QSA,NC]
-RewriteRule ^isabella-mijangos$ playerProfile.php?p=27&v=cz51ts [L,QSA,NC]
-RewriteRule ^mackenzie-molstad$ playerProfile.php?p=28&v=cz51ts [L,QSA,NC]
+RewriteRule ^alexandra-loftus$ playerProfile.php?p=1&v=56ed5e [L,QSA]
+RewriteRule ^kaylee-adams$ playerProfile.php?p=10&v=56ed5e [L,QSA]
+RewriteRule ^sophia-meyer$ playerProfile.php?p=11&v=56ed5e [L,QSA]
+RewriteRule ^jordyn-wilson$ playerProfile.php?p=12&v=56ed5e [L,QSA]
+RewriteRule ^jasmin-aguilar$ playerProfile.php?p=13&v=56ed5e [L,QSA]
+RewriteRule ^alexis-stusse$ playerProfile.php?p=15&v=56ed5e [L,QSA]
+RewriteRule ^grace-jensen$ playerProfile.php?p=17&v=56ed5e [L,QSA]
+RewriteRule ^baylee-reyes$ playerProfile.php?p=19&v=56ed5e [L,QSA]
+RewriteRule ^mya-kleve$ playerProfile.php?p=22&v=56ed5e [L,QSA]
+RewriteRule ^remy-wenzlaff$ playerProfile.php?p=23&v=56ed5e [L,QSA]
+RewriteRule ^ava-squier$ playerProfile.php?p=24&v=56ed5e [L,QSA,NC]
+RewriteRule ^millie-squier$ playerProfile.php?p=25&v=56ed5e [L,QSA,NC]
+RewriteRule ^annabella-reyes$ playerProfile.php?p=26&v=56ed5e [L,QSA,NC]
+RewriteRule ^isabella-mijangos$ playerProfile.php?p=27&v=56ed5e [L,QSA,NC]
+RewriteRule ^mackenzie-molstad$ playerProfile.php?p=28&v=56ed5e [L,QSA,NC]

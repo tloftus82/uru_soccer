@@ -203,7 +203,7 @@ $dispRank = $playerInfo['CLASS_RANK'];
 if($displayRankPct == 1){$dispRank .= ' • Top '.$playerInfo['RANK_PERCENT'].'%';} 
 $pdf->Cell(8, 0.5, 'Rank:  '.$dispRank.'', 0, 1, 'L');
 
-$data = 'https://uru.soccer/playerProfile.php?p='.$playerId.'&v=cz51ts';
+$data = 'https://uru.soccer/playerProfile.php?p='.$playerId.'&v=56ed5e';
 $outputFile = 'qrcode.png';
 $errorCorrectionLevel = 'L';
 $matrixPointSize = 4;

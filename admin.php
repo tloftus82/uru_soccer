@@ -442,7 +442,7 @@ function writeHtaccessRewrites($cn) {
     $playerBlock = '';
     foreach ($playerRows as $p) {
         $slug = $existingSlugMap[$p['ID']] ?? ($p['FN'] . '-' . $p['LN']);
-        $playerBlock .= "RewriteRule ^{$slug}$ playerProfile.php?p={$p['ID']}&v=cz51ts [L,QSA,NC]\n";
+        $playerBlock .= "RewriteRule ^{$slug}$ playerProfile.php?p={$p['ID']}&v=56ed5e [L,QSA,NC]\n";
     }
 
     $newContent = rtrim($static) . "\n\nRewriteEngine On\n";
@@ -505,7 +505,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'redirects') {
 // ── POST: URL Slugs ───────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
     $slugs     = $_POST['slugs'] ?? [];   // [player_id => slug]
-    $trackCode = 'cz51ts';
+    $trackCode = '56ed5e';
     $errors    = [];
 
     // Validate slugs
@@ -628,7 +628,7 @@ $editAccRow = [];
 if ($editAccId) {
     foreach ($accolades as $a) { if ((int)$a['ID'] === $editAccId) { $editAccRow = $a; break; } }
 }
-$viewLink   = "playerProfile.php?p=$playerId&v=cz51ts";
+$viewLink   = "playerProfile.php?p=$playerId&v=56ed5e";
 $fa         = "admin.php?section=lookups";
 ?>
 <!DOCTYPE html>
