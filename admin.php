@@ -773,7 +773,7 @@ $fa         = "admin.php?section=lookups";
 
   <!-- TAB: Player Info -->
   <div class="tab-pane fade <?= $activeTab === 'tab-player' ? 'show active' : '' ?>" id="tab-player">
-    <form method="POST" action="<?= $formAction ?>">
+    <form method="POST" action="<?= $formAction ?>" id="playerForm">
       <input type="hidden" name="ACTION" value="SAVE_PLAYER">
       <input type="hidden" name="ACTIVE_TAB" value="tab-player">
       <div class="row">
@@ -1553,6 +1553,9 @@ function uploadForCrop(fileInput, field, aspectRatio) {
   if (!fileInput.files || !fileInput.files[0]) return;
   cropField  = field;
   cropAspect = isNaN(aspectRatio) ? NaN : aspectRatio;
+  // Clear existing path so saveCrop generates a fresh filename
+  var pathInput = document.getElementById('path_' + field);
+  if (pathInput) pathInput.value = '';
   var reader = new FileReader();
   reader.onload = function(e) { _showCropModal(e.target.result); };
   reader.readAsDataURL(fileInput.files[0]);
@@ -1586,10 +1589,10 @@ function saveCrop() {
   var pathInput = document.getElementById('path_' + cropField);
   var filePath  = pathInput ? pathInput.value.trim() : '';
 
-  // If no path set yet, generate one
+  // If no path set yet, generate one in the correct folder
   if (!filePath) {
-    var ext = cropAspect === 1 ? '.jpg' : '.jpg';
-    filePath = 'images/headshots/upload_' + Date.now() + ext;
+    var folder = (cropField === 'IMG_ACTION') ? 'images/action/' : 'images/headshots/';
+    filePath = folder + 'upload_' + Date.now() + '.jpg';
     if (pathInput) pathInput.value = filePath;
   }
 
@@ -1610,6 +1613,9 @@ function saveCrop() {
       var cropBtn = document.getElementById('cropBtn_' + cropField);
       if (cropBtn) cropBtn.style.display = '';
       cropModal.hide();
+      // Auto-save the player form so the new path persists to DB
+      var form = document.getElementById('playerForm');
+      if (form) form.submit();
     } else {
       alert('Save failed: ' + (data.error || 'unknown error'));
     }
