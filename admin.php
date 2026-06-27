@@ -87,6 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
         $rank     = sqlVal($cn, trim($_POST['CLASS_RANK']      ?? ''));
         $imgH     = sqlVal($cn, trim($_POST['IMG_HEADSHOT']    ?? ''));
         $imgA     = sqlVal($cn, trim($_POST['IMG_ACTION']      ?? ''));
+        // Handle transcript PDF upload
+        if (!empty($_FILES['PDF_TRANSCRIPT_FILE']['name'])) {
+            $ptmp = $_FILES['PDF_TRANSCRIPT_FILE']['tmp_name'];
+            $pext = strtolower(pathinfo($_FILES['PDF_TRANSCRIPT_FILE']['name'], PATHINFO_EXTENSION));
+            if ($pext === 'pdf') {
+                $pname = 'transcripts/transcript_' . ($playerId ?: 'new') . '_' . time() . '.pdf';
+                if (!is_dir(__DIR__.'/transcripts')) mkdir(__DIR__.'/transcripts', 0755, true);
+                if (move_uploaded_file($ptmp, __DIR__.'/'.$pname)) {
+                    $_POST['PDF_TRANSCRIPT'] = $pname;
+                }
+            }
+        }
         $pdf      = sqlVal($cn, trim($_POST['PDF_TRANSCRIPT']  ?? ''));
         $fb       = sqlVal($cn, trim($_POST['SOC_FACEBOOK']    ?? ''));
         $tw       = sqlVal($cn, trim($_POST['SOC_TWITTER']     ?? ''));
@@ -773,7 +785,7 @@ $fa         = "admin.php?section=lookups";
 
   <!-- TAB: Player Info -->
   <div class="tab-pane fade <?= $activeTab === 'tab-player' ? 'show active' : '' ?>" id="tab-player">
-    <form method="POST" action="<?= $formAction ?>" id="playerForm">
+    <form method="POST" action="<?= $formAction ?>" id="playerForm" enctype="multipart/form-data">
       <input type="hidden" name="ACTION" value="SAVE_PLAYER">
       <input type="hidden" name="ACTIVE_TAB" value="tab-player">
       <div class="row">
@@ -818,7 +830,6 @@ $fa         = "admin.php?section=lookups";
               <div class="col-4"><label class="form-label">ACT Score</label><input type="number" class="form-control" name="ACT_SCORE" value="<?= v($playerInfo,'ACT_SCORE') ?>"><div class="field-hint">1 – 36</div></div>
               <div class="col-4"><label class="form-label">SAT Score</label><input type="number" class="form-control" name="SAT_SCORE" value="<?= v($playerInfo,'SAT_SCORE') ?>"><div class="field-hint">400 – 1600</div></div>
               <div class="col-6"><label class="form-label">Class Rank</label><input type="text" class="form-control" name="CLASS_RANK" value="<?= v($playerInfo,'CLASS_RANK') ?>"><div class="field-hint">rank / total students &nbsp;(e.g. 15/320)</div></div>
-              <div class="col-6"><label class="form-label">Transcript PDF</label><input type="text" class="form-control" name="PDF_TRANSCRIPT" value="<?= v($playerInfo,'PDF_TRANSCRIPT') ?>"><div class="field-hint">documents/filename.pdf</div></div>
             </div>
           </div>
           <div class="card-section">
@@ -847,6 +858,17 @@ $fa         = "admin.php?section=lookups";
                   <img id="preview_IMG_ACTION" src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:64px;border-radius:4px;object-fit:cover;max-width:120px;<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onerror="this.style.display='none'">
                   <button type="button" class="btn btn-sm btn-outline-primary" id="cropBtn_IMG_ACTION" style="<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onclick="openCrop('IMG_ACTION',NaN)"><i class="fas fa-crop-alt me-1"></i>Crop / Edit</button>
                 </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Transcript (PDF)</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" name="PDF_TRANSCRIPT" id="path_PDF_TRANSCRIPT" value="<?= v($playerInfo,'PDF_TRANSCRIPT') ?>" placeholder="transcripts/filename.pdf">
+                  <label class="btn btn-outline-secondary mb-0" title="Upload PDF"><i class="fas fa-file-pdf"></i><input type="file" accept=".pdf" id="pdf_upload_input" style="display:none" onchange="uploadPdf(this)"></label>
+                </div>
+                <div class="field-hint">Upload a PDF or enter path manually</div>
+                <?php if (!empty($playerInfo['PDF_TRANSCRIPT'])): ?>
+                <div class="mt-1"><a href="<?= htmlspecialchars($playerInfo['PDF_TRANSCRIPT']) ?>" target="_blank" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf me-1"></i>View Current Transcript</a></div>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -1621,6 +1643,34 @@ function saveCrop() {
     }
   })
   .catch(function(){ alert('Network error saving image.'); });
+}
+
+function uploadPdf(fileInput) {
+  if (!fileInput.files || !fileInput.files[0]) return;
+  var file = fileInput.files[0];
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    alert('Please select a PDF file.');
+    fileInput.value = '';
+    return;
+  }
+  var formData = new FormData();
+  formData.append('PDF_TRANSCRIPT_FILE', file);
+  formData.append('player_id', '<?= $playerId ?>');
+  fetch('uploadTranscript.php', { method: 'POST', body: formData, credentials: 'same-origin' })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.success) {
+      document.getElementById('path_PDF_TRANSCRIPT').value = data.path;
+      var btn = document.querySelector('#path_PDF_TRANSCRIPT').closest('.col-12').querySelector('a.btn-outline-success');
+      if (btn) { btn.href = data.path; btn.style.display = ''; }
+      // Submit the form so the new path is saved to DB
+      document.getElementById('playerForm').submit();
+    } else {
+      alert('Upload failed: ' + (data.error || 'unknown error'));
+    }
+  })
+  .catch(function(){ alert('Network error uploading PDF.'); });
+  fileInput.value = '';
 }
 </script>
 <script>
