@@ -321,7 +321,7 @@
       .header{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:52px !important;padding:0 14px !important;background:rgba(35,38,44,0.96) !important;backdrop-filter:blur(8px);display:flex !important;align-items:center !important;border-radius:0 !important;z-index:200 !important;overflow:visible !important;}
       .header .logo{width:auto !important;height:52px !important;flex:1;}
       .header .logo img.logo-img{max-width:24px !important;margin-right:10px !important;}
-      .header .logo .logo-lnk{font-size:13px !important;max-width:none !important;}
+      .header .logo .logo-lnk{font-size:13px !important;max-width:none !important;white-space:nowrap !important;}
       /* Hamburger right-aligned, smaller */
       .header .menu-btn{float:none !important;margin-left:auto !important;width:36px !important;height:36px !important;line-height:34px !important;padding:0 !important;margin-top:0 !important;flex-shrink:0;border-radius:8px !important;border-color:rgba(255,255,255,0.3) !important;display:flex !important;}
       .header .menu-btn:before{top:11px !important;left:9px !important;right:9px !important;}
