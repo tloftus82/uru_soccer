@@ -509,7 +509,7 @@
               if (strlen($playerInfo['PDF_TRANSCRIPT'] ?? '') > 0) {
                 echo '<div class="stat-card">';
                 echo   '<div class="sc-icon"><i class="fas fa-file-alt"></i></div>';
-                echo   '<div class="sc-value"><a href="'.htmlspecialchars($playerInfo['PDF_TRANSCRIPT']).'" target="_blank" style="color:inherit;">View PDF</a></div>';
+                echo   '<div class="sc-value"><a href="'.htmlspecialchars($playerInfo['PDF_TRANSCRIPT']).'" target="_blank" style="color:inherit;">View</a></div>';
                 echo   '<div class="sc-label">Transcript</div>';
                 echo '</div>';
               }
