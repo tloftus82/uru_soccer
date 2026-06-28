@@ -17,8 +17,9 @@ $tmp  = $_FILES['PDF_TRANSCRIPT_FILE']['tmp_name'];
 $name = $_FILES['PDF_TRANSCRIPT_FILE']['name'];
 $ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
-if ($ext !== 'pdf') {
-    echo json_encode(['success' => false, 'error' => 'Only PDF files are allowed']);
+$allowed = ['pdf','jpg','jpeg','png','gif','webp','heic','heif','bmp','tiff','tif'];
+if (!in_array($ext, $allowed)) {
+    echo json_encode(['success' => false, 'error' => 'File type not allowed. Use PDF or an image format.']);
     exit;
 }
 
@@ -26,7 +27,7 @@ $playerId = (int)($_POST['player_id'] ?? 0);
 $dir = __DIR__ . '/transcripts';
 if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-$filename = 'transcript_' . ($playerId ?: 'new') . '_' . time() . '.pdf';
+$filename = 'transcript_' . ($playerId ?: 'new') . '_' . time() . '.' . $ext;
 $dest     = $dir . '/' . $filename;
 
 if (!move_uploaded_file($tmp, $dest)) {

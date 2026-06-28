@@ -860,12 +860,12 @@ $fa         = "admin.php?section=lookups";
                 </div>
               </div>
               <div class="col-12">
-                <label class="form-label">Transcript (PDF)</label>
+                <label class="form-label">Transcript (PDF or Image)</label>
                 <div class="input-group">
                   <input type="text" class="form-control" name="PDF_TRANSCRIPT" id="path_PDF_TRANSCRIPT" value="<?= v($playerInfo,'PDF_TRANSCRIPT') ?>" placeholder="transcripts/filename.pdf">
-                  <label class="btn btn-outline-secondary mb-0" title="Upload PDF"><i class="fas fa-file-pdf"></i><input type="file" accept=".pdf" id="pdf_upload_input" style="display:none" onchange="uploadPdf(this)"></label>
+                  <label class="btn btn-outline-secondary mb-0" title="Upload PDF"><i class="fas fa-file-pdf"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.bmp,.tiff,.tif,image/*" id="pdf_upload_input" style="display:none" onchange="uploadPdf(this)"></label>
                 </div>
-                <div class="field-hint">Upload a PDF or enter path manually</div>
+                <div class="field-hint">Upload a PDF or image (JPG, PNG, WEBP, HEIC, etc.)</div>
                 <?php if (!empty($playerInfo['PDF_TRANSCRIPT'])): ?>
                 <div class="mt-1"><a href="<?= htmlspecialchars($playerInfo['PDF_TRANSCRIPT']) ?>" target="_blank" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf me-1"></i>View Current Transcript</a></div>
                 <?php endif; ?>
@@ -1648,8 +1648,10 @@ function saveCrop() {
 function uploadPdf(fileInput) {
   if (!fileInput.files || !fileInput.files[0]) return;
   var file = fileInput.files[0];
-  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-    alert('Please select a PDF file.');
+  var allowed = ['pdf','jpg','jpeg','png','gif','webp','heic','heif','bmp','tiff','tif'];
+  var ext = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    alert('File type not allowed. Please use a PDF or image file.');
     fileInput.value = '';
     return;
   }
