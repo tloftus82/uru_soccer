@@ -41,22 +41,15 @@
   if($viewAuth == 1 and $playerAuth == 1){$authenticated = 1;}
 
   //insert view record into tracking table
-  $sql = "";
-  $sql .= "INSERT INTO PP_VIEW_LOG ( ";
-  $sql .= "  PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG ";
-  $sql .= ") VALUES ( ";
-  $sql .= "  ".$playerId.", ".$viewerId.", '".$viewCode."', NOW(), ".$authenticated.", '".$userIp."', '".$hostName."', '".$ipLocation."', '".$ipOrg."' ";
-  $sql .= ");";
-  $result = mysqli_query($cn, $sql);
-
-  //insert view record into tracking table
-  $sql = "";
-  $sql .= "INSERT INTO SITE_VIEW_LOG ( ";
-  $sql .= "  PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG ";
-  $sql .= ") VALUES ( ";
-  $sql .= "  '".$pageName."', NOW(), '".$userIp."', '".$hostName."', '".$ipLocation."', '".$ipOrg."' ";
-  $sql .= ");";
-  $result = mysqli_query($cn, $sql);
+  $ip_e  = mysqli_real_escape_string($cn, $userIp);
+  $loc_e = mysqli_real_escape_string($cn, $ipLocation);
+  $org_e = mysqli_real_escape_string($cn, $ipOrg);
+  $vc_e  = mysqli_real_escape_string($cn, $viewCode);
+  $pn_e  = mysqli_real_escape_string($cn, $pageName);
+  mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
+    VALUES ($playerId, $viewerId, '$vc_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e')");
+  mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
+    VALUES ('$pn_e', NOW(), '$ip_e', '', '$loc_e', '$org_e')");
 
   //kill page load if viewer or player isn't validated
   if($authenticated == 0){echo "Improperly formatted request."; die;}
