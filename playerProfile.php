@@ -28,7 +28,8 @@
 
   $viewAuth = 0;
   if (isset($_GET['v'])) {
-    $viewCode = preg_replace('/[^a-z0-9\-]/i', '', $_GET['v']); // strip anything not alphanumeric/dash
+    $viewCode = $_GET['v'];
+    if (!preg_match('/^[a-z0-9\-]+$/i', $viewCode)) { echo "Improperly formatted request."; die; } // reject if not exactly alphanumeric/dash
     $stmt = mysqli_prepare($cn, "SELECT ID AS VIEWER_ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE = ? LIMIT 1");
     if ($stmt) {
       mysqli_stmt_bind_param($stmt, 's', $viewCode);
