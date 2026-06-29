@@ -2,6 +2,9 @@
 // Engagement beacon — receives time-on-page, scroll depth, video plays, link clicks,
 // section visibility, return visit flag from JS.
 
+// Keep running after sendBeacon disconnects (needed for email at end of script)
+ignore_user_abort(true);
+
 include __DIR__ . '/dbConnect/dbConnect.inc.php';
 
 // Accept both POST (sendBeacon FormData) and GET (Image fallback)
