@@ -1,7 +1,3 @@
-#SELECT
-#  CONCAT("RewriteRule ^", LOWER(A.FIRST_NAME), "-", LOWER(A.LAST_NAME), "$ playerProfile.php?p=", A.ID, "&v=56ed5e [L,QSA, NC]") AS DATA
-#FROM PP_PLAYERS A
-
 # ── Cache Control ─────────────────────────────────────────────────────────────
 <IfModule mod_headers.c>
   # PHP pages — no caching
