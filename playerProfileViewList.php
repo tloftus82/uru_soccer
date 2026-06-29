@@ -426,17 +426,19 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             elseif ($vws < 60)  $vwLabel = $vws.'s';
             else                $vwLabel = floor($vws/60).'m '.($vws%60).'s';
 
-            // Videos watched — parse JSON {"Title": seconds}
+            // Videos watched — parse JSON array [{title, secs}, ...] one entry per open
             $vwDetail = '';
             if ($row['VIDEOS_WATCHED'] !== '') {
               $vwData = @json_decode($row['VIDEOS_WATCHED'], true);
-              if ($vwData) {
+              if (is_array($vwData)) {
                 $parts = [];
-                foreach ($vwData as $title => $secs) {
-                  $tl = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
-                  $parts[] = $title.' ('.$tl.')';
+                foreach ($vwData as $i => $entry) {
+                  $title = $entry['title'] ?? 'Video';
+                  $secs  = intval($entry['secs'] ?? 0);
+                  $tl    = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
+                  $parts[] = ($i+1).'. '.$title.' — '.$tl;
                 }
-                $vwDetail = implode(', ', $parts);
+                $vwDetail = implode("\n", $parts);
               }
             }
 
@@ -558,8 +560,8 @@ $('#viewTable').DataTable({
     var html = '';
     for (var k in LABELS) {
       if (!data[k]) continue;
-      var val = (k === 'links')
-        ? data[k].split(',').map(function(s){ return escHtml(s.trim()); }).join('<br>')
+      var val = (k === 'links' || k === 'vidnames')
+        ? data[k].split(k === 'links' ? ',' : '\n').map(function(s){ return escHtml(s.trim()); }).join('<br>')
         : escHtml(data[k]);
       html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
     }

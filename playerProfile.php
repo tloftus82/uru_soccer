@@ -817,12 +817,11 @@
   }
 
   // ── YouTube watch-time + which video tracking ─────────────────────────────────
-  var ytPlayer        = null;
-  var ytWatchStart    = null;
-  var ytWatchSeconds  = 0;
-  var ytCurrentTitle  = '';
-  var ytVideosWatched = {}; // title -> seconds
-  var ytReady         = false;
+  var ytPlayer       = null;
+  var ytWatchStart   = null;
+  var ytCurrentTitle = '';
+  var ytVideoLog     = []; // [{title, secs}, ...] one entry per open, in order
+  var ytReady        = false;
 
   window.onYouTubeIframeAPIReady = function() { ytReady = true; };
   var ytScript = document.createElement('script');
@@ -832,9 +831,9 @@
   function ytAccumulate() {
     if (ytWatchStart !== null) {
       var secs = Math.round((Date.now() - ytWatchStart) / 1000);
-      ytWatchSeconds += secs;
-      if (ytCurrentTitle) {
-        ytVideosWatched[ytCurrentTitle] = (ytVideosWatched[ytCurrentTitle] || 0) + secs;
+      // Update the last log entry for this open
+      if (ytVideoLog.length > 0) {
+        ytVideoLog[ytVideoLog.length - 1].secs += secs;
       }
       ytWatchStart = null;
     }
@@ -894,11 +893,11 @@
           template.find('iframe').attr('allow', 'autoplay');
         },
         open: function() {
-          ytWatchStart   = null;
-          ytWatchSeconds = 0;
-          // Capture which video was clicked
+          ytWatchStart = null;
+          // Capture which video was clicked and add a new log entry for this open
           var el = $.magnificPopup.instance.currItem && $.magnificPopup.instance.currItem.el;
-          ytCurrentTitle = el ? (el.attr('data-video-title') || '') : '';
+          ytCurrentTitle = el ? (el.attr('data-video-title') || 'Video') : 'Video';
+          ytVideoLog.push({title: ytCurrentTitle, secs: 0});
           setTimeout(function(){ attachYTPlayer(0); }, 500);
 
           if (!videoPlayed) {
@@ -916,15 +915,16 @@
             try { ytPlayer.destroy(); } catch(e) {}
           }
           ytPlayer = null;
-          if (ytWatchSeconds > 0) {
+          // Send the full log and total seconds so far
+          var totalSecs = ytVideoLog.reduce(function(s, e){ return s + e.secs; }, 0);
+          if (totalSecs > 0) {
             var fd = new FormData();
             fd.append('id', ROW_ID);
-            fd.append('video_watch_seconds', ytWatchSeconds);
-            fd.append('videos_watched', JSON.stringify(ytVideosWatched));
+            fd.append('video_watch_seconds', totalSecs);
+            fd.append('videos_watched', JSON.stringify(ytVideoLog));
             navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
-                                 : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_watch_seconds=' + ytWatchSeconds;
+                                 : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_watch_seconds=' + totalSecs;
           }
-          ytWatchSeconds = 0;
         }
       }
     });
@@ -943,6 +943,7 @@
   document.addEventListener('click', function(e) {
     var a = e.target.closest('a[href]');
     if (!a) return;
+    if (a.classList.contains('has-popup-video')) return; // videos open in popup, not tracked as link clicks
     var href = a.getAttribute('href') || '';
     var isExternal = /^(mailto:|tel:|https?:\/\/)/i.test(href) &&
                      href.indexOf(location.hostname) === -1;

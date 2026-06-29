@@ -27,8 +27,11 @@ $videoPlayed    = $videoPlayed    ? 1 : 0;
 $isReturnVisit  = $isReturnVisit  ? 1 : 0;
 $videoWatchSecs = max(-1, min($videoWatchSecs, 86400));
 
-// Validate videos_watched is JSON
-if ($videosWatched !== '' && @json_decode($videosWatched) === null) $videosWatched = '';
+// Validate videos_watched is a JSON array
+if ($videosWatched !== '') {
+    $vwDecoded = @json_decode($videosWatched, true);
+    if (!is_array($vwDecoded)) $videosWatched = '';
+}
 // Validate section_times is JSON
 if ($sectionTimes  !== '' && @json_decode($sectionTimes)  === null) $sectionTimes  = '';
 // Strip non-alpha/comma from sections_seen
@@ -61,7 +64,7 @@ $setParts = [];
 if ($timeOnPage     >= 0)  $setParts[] = "TIME_ON_PAGE        = $timeOnPage";
 if ($scrollDepth    >= 0)  $setParts[] = "SCROLL_DEPTH        = GREATEST(IFNULL(SCROLL_DEPTH,0), $scrollDepth)";
 if ($videoPlayed)          $setParts[] = "VIDEO_PLAYED        = 1";
-if ($videoWatchSecs >= 0)  $setParts[] = "VIDEO_WATCH_SECONDS = IFNULL(VIDEO_WATCH_SECONDS,0) + $videoWatchSecs";
+if ($videoWatchSecs >= 0)  $setParts[] = "VIDEO_WATCH_SECONDS = $videoWatchSecs";
 if ($isReturnVisit)        $setParts[] = "IS_RETURN_VISIT     = 1";
 
 if ($videosWatched !== '') {
