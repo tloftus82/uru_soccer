@@ -61,5 +61,10 @@ $pr = mysqli_query($cn, "
 if (!$pr || !($prow = mysqli_fetch_assoc($pr))) { header('Location: /'); exit; }
 
 $pid = (int)$prow['ID'];
-header("Location: /playerProfile.php?p={$pid}&v={$v}");
+// Internal forward — keeps the pretty URL in the browser bar
+$_GET['p'] = $pid;
+$_GET['v'] = $v;
+$_REQUEST['p'] = $pid;
+$_REQUEST['v'] = $v;
+include __DIR__ . '/playerProfile.php';
 exit;
