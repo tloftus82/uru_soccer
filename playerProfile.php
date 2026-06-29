@@ -4,16 +4,19 @@
   //get user's IP address
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
-  $ipLocation = ""; $ipOrg = "";
-  if (function_exists('curl_init')) {
-    $ch = curl_init("https://ipapi.co/{$userIp}/json/");
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'URUSoccer/1.0']);
-    $ipRaw = curl_exec($ch);
-    curl_close($ch);
-    $ipDetails = $ipRaw ? @json_decode($ipRaw) : null;
-    if ($ipDetails && !empty($ipDetails->city)) {
-      $ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country_name;
-      $ipOrg      = $ipDetails->org ?? "";
+  // $ipLocation/$ipOrg may already be set by go.php — don't fetch twice
+  if (!isset($ipLocation)) {
+    $ipLocation = ""; $ipOrg = "";
+    if (function_exists('curl_init')) {
+      $ch = curl_init("https://ipapi.co/{$userIp}/json/");
+      curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'URUSoccer/1.0']);
+      $ipRaw = curl_exec($ch);
+      curl_close($ch);
+      $ipDetails = $ipRaw ? @json_decode($ipRaw) : null;
+      if ($ipDetails && !empty($ipDetails->city)) {
+        $ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country_name;
+        $ipOrg      = $ipDetails->org ?? "";
+      }
     }
   }
 
