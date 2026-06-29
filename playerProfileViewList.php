@@ -459,7 +459,10 @@ $('#viewTable').DataTable({
     var html = '';
     for (var k in LABELS) {
       if (!data[k]) continue;
-      html += '<dt>'+LABELS[k]+'</dt><dd>'+escHtml(data[k])+'</dd>';
+      var val = (k === 'links' && data[k])
+  ? data[k].split(',').map(function(s){ return escHtml(s.trim()); }).join('<br>')
+  : escHtml(data[k]);
+html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
     }
     if (!html) html = '<dt colspan="2" style="color:#aaa;">No detail available</dt>';
     body.innerHTML = html;
