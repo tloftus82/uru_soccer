@@ -1630,7 +1630,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
         </form>
       </div>
       <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
-        <table class="table table-sm table-hover table-bordered mb-0" style="font-size:12px;font-family:monospace;">
+        <table class="table table-sm table-hover table-bordered mb-0" style="font-size:12px;font-family:monospace;white-space:nowrap;">
           <thead class="table-dark sticky-top">
             <tr><th>#</th><th>Date / Time (CT)</th><th>Page</th><th>IP</th><th>Location</th><th>Org</th></tr>
           </thead>
