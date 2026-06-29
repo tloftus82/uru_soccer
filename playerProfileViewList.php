@@ -442,7 +442,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               echo $dt->format('M j, Y g:i A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
-            <td class="text-nowrap"><?= htmlspecialchars($row['VIEWER']) ?></td>
+            <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 50, '…')) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td><?= $deviceBadge ?></td>
