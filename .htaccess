@@ -21,6 +21,11 @@
 ErrorDocument 404 /404.php
 
 RewriteEngine On
+# ── WebP auto-serve: serve .webp instead of .jpg/.png when browser supports it and file exists ──
+RewriteCond %{HTTP_ACCEPT} image/webp
+RewriteCond %{DOCUMENT_ROOT}/$1.webp -f
+RewriteRule ^(images/.+)\.(jpe?g|png)$ /$1.webp [T=image/webp,L,NC]
+
 # ── Sitemap ───────────────────────────────────────────────────────────────────
 RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
 # ── Two-part player/event URLs ───────────────────────────────────────────────

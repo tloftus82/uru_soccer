@@ -4,11 +4,30 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-define('ADMIN_HASH',   '63b38ded3ce608f47342f48fe9ac1639');
+define('ADMIN_HASH',   '63b38ded3ce608f47342f48fe9ac1639'); // legacy MD5 — only used during first-login upgrade
 define('COOKIE_TOKEN', hash('sha256', ADMIN_HASH . 'uru_admin_salt'));
 
 if (isset($_POST['_pw'])) {
-    if (md5($_POST['_pw']) === ADMIN_HASH) {
+    include('dbConnect/dbConnect.inc.php');
+    $storedHash = null;
+    $r = mysqli_query($cn, "SELECT VAR_VALUE FROM URU_VARIABLES WHERE VAR_KEY='admin_pw_hash' LIMIT 1");
+    if ($r && $row = mysqli_fetch_assoc($r)) $storedHash = $row['VAR_VALUE'];
+
+    $valid = false;
+    if ($storedHash) {
+        // bcrypt path
+        $valid = password_verify($_POST['_pw'], $storedHash);
+    } else {
+        // Legacy MD5 — auto-upgrade on success
+        $valid = md5($_POST['_pw']) === ADMIN_HASH;
+        if ($valid) {
+            $newHash = password_hash($_POST['_pw'], PASSWORD_BCRYPT);
+            $newHash_e = mysqli_real_escape_string($cn, $newHash);
+            mysqli_query($cn, "INSERT INTO URU_VARIABLES (VAR_KEY,VAR_VALUE) VALUES ('admin_pw_hash','$newHash_e') ON DUPLICATE KEY UPDATE VAR_VALUE='$newHash_e'");
+        }
+    }
+
+    if ($valid) {
         setcookie('uru_admin', COOKIE_TOKEN, time() + 86400 * 30, '/', '', false, true);
         header('Location: admin.php'); exit;
     }

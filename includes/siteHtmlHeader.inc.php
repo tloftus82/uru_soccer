@@ -1,24 +1,16 @@
 <?php
   include(__DIR__ . '/siteBootstrap.inc.php');
 
-  $pageName = $_SERVER['REQUEST_URI'];
-  $userIp = $_SERVER['REMOTE_ADDR'];
-  $hostName = gethostbyaddr($userIp);
-  //$ipDetails = json_decode(file_get_contents("http://ipinfo.io/".$userIp."/json"));
-$ipDetails = "";
-  //$ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country;
-$ipLocation = "";
-  //$ipOrg = $ipDetails->org;
-$ipOrg = "";
+  $userIp   = $_SERVER['REMOTE_ADDR'];
 
-  //insert view record into tracking table
-  $sql = "";
-  $sql .= "INSERT INTO SITE_VIEW_LOG ( ";
-  $sql .= "  PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG ";
-  $sql .= ") VALUES ( ";
-  $sql .= "  '".$pageName."', NOW(), '".$userIp."', '".$hostName."', '".$ipLocation."', '".$ipOrg."' ";
-  $sql .= ");";
-  $result = mysqli_query($cn, $sql);
+  $stmt = mysqli_prepare($cn,
+    "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG) VALUES (?, NOW(), ?, '', '', '')");
+  if ($stmt) {
+    $pageName = $_SERVER['REQUEST_URI'];
+    mysqli_stmt_bind_param($stmt, 'ss', $pageName, $userIp);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+  }
 
   $cookie_lifetime = 86400; // 1 day (in seconds)
   $cookie_path = "/";
@@ -51,8 +43,7 @@ $ipOrg = "";
   <meta property="og:image" content="https://uru.soccer/<?= htmlspecialchars($ogImage ?? 'images/logos/uru_logoOnly.png') ?>">
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
-  <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Mr+Dafoe&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i|Mr+Dafoe&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/basic.css" />
   <link rel="stylesheet" href="css/layout.css" />

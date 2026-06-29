@@ -98,6 +98,21 @@ if (!$saved) {
 
 $newSize = filesize($fullPath);
 
+// Also generate a .webp companion (browsers will be served this automatically via .htaccess)
+$webpPath = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $fullPath);
+if ($webpPath !== $fullPath && function_exists('imagewebp')) {
+    $imgForWebp = null;
+    switch ($ext) {
+        case 'jpg': case 'jpeg': $imgForWebp = @imagecreatefromjpeg($fullPath); break;
+        case 'png':  $imgForWebp = @imagecreatefrompng($fullPath);  break;
+        case 'gif':  $imgForWebp = @imagecreatefromgif($fullPath);  break;
+    }
+    if ($imgForWebp) {
+        imagewebp($imgForWebp, $webpPath, 82);
+        imagedestroy($imgForWebp);
+    }
+}
+
 function formatSize($bytes) {
     if ($bytes >= 1048576) return round($bytes / 1048576, 1) . 'MB';
     return round($bytes / 1024) . 'KB';

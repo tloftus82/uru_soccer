@@ -9,5 +9,7 @@ Disallow: /playerProfileEdit.php
 Disallow: /mailer/
 Disallow: /transcripts/
 Disallow: /documents/
+Disallow: /convertToWebP.php
+Disallow: /compressImage.php
 
 Sitemap: https://uru.soccer/sitemap.xml
