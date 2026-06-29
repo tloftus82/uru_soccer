@@ -264,7 +264,9 @@ EMAIL;
 
 $headers  = "From: URU Soccer <noreply@uru.soccer>\r\n";
 $headers .= "Reply-To: noreply@uru.soccer\r\n";
+$headers .= "Return-Path: noreply@uru.soccer\r\n";
 $headers .= "X-Mailer: PHP/".phpversion()."\r\n";
+$headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
-@mail('tloftus@gmail.com', $subject, $body, $headers);
+@mail('tloftus@gmail.com', $subject, $body, $headers, '-f noreply@uru.soccer');

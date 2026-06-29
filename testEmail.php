@@ -8,9 +8,13 @@ if (!isset($_COOKIE['uru_admin']) || $_COOKIE['uru_admin'] !== COOKIE_TOKEN) {
 $to      = 'tloftus@gmail.com';
 $subject = 'URU Soccer — Email Test ' . date('Y-m-d H:i:s');
 $body    = "This is a test email from URU Soccer.\n\nSent: " . date('Y-m-d H:i:s') . "\nServer: " . ($_SERVER['SERVER_NAME'] ?? 'unknown');
-$headers = "From: URU Soccer <noreply@uru.soccer>\r\nContent-Type: text/plain; charset=UTF-8\r\n";
+$headers  = "From: URU Soccer <noreply@uru.soccer>\r\n";
+$headers .= "Reply-To: noreply@uru.soccer\r\n";
+$headers .= "Return-Path: noreply@uru.soccer\r\n";
+$headers .= "MIME-Version: 1.0\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
-$sent = mail($to, $subject, $body, $headers);
+$sent = mail($to, $subject, $body, $headers, '-f noreply@uru.soccer');
 
 echo '<pre>';
 echo "mail() returned: " . ($sent ? 'TRUE' : 'FALSE') . "\n\n";
