@@ -10,15 +10,17 @@ if ($slug === '') { http_response_code(404); include __DIR__ . '/404.php'; exit;
 $userIp    = $_SERVER['REMOTE_ADDR'];
 $pageName  = $_SERVER['REQUEST_URI'];
 $ipLocation = ""; $ipOrg = "";
-try {
-    $prev = ini_set('default_socket_timeout', 3);
-    $ipDetails = @json_decode(@file_get_contents("https://ipapi.co/".$userIp."/json/"));
-    ini_set('default_socket_timeout', $prev);
+if (function_exists('curl_init')) {
+    $ch = curl_init("https://ipapi.co/{$userIp}/json/");
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'URUSoccer/1.0']);
+    $ipRaw = curl_exec($ch);
+    curl_close($ch);
+    $ipDetails = $ipRaw ? @json_decode($ipRaw) : null;
     if ($ipDetails && !empty($ipDetails->city)) {
         $ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country_name;
         $ipOrg      = $ipDetails->org ?? "";
     }
-} catch (Exception $e) {}
+}
 
 $slug_e = mysqli_real_escape_string($cn, $slug);
 
