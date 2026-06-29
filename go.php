@@ -12,10 +12,10 @@ $pageName  = $_SERVER['REQUEST_URI'];
 $ipLocation = ""; $ipOrg = "";
 try {
     $prev = ini_set('default_socket_timeout', 3);
-    $ipDetails = @json_decode(@file_get_contents("https://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+    $ipDetails = @json_decode(@file_get_contents("https://ipapi.co/".$userIp."/json/"));
     ini_set('default_socket_timeout', $prev);
     if ($ipDetails && !empty($ipDetails->city)) {
-        $ipLocation = $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country;
+        $ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country_name;
         $ipOrg      = $ipDetails->org ?? "";
     }
 } catch (Exception $e) {}
