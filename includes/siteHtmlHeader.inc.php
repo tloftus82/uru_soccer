@@ -1,5 +1,5 @@
 <?php
-  include('../dbConnect/dbConnect.inc.php');
+  include(__DIR__ . '/../dbConnect/dbConnect.inc.php');
 
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
