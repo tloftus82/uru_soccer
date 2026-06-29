@@ -1,9 +1,12 @@
 <?php include('dbConnect/dbConnect.inc.php'); ?>
 
 <!doctype html>
-<html lang="en-US">
+<html lang="<?= (isset($_SESSION['lang']) && $_SESSION['lang'] === 'es') ? 'es' : 'en-US' ?>">
 
-<?php $metaDescription = 'Contact URU Soccer — reach out to learn more about our college recruiting services, training programs, and how we can help your student-athlete.'; ?>
+<?php
+$pageTitle       = 'Contact Us';
+$metaDescription = 'Contact URU Soccer — reach out to learn more about our college recruiting services, training programs, and how we can help your student-athlete.';
+?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

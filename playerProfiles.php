@@ -34,9 +34,12 @@
 ?>
 
 <!doctype html>
-<html lang="en-US">
+<html lang="<?= (isset($_SESSION['lang']) && $_SESSION['lang'] === 'es') ? 'es' : 'en-US' ?>">
 
-<?php $metaDescription = 'URU Soccer player profiles — browse student-athletes seeking collegiate soccer opportunities. View stats, accolades, highlight videos, and contact information.'; ?>
+<?php
+$pageTitle       = 'Player Profiles';
+$metaDescription = 'URU Soccer player profiles — browse student-athletes seeking collegiate soccer opportunities. View stats, accolades, highlight videos, and contact information.';
+?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 <?php $isEs = ($_SESSION['lang'] == 'es'); ?>
 

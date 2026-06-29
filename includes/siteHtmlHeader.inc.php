@@ -1,5 +1,5 @@
 <?php
-  include(__DIR__ . '/../dbConnect/dbConnect.inc.php');
+  include(__DIR__ . '/siteBootstrap.inc.php');
 
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
@@ -33,14 +33,22 @@ $ipOrg = "";
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>
-<?php 
-  if($_SESSION['lang'] == 'en'){echo "URU.soccer &#8226; Education Through Soccer</title>";}
-  if($_SESSION['lang'] == 'es'){echo "URU.soccer &#8226; Educacion a Traves del Futbol</title>";}
-?>
+  <title><?php
+  $__base = ($_SESSION['lang'] == 'es') ? 'URU.soccer &#8226; Educacion a Traves del Futbol' : 'URU.soccer &#8226; Education Through Soccer';
+  echo !empty($pageTitle) ? htmlspecialchars($pageTitle).' &#8226; URU.soccer' : $__base;
+  ?></title>
   <?php if (!empty($metaDescription)): ?>
   <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
   <?php endif; ?>
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="URU Soccer">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://uru.soccer<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+  <meta property="og:title" content="<?php echo !empty($pageTitle) ? htmlspecialchars($pageTitle).' • URU Soccer' : 'URU Soccer • Education Through Soccer'; ?>">
+  <?php if (!empty($metaDescription)): ?>
+  <meta property="og:description" content="<?= htmlspecialchars($metaDescription) ?>">
+  <?php endif; ?>
+  <meta property="og:image" content="https://uru.soccer/<?= htmlspecialchars($ogImage ?? 'images/logos/uru_logoOnly.png') ?>">
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
   <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">

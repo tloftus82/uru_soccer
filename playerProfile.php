@@ -224,13 +224,21 @@
 
 <!doctype html>
 
-<html lang="en-US">
+<html lang="<?= (isset($_SESSION['lang']) && $_SESSION['lang'] === 'es') ? 'es' : 'en-US' ?>">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' • '.$playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']; ?></title>
-  <meta name="description" content="<?php echo htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' is a '.$playerInfo['POSITION_PRI'].' from '.$playerInfo['FULL_LOCATION'].', Class of '.$playerInfo['GRAD_CLASS'].'. View profile, accolades, and highlight videos.'); ?>">
+  <?php $__pdesc = htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' is a '.$playerInfo['POSITION_PRI'].' from '.$playerInfo['FULL_LOCATION'].', Class of '.$playerInfo['GRAD_CLASS'].'. View profile, accolades, and highlight videos.'); ?>
+  <meta name="description" content="<?= $__pdesc ?>">
+  <!-- Open Graph (player-specific) -->
+  <meta property="og:site_name" content="URU Soccer">
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://uru.soccer<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+  <meta property="og:title" content="<?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' • '.$playerInfo['POSITION_PRI'].' • URU Soccer') ?>">
+  <meta property="og:description" content="<?= $__pdesc ?>">
+  <meta property="og:image" content="https://uru.soccer/<?= htmlspecialchars(!empty($imgHeadshot) ? $imgHeadshot : 'images/logos/uru_logoOnly.png') ?>">
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
   <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
@@ -388,7 +396,7 @@
 
   <div class="container">
     <header class="header">
-  	  <div class="logo"><a href='#' onclick="history.back();"><img class="logo-img" src="images/logos/uru_logoOnly.png" style='vertical-align: middle' alt="" /></a><span class="logo-lnk" style="white-space:nowrap;max-width:none;"><?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?></span></div>
+  	  <div class="logo"><a href='/'><img class="logo-img" src="images/logos/uru_logoOnly.png" style='vertical-align: middle' alt="URU Soccer home" /></a><span class="logo-lnk" style="white-space:nowrap;max-width:none;"><?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?></span></div>
       <a href="#" class="menu-btn" id="mobileMenuBtn"><span></span></a>
 	  <div class="header-sidebar">
         <div class="top-menu">
@@ -419,9 +427,9 @@
 
             <!-- Mobile full-bleed hero (hidden on desktop) -->
             <div class="mobile-hero">
-              <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="" loading="lazy">
+              <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="<?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?> action photo" loading="lazy">
               <div class="mobile-hero-grad"></div>
-              <img class="mobile-hero-avatar" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="">
+              <img class="mobile-hero-avatar" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?> headshot">
               <div class="mobile-hero-text">
                 <div class="mh-name"><?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?></div>
                 <div class="mh-sub"><?= htmlspecialchars($playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']) ?></div>
@@ -433,7 +441,7 @@
 
             <div class="started-content">
             <h1 class="h-title">
-              <img class="desktop-headshot" src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;'>
+              <img class="desktop-headshot" src='<?php echo $imgHeadshot; ?>' style='width:240px;vertical-align: middle;border-radius: 50%; margin: 15px;' alt="<?= htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME']) ?> headshot">
               <?php echo $playerInfo['FIRST_NAME']." ".$playerInfo['LAST_NAME']; ?>
 			</h1>
             <?php if($playerInfo['COMMITTED_FLAG'] == 1){ ?>
@@ -534,7 +542,7 @@
             <div class="accolade-card">
               <div class="ac-header">
                 <?php if (!empty($accolade['IMG_LOGO'])): ?>
-                  <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="" loading="lazy">
+                  <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="<?= htmlspecialchars($accolade['ORG_NAME']) ?> logo" loading="lazy">
                 <?php else: ?>
                   <div class="ac-logo-fallback"><i class="fas fa-trophy"></i></div>
                 <?php endif; ?>

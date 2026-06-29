@@ -18,7 +18,11 @@
   </FilesMatch>
 </IfModule>
 
+ErrorDocument 404 /404.php
+
 RewriteEngine On
+# ── Sitemap ───────────────────────────────────────────────────────────────────
+RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
 # ── Two-part player/event URLs ───────────────────────────────────────────────
 RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]
 # ── Custom Redirects ──────────────────────────────────────────────────────────

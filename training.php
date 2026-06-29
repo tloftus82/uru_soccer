@@ -1,9 +1,5 @@
 <?php
-include('dbConnect/dbConnect.inc.php');
-mysqli_query($cn, "CREATE TABLE IF NOT EXISTS URU_VARIABLES (VAR_KEY VARCHAR(100) PRIMARY KEY, VAR_VALUE TEXT NOT NULL, UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)");
-$_uruVars = [];
-$_vr = mysqli_query($cn, "SELECT VAR_KEY, VAR_VALUE FROM URU_VARIABLES");
-while ($_vrow = mysqli_fetch_assoc($_vr)) $_uruVars[$_vrow['VAR_KEY']] = $_vrow['VAR_VALUE'];
+include('includes/siteBootstrap.inc.php');
 $hpFlierImg      = $_uruVars['hp_flier_img']       ?? 'images/fliers/uruHighPerformance.jpg';
 $hpFlierLink     = $_uruVars['hp_flier_link']      ?? 'https://forms.gle/TuvduKCEcqyuR9hF6';
 $hpFlierExpiry   = $_uruVars['hp_flier1_expiry']   ?? '';
@@ -19,9 +15,12 @@ $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 ?>
 
 <!doctype html>
-<html lang="en-US">
+<html lang="<?= (isset($_SESSION['lang']) && $_SESSION['lang'] === 'es') ? 'es' : 'en-US' ?>">
 
-<?php $metaDescription = 'URU High Performance Soccer Training — skill development sessions and camps for youth and high school players in the region.'; ?>
+<?php
+$pageTitle       = 'URU High Performance Training';
+$metaDescription = 'URU High Performance Soccer Training — skill development sessions and camps for youth and high school players in the region.';
+?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

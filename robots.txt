@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin.php
+Disallow: /dbConnect/
+Disallow: /playerProfileViewList.php
+Disallow: /playerProfileEditNew.php
+Disallow: /playerProfileEdit.php
+Disallow: /mailer/
+Disallow: /transcripts/
+Disallow: /documents/
+
+Sitemap: https://uru.soccer/sitemap.xml
