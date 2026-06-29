@@ -1638,11 +1638,11 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
             <?php foreach ($detailRows as $dr): ?>
             <tr>
               <td><?= $dr['ID'] ?></td>
-              <td style="white-space:nowrap"><?= htmlspecialchars($dr['VDT']) ?></td>
-              <td><?= htmlspecialchars($dr['PAGE']) ?></td>
-              <td><?= htmlspecialchars($dr['IP_ADDRESS']) ?></td>
-              <td><?= htmlspecialchars($dr['IP_LOCATION']) ?></td>
-              <td><?= htmlspecialchars($dr['IP_ORG']) ?></td>
+              <td style="white-space:nowrap"><?= htmlspecialchars($dr['VDT'] ?? '') ?></td>
+              <td><?= htmlspecialchars($dr['PAGE'] ?? '') ?></td>
+              <td><?= htmlspecialchars($dr['IP_ADDRESS'] ?? '') ?></td>
+              <td><?= htmlspecialchars($dr['IP_LOCATION'] ?? '') ?></td>
+              <td><?= htmlspecialchars($dr['IP_ORG'] ?? '') ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
