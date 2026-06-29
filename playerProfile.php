@@ -595,7 +595,7 @@
           <?php else: ?>
           <div class="video-cards">
             <?php foreach($videosArray as $video): ?>
-            <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" style="text-decoration:none;color:inherit;">
+            <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" data-video-title="<?= htmlspecialchars($video['VIDEO_TYPE_DESC']) ?>" style="text-decoration:none;color:inherit;">
               <div class="vc-thumb">
                 <img src="<?= htmlspecialchars($video['IMG_THUMBNAIL']) ?>" alt="" loading="lazy">
                 <div class="vc-play"><i class="fas fa-play-circle"></i></div>
@@ -740,8 +740,9 @@
 <script>
 // ── Engagement tracking ───────────────────────────────────────────────────────
 (function(){
-  var ROW_ID     = <?= (int)$newRowId ?>;
-  var BEACON_URL = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
+  var ROW_ID      = <?= (int)$newRowId ?>;
+  var PLAYER_ID   = <?= (int)$playerId ?>;
+  var BEACON_URL  = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
   if (!ROW_ID) return;
 
   var startTime    = Date.now();
@@ -750,13 +751,79 @@
   var linksClicked = [];
   var beaconSent   = false;
 
-  // ── YouTube watch-time tracking ──────────────────────────────────────────────
+  // ── Return visit detection (localStorage) ────────────────────────────────────
+  var isReturn = 0;
+  try {
+    var lsKey = 'uru_visited_' + PLAYER_ID;
+    if (localStorage.getItem(lsKey)) {
+      isReturn = 1;
+    }
+    localStorage.setItem(lsKey, '1');
+  } catch(e) {}
+  if (isReturn) {
+    var fd0 = new FormData();
+    fd0.append('id', ROW_ID);
+    fd0.append('is_return_visit', 1);
+    navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd0)
+                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&is_return_visit=1';
+  }
+
+  // ── Section visibility (Intersection Observer) ────────────────────────────────
+  var sectionsSeen  = {};
+  var sectionTimes  = {};
+  var sectionStarts = {};
+  var SECTIONS = {
+    'section-started':    'Photo',
+    'section-about':      'About',
+    'section-experience': 'Accolades',
+    'section-portfolio':  'Videos',
+    'section-services':   'References',
+    'section-contacts':   'Contact'
+  };
+
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        var id = entry.target.id;
+        if (entry.isIntersecting) {
+          sectionsSeen[id] = true;
+          sectionStarts[id] = Date.now();
+        } else {
+          if (sectionStarts[id]) {
+            sectionTimes[id] = (sectionTimes[id] || 0) + Math.round((Date.now() - sectionStarts[id]) / 1000);
+            delete sectionStarts[id];
+          }
+        }
+      });
+    }, {threshold: 0.3});
+
+    Object.keys(SECTIONS).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) obs.observe(el);
+    });
+  }
+
+  function getSectionsData() {
+    // Flush any still-visible sections
+    Object.keys(sectionStarts).forEach(function(id) {
+      sectionTimes[id] = (sectionTimes[id] || 0) + Math.round((Date.now() - sectionStarts[id]) / 1000);
+    });
+    var seen = Object.keys(sectionsSeen).map(function(id){ return SECTIONS[id] || id; });
+    var times = {};
+    Object.keys(sectionTimes).forEach(function(id) {
+      if (sectionTimes[id] > 0) times[SECTIONS[id] || id] = sectionTimes[id];
+    });
+    return { seen: seen.join(','), times: JSON.stringify(times) };
+  }
+
+  // ── YouTube watch-time + which video tracking ─────────────────────────────────
   var ytPlayer        = null;
   var ytWatchStart    = null;
   var ytWatchSeconds  = 0;
+  var ytCurrentTitle  = '';
+  var ytVideosWatched = {}; // title -> seconds
   var ytReady         = false;
 
-  // Load YouTube IFrame API
   window.onYouTubeIframeAPIReady = function() { ytReady = true; };
   var ytScript = document.createElement('script');
   ytScript.src = 'https://www.youtube.com/iframe_api';
@@ -764,7 +831,11 @@
 
   function ytAccumulate() {
     if (ytWatchStart !== null) {
-      ytWatchSeconds += Math.round((Date.now() - ytWatchStart) / 1000);
+      var secs = Math.round((Date.now() - ytWatchStart) / 1000);
+      ytWatchSeconds += secs;
+      if (ytCurrentTitle) {
+        ytVideosWatched[ytCurrentTitle] = (ytVideosWatched[ytCurrentTitle] || 0) + secs;
+      }
       ytWatchStart = null;
     }
   }
@@ -772,7 +843,6 @@
   function attachYTPlayer() {
     var iframe = document.querySelector('.mfp-iframe');
     if (!iframe || !ytReady) return;
-    // src already has enablejsapi=1 from re-init below
     ytPlayer = new YT.Player(iframe, {
       events: {
         onStateChange: function(e) {
@@ -786,8 +856,6 @@
     });
   }
 
-  // Re-init .has-popup-video to inject enablejsapi=1 into the iframe src
-  // and attach YT player on open / send watch time on close
   $(function() {
     $('.has-popup-video').magnificPopup('destroy');
     $('.has-popup-video').magnificPopup({
@@ -821,7 +889,9 @@
         open: function() {
           ytWatchStart   = null;
           ytWatchSeconds = 0;
-          // Give the iframe a moment to render before attaching
+          // Capture which video was clicked
+          var el = $.magnificPopup.instance.currItem && $.magnificPopup.instance.currItem.el;
+          ytCurrentTitle = el ? (el.attr('data-video-title') || '') : '';
           setTimeout(attachYTPlayer, 800);
 
           if (!videoPlayed) {
@@ -843,6 +913,7 @@
             var fd = new FormData();
             fd.append('id', ROW_ID);
             fd.append('video_watch_seconds', ytWatchSeconds);
+            fd.append('videos_watched', JSON.stringify(ytVideosWatched));
             navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
                                  : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_watch_seconds=' + ytWatchSeconds;
           }
@@ -852,7 +923,7 @@
     });
   });
 
-  // ── Scroll depth ─────────────────────────────────────────────────────────────
+  // ── Scroll depth ──────────────────────────────────────────────────────────────
   function calcScroll() {
     var el  = document.documentElement;
     var pct = Math.round((el.scrollTop + el.clientHeight) / el.scrollHeight * 100);
@@ -861,7 +932,7 @@
   window.addEventListener('scroll', calcScroll, {passive:true});
   calcScroll();
 
-  // ── External link clicks ─────────────────────────────────────────────────────
+  // ── External link clicks ──────────────────────────────────────────────────────
   document.addEventListener('click', function(e) {
     var a = e.target.closest('a[href]');
     if (!a) return;
@@ -878,15 +949,18 @@
     }
   });
 
-  // ── Time on page + scroll depth on unload ────────────────────────────────────
+  // ── Time on page + scroll + sections on unload ────────────────────────────────
   function sendFinal() {
     if (beaconSent) return;
     beaconSent = true;
     var secs = Math.round((Date.now() - startTime) / 1000);
-    var fd = new FormData();
-    fd.append('id',           ROW_ID);
-    fd.append('time_on_page', secs);
-    fd.append('scroll_depth', maxScroll);
+    var sd   = getSectionsData();
+    var fd   = new FormData();
+    fd.append('id',             ROW_ID);
+    fd.append('time_on_page',   secs);
+    fd.append('scroll_depth',   maxScroll);
+    fd.append('sections_seen',  sd.seen);
+    fd.append('section_times',  sd.times);
     navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
                          : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + secs + '&scroll_depth=' + maxScroll;
   }

@@ -13,9 +13,13 @@ mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER    
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT    VARCHAR(500)  NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS TIME_ON_PAGE  SMALLINT UNSIGNED NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SCROLL_DEPTH  TINYINT  UNSIGNED NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED        TINYINT       UNSIGNED NULL DEFAULT 0");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_WATCH_SECONDS SMALLINT      UNSIGNED NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED       VARCHAR(2000) NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED        TINYINT        UNSIGNED NULL DEFAULT 0");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_WATCH_SECONDS SMALLINT       UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEOS_WATCHED      VARCHAR(1000)  NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED       VARCHAR(2000)  NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SECTIONS_SEEN       VARCHAR(200)   NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SECTION_TIMES       VARCHAR(500)   NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS IS_RETURN_VISIT     TINYINT        UNSIGNED NULL DEFAULT 0");
 
 // ── Bot fingerprint patterns (IP_ORG or HOST_NAME contains any of these) ──────
 $botPatterns = [
@@ -105,7 +109,10 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
-               A.VIDEO_WATCH_SECONDS, IFNULL(A.LINKS_CLICKED,'') AS LINKS_CLICKED,
+               A.VIDEO_WATCH_SECONDS, IFNULL(A.VIDEOS_WATCHED,'') AS VIDEOS_WATCHED,
+               IFNULL(A.LINKS_CLICKED,'') AS LINKS_CLICKED,
+               IFNULL(A.SECTIONS_SEEN,'') AS SECTIONS_SEEN, IFNULL(A.SECTION_TIMES,'') AS SECTION_TIMES,
+               IFNULL(A.IS_RETURN_VISIT,0) AS IS_RETURN_VISIT,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
@@ -419,17 +426,49 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             elseif ($vws < 60)  $vwLabel = $vws.'s';
             else                $vwLabel = floor($vws/60).'m '.($vws%60).'s';
 
+            // Videos watched — parse JSON {"Title": seconds}
+            $vwDetail = '';
+            if ($row['VIDEOS_WATCHED'] !== '') {
+              $vwData = @json_decode($row['VIDEOS_WATCHED'], true);
+              if ($vwData) {
+                $parts = [];
+                foreach ($vwData as $title => $secs) {
+                  $tl = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
+                  $parts[] = $title.' ('.$tl.')';
+                }
+                $vwDetail = implode(', ', $parts);
+              }
+            }
+
+            // Section times — parse JSON {"Section": seconds}
+            $stDetail = '';
+            if ($row['SECTION_TIMES'] !== '') {
+              $stData = @json_decode($row['SECTION_TIMES'], true);
+              if ($stData) {
+                $parts = [];
+                foreach ($stData as $name => $secs) {
+                  $tl = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
+                  $parts[] = $name.': '.$tl;
+                }
+                $stDetail = implode(', ', $parts);
+              }
+            }
+
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
-              'ip'      => $row['IP_ADDRESS'],
-              'org'     => $row['IP_ORG'],
-              'host'    => $row['HOST_NAME'],
-              'browser' => $friendlyUA,
-              'ref'     => $row['REFERRER'],
-              'time'    => $timeLabel,
-              'scroll'  => $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '',
-              'video'   => $row['VIDEO_PLAYED'] ? ($vwLabel ? 'Yes — watched '.$vwLabel : 'Yes') : '',
-              'links'   => $row['LINKS_CLICKED'],
+              'ip'       => $row['IP_ADDRESS'],
+              'org'      => $row['IP_ORG'],
+              'host'     => $row['HOST_NAME'],
+              'browser'  => $friendlyUA,
+              'ref'      => $row['REFERRER'],
+              'return'   => $row['IS_RETURN_VISIT'] ? 'Yes' : '',
+              'time'     => $timeLabel,
+              'scroll'   => $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '',
+              'sections' => $row['SECTIONS_SEEN'],
+              'sectimes' => $stDetail,
+              'video'    => $row['VIDEO_PLAYED'] ? ($vwLabel ? 'Yes — '.$vwLabel.' watched' : 'Yes') : '',
+              'vidnames' => $vwDetail,
+              'links'    => $row['LINKS_CLICKED'],
             ]), ENT_QUOTES);
           ?>
           <tr>
@@ -444,7 +483,10 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               echo $dt->format('M j, Y g:i A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
-            <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 50, '…')) ?></td>
+            <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>">
+              <?php if($row['IS_RETURN_VISIT']): ?><span style="background:#8e44ad;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;margin-right:4px;vertical-align:middle;">RETURN</span><?php endif; ?>
+              <?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?>
+            </td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td><?= $deviceBadge ?></td>
@@ -492,8 +534,10 @@ $('#viewTable').DataTable({
   var hoverBtn  = null;  // set when hovered
   var LABELS = {
     ip:'IP Address', org:'Organization', host:'Hostname',
-    browser:'Browser / OS', ref:'Referrer', time:'Time on Page',
-    scroll:'Scroll Depth', video:'Video', links:'Links Clicked'
+    browser:'Browser / OS', ref:'Referrer', return:'Return Visit',
+    time:'Time on Page', scroll:'Scroll Depth',
+    sections:'Sections Seen', sectimes:'Time per Section',
+    video:'Video', vidnames:'Videos Watched', links:'Links Clicked'
   };
 
   function escHtml(s) {
