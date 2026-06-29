@@ -483,10 +483,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               echo $dt->format('M j, Y g:i A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
-            <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>">
-              <?php if($row['IS_RETURN_VISIT']): ?><span style="background:#8e44ad;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;margin-right:4px;vertical-align:middle;">RETURN</span><?php endif; ?>
-              <?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?>
-            </td>
+            <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td><?= $deviceBadge ?></td>
@@ -496,7 +493,8 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                 <?php if ($row['SCROLL_DEPTH'] !== null): ?><span class="eng-pill eng-scroll"><i class="fas fa-arrows-up-down" style="font-size:9px;"></i> <?= $row['SCROLL_DEPTH'] ?>%</span><?php endif; ?>
                 <?php if ($row['VIDEO_PLAYED']): ?><span class="eng-pill eng-video"><i class="fas fa-play" style="font-size:9px;"></i> Video</span><?php endif; ?>
                 <?php if ($row['LINKS_CLICKED']): ?><span class="eng-pill eng-link"><i class="fas fa-arrow-up-right-from-square" style="font-size:9px;"></i> Link</span><?php endif; ?>
-                <?php if (!$timeLabel && $row['SCROLL_DEPTH'] === null && !$row['VIDEO_PLAYED'] && !$row['LINKS_CLICKED']): ?><span class="eng-none">—</span><?php endif; ?>
+                <?php if ($row['IS_RETURN_VISIT']): ?><span class="eng-pill" style="background:#8e44ad;color:#fff;"><i class="fas fa-rotate-right" style="font-size:9px;"></i> Return</span><?php endif; ?>
+                <?php if (!$timeLabel && $row['SCROLL_DEPTH'] === null && !$row['VIDEO_PLAYED'] && !$row['LINKS_CLICKED'] && !$row['IS_RETURN_VISIT']): ?><span class="eng-none">—</span><?php endif; ?>
               </div>
             </td>
             <td><?php if($row['AUTHENTICATED']): ?><span class="badge-auth">yes</span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
