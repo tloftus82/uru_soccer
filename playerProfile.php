@@ -27,20 +27,31 @@
   $authenticated = 0;
 
   $viewAuth = 0;
-  if(isset($_GET['v']) == 1){
-    $viewCode = $_GET['v'];
-    $sql = "SELECT A.ID AS VIEWER_ID FROM PP_ALLOWED_VIEWERS A WHERE A.VIEW_CODE = '".$viewCode."';";
-    $result = mysqli_query($cn, $sql);
-    $viewerInfo = mysqli_fetch_array($result, MYSQLI_ASSOC);
-    if(mysqli_num_rows($result) == 1){$viewAuth = 1; $viewerId = $viewerInfo['VIEWER_ID'];}
+  if (isset($_GET['v'])) {
+    $viewCode = preg_replace('/[^a-z0-9\-]/i', '', $_GET['v']); // strip anything not alphanumeric/dash
+    $stmt = mysqli_prepare($cn, "SELECT ID AS VIEWER_ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE = ? LIMIT 1");
+    if ($stmt) {
+      mysqli_stmt_bind_param($stmt, 's', $viewCode);
+      mysqli_stmt_execute($stmt);
+      $result = mysqli_stmt_get_result($stmt);
+      if ($result && $viewerInfo = mysqli_fetch_assoc($result)) {
+        $viewAuth = 1; $viewerId = $viewerInfo['VIEWER_ID'];
+      }
+      mysqli_stmt_close($stmt);
+    }
   }
 
   $playerAuth = 0;
-  if(isset($_GET['p']) == 1){
-    $playerId = $_GET['p'];
-    $sql = "SELECT 'X' AS AUTH FROM PP_PLAYERS A WHERE A.ID = ".$playerId.";";
-    $result = mysqli_query($cn, $sql);
-    if(mysqli_num_rows($result) == 1){$playerAuth = 1;}
+  if (isset($_GET['p'])) {
+    $playerId = (int)$_GET['p']; // cast to int — eliminates any injection possibility
+    $stmt = mysqli_prepare($cn, "SELECT 1 FROM PP_PLAYERS WHERE ID = ? LIMIT 1");
+    if ($stmt) {
+      mysqli_stmt_bind_param($stmt, 'i', $playerId);
+      mysqli_stmt_execute($stmt);
+      mysqli_stmt_store_result($stmt);
+      if (mysqli_stmt_num_rows($stmt) === 1) $playerAuth = 1;
+      mysqli_stmt_close($stmt);
+    }
   }
 
   if($viewAuth == 1 and $playerAuth == 1){$authenticated = 1;}
