@@ -851,6 +851,12 @@
     }
     ytPlayer = new YT.Player(iframe, {
       events: {
+        onReady: function(e) {
+          // autoplay=1 may have started the video before we attached — catch it here
+          if (e.target.getPlayerState() === YT.PlayerState.PLAYING) {
+            ytWatchStart = Date.now();
+          }
+        },
         onStateChange: function(e) {
           if (e.data === YT.PlayerState.PLAYING) {
             ytWatchStart = Date.now();

@@ -1509,7 +1509,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
   }
   $detailRows = mysqli_fetch_all(mysqli_query($cn,
     "SELECT ID,
-            DATE_FORMAT(VIEW_DATE_TIME - INTERVAL 1 HOUR,'%m/%d/%y %h:%i %p') AS VDT,
+            DATE_FORMAT(VIEW_DATE_TIME - INTERVAL 1 HOUR,'%m/%d/%y %h:%i:%s %p') AS VDT,
             PAGE, IP_ADDRESS, IP_LOCATION, IP_ORG
      FROM SITE_VIEW_LOG $svWhere
      ORDER BY ID DESC LIMIT 200"), MYSQLI_ASSOC);

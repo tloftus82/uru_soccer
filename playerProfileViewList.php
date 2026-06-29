@@ -488,7 +488,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap" data-order="<?= strtotime($row['VIEW_DATE_TIME']) ?>"><?php
               $dt = new DateTime($row['VIEW_DATE_TIME'], new DateTimeZone('America/New_York'));
               $dt->setTimezone(new DateTimeZone('America/Chicago'));
-              echo $dt->format('M j, Y g:i A');
+              echo $dt->format('M j, Y g:i:s A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
             <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
             <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?></td>
