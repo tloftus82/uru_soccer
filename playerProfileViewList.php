@@ -8,6 +8,10 @@ if (!isset($_COOKIE['uru_admin']) || $_COOKIE['uru_admin'] !== COOKIE_TOKEN) {
 
 include('dbConnect/dbConnect.inc.php');
 
+// Ensure new columns exist before any SELECT references them
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER VARCHAR(500) NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT VARCHAR(500) NULL");
+
 // ── Bot fingerprint patterns (IP_ORG or HOST_NAME contains any of these) ──────
 $botPatterns = [
     // Cloud / datacenter providers — rarely real coaches

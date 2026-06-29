@@ -68,10 +68,6 @@
   $ref_e      = mysqli_real_escape_string($cn, $referrer);
   $ua_e       = mysqli_real_escape_string($cn, $userAgent);
 
-  // Ensure columns exist (safe on GoDaddy — IF NOT EXISTS is no-op after first run)
-  mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER VARCHAR(500) NULL");
-  mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT VARCHAR(500) NULL");
-
   mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG, REFERRER, USER_AGENT)
     VALUES ($playerId, $viewerId, '$vc_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e', '$ref_e', '$ua_e')");
   $newRowId = mysqli_insert_id($cn);
