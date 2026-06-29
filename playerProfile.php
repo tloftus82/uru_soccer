@@ -987,12 +987,19 @@
     if (finalSent) return;
     finalSent = true;
     var sd  = getSectionsData();
+    var totalSecs = ytVideoLog.reduce(function(s, e){ return s + e.secs; }, 0);
     var fd  = new FormData();
     fd.append('id',            ROW_ID);
     fd.append('time_on_page',  getActiveSeconds());
     fd.append('scroll_depth',  maxScroll);
     fd.append('sections_seen', sd.seen);
     fd.append('section_times', sd.times);
+    fd.append('is_return_visit', isReturn ? 1 : 0);
+    if (videoPlayed) {
+      fd.append('video_played',        1);
+      fd.append('video_watch_seconds', totalSecs);
+      fd.append('videos_watched',      JSON.stringify(ytVideoLog));
+    }
     fd.append('is_final',      1);
     navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
                          : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + getActiveSeconds() + '&scroll_depth=' + maxScroll + '&is_final=1';
