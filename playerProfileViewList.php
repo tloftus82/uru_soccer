@@ -484,11 +484,12 @@ $('#viewTable').DataTable({
   columnDefs: [{ orderable: false, targets: [0,7,8] }]
 });
 
-// Click-to-open detail card (stays open so you can copy text)
+// Detail card: hover to preview, click to pin (stays open for copying)
 (function(){
   var card      = document.getElementById('detailCard');
   var body      = document.getElementById('detailBody');
-  var activeBtn = null;
+  var pinnedBtn = null;  // set when clicked
+  var hoverBtn  = null;  // set when hovered
   var LABELS = {
     ip:'IP Address', org:'Organization', host:'Hostname',
     browser:'Browser / OS', ref:'Referrer', time:'Time on Page',
@@ -510,7 +511,7 @@ $('#viewTable').DataTable({
     card.style.left = left + 'px';
   }
 
-  function show(btn) {
+  function populate(btn) {
     var data = JSON.parse(btn.getAttribute('data-dc'));
     var html = '';
     for (var k in LABELS) {
@@ -522,30 +523,62 @@ $('#viewTable').DataTable({
     }
     if (!html) html = '<dd style="color:#aaa;grid-column:1/-1;">No detail available</dd>';
     body.innerHTML = html;
+  }
+
+  function show(btn) {
+    populate(btn);
     card.classList.add('visible');
-    activeBtn = btn;
-    btn.style.color = '#1a3a5c';
     position(btn);
   }
 
-  function hide() {
-    card.classList.remove('visible');
-    if (activeBtn) { activeBtn.style.color = ''; activeBtn = null; }
+  function unpin() {
+    if (pinnedBtn) { pinnedBtn.style.color = ''; pinnedBtn = null; }
+    card.classList.remove('pinned');
   }
 
+  function hideIfUnpinned() {
+    if (!pinnedBtn) card.classList.remove('visible');
+  }
+
+  // Hover
+  document.addEventListener('mouseover', function(e) {
+    var btn = e.target.closest('.detail-btn');
+    if (!btn || btn === pinnedBtn) return;
+    hoverBtn = btn;
+    show(btn);
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    var btn = e.target.closest('.detail-btn');
+    if (!btn) return;
+    var rel = e.relatedTarget;
+    if (rel && (rel === card || card.contains(rel))) return;
+    hoverBtn = null;
+    hideIfUnpinned();
+  });
+
+  card.addEventListener('mouseleave', function() {
+    hoverBtn = null;
+    hideIfUnpinned();
+  });
+
+  // Click to pin
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('.detail-btn');
     if (btn) {
       e.stopPropagation();
-      if (activeBtn === btn) { hide(); return; }
-      hide();
+      if (pinnedBtn === btn) { unpin(); hideIfUnpinned(); return; }
+      unpin();
+      pinnedBtn = btn;
+      btn.style.color = '#1a3a5c';
+      card.classList.add('pinned');
       show(btn);
       return;
     }
-    if (!card.contains(e.target)) hide();
+    if (!card.contains(e.target)) { unpin(); hideIfUnpinned(); }
   });
 
-  document.addEventListener('scroll', hide, true);
+  document.addEventListener('scroll', function() { unpin(); hideIfUnpinned(); }, true);
 })();
 </script>
 </body>
