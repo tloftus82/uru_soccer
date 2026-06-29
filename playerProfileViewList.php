@@ -8,9 +8,13 @@ if (!isset($_COOKIE['uru_admin']) || $_COOKIE['uru_admin'] !== COOKIE_TOKEN) {
 
 include('dbConnect/dbConnect.inc.php');
 
-// Ensure new columns exist before any SELECT references them
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER VARCHAR(500) NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT VARCHAR(500) NULL");
+// Ensure all extended columns exist before any SELECT references them
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER      VARCHAR(500)  NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT    VARCHAR(500)  NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS TIME_ON_PAGE  SMALLINT UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SCROLL_DEPTH  TINYINT  UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED  TINYINT  UNSIGNED NULL DEFAULT 0");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED VARCHAR(2000) NULL");
 
 // ── Bot fingerprint patterns (IP_ORG or HOST_NAME contains any of these) ──────
 $botPatterns = [
@@ -99,6 +103,8 @@ $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
+               A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
+               IFNULL(A.LINKS_CLICKED,'') AS LINKS_CLICKED,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
@@ -319,6 +325,10 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Host</th>
             <th>Browser / OS</th>
             <th>Referrer</th>
+            <th>Time</th>
+            <th>Scroll</th>
+            <th>Video</th>
+            <th>Links Clicked</th>
             <th>Auth</th>
           </tr>
         </thead>
@@ -361,6 +371,15 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['HOST_NAME']) ?>"><?= htmlspecialchars($row['HOST_NAME']) ?></td>
             <td class="text-nowrap" title="<?= htmlspecialchars($ua) ?>"><?= htmlspecialchars($friendlyUA) ?></td>
             <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['REFERRER']) ?>"><?= htmlspecialchars($row['REFERRER']) ?></td>
+            <td class="text-nowrap"><?php
+              $top = $row['TIME_ON_PAGE'];
+              if ($top === null) { echo '<span class="text-muted">—</span>'; }
+              elseif ($top < 60) { echo $top.'s'; }
+              else               { echo floor($top/60).'m '.($top%60).'s'; }
+            ?></td>
+            <td class="text-nowrap"><?= $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '<span class="text-muted">—</span>' ?></td>
+            <td><?= $row['VIDEO_PLAYED'] ? '<span style="color:#e74c3c;"><i class="fas fa-play-circle"></i></span>' : '<span class="text-muted">—</span>' ?></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['LINKS_CLICKED']) ?>"><?= htmlspecialchars($row['LINKS_CLICKED']) ?></td>
             <td><?php if($row['AUTHENTICATED']): ?><span class="badge-auth">yes</span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
           </tr>
           <?php endforeach; ?>
@@ -379,7 +398,7 @@ $('#viewTable').DataTable({
   order: [[0,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: 9 }]
+  columnDefs: [{ orderable: false, targets: [9,10,11,12,13] }]
 });
 </script>
 </body>

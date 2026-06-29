@@ -738,6 +738,76 @@
 <script src="js/swiper.js"></script>
 <script src="js/scripts.js"></script>
 <script>
+// ── Engagement tracking ───────────────────────────────────────────────────────
+(function(){
+  var ROW_ID      = <?= (int)$newRowId ?>;
+  var BEACON_URL  = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
+  if (!ROW_ID) return;
+
+  var startTime    = Date.now();
+  var maxScroll    = 0;
+  var videoPlayed  = false;
+  var linksClicked = [];
+  var beaconSent   = false;
+
+  // Scroll depth
+  function calcScroll() {
+    var el  = document.documentElement;
+    var pct = Math.round((el.scrollTop + el.clientHeight) / el.scrollHeight * 100);
+    if (pct > maxScroll) maxScroll = pct;
+  }
+  window.addEventListener('scroll', calcScroll, {passive:true});
+  calcScroll();
+
+  // External link clicks (email, social, phone, external URLs)
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('a[href]');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    var isExternal = /^(mailto:|tel:|https?:\/\/)/i.test(href) &&
+                     href.indexOf(location.hostname) === -1;
+    if (isExternal && linksClicked.indexOf(href) === -1) {
+      linksClicked.push(href.substring(0, 300));
+      // Fire immediately so click isn't lost before unload
+      var fd = new FormData();
+      fd.append('id',           ROW_ID);
+      fd.append('link_clicked', href.substring(0, 300));
+      navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                           : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&link_clicked=' + encodeURIComponent(href.substring(0,300));
+    }
+  });
+
+  // Video play via Magnific Popup open event
+  $(document).on('mfpOpen', function() {
+    if (videoPlayed) return;
+    videoPlayed = true;
+    var fd = new FormData();
+    fd.append('id',           ROW_ID);
+    fd.append('video_played', 1);
+    navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_played=1';
+  });
+
+  // Send time-on-page + scroll depth on unload
+  function sendFinal() {
+    if (beaconSent) return;
+    beaconSent = true;
+    var secs = Math.round((Date.now() - startTime) / 1000);
+    var fd = new FormData();
+    fd.append('id',           ROW_ID);
+    fd.append('time_on_page', secs);
+    fd.append('scroll_depth', maxScroll);
+    navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + secs + '&scroll_depth=' + maxScroll;
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') sendFinal();
+  });
+  window.addEventListener('pagehide', sendFinal);
+  window.addEventListener('beforeunload', sendFinal);
+})();
+
 document.querySelectorAll('.sc-value').forEach(function(el) {
   var size = 16;
   while (el.scrollWidth > el.parentElement.clientWidth - 20 && size > 9) {
