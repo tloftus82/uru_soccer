@@ -17,6 +17,7 @@ $linkClicked     = substr(trim($req['link_clicked']   ?? ''), 0, 300);
 $sectionsSeen    = substr(trim($req['sections_seen']  ?? ''), 0, 200);
 $sectionTimes    = substr(trim($req['section_times']  ?? ''), 0, 500);
 $isReturnVisit   = intval($req['is_return_visit']     ?? 0);
+$isFinal         = intval($req['is_final']            ?? 0);
 
 if ($id <= 0) { http_response_code(400); exit; }
 
@@ -86,3 +87,184 @@ if (!empty($setParts)) {
 }
 
 http_response_code(204);
+
+// ── Email notification on final beacon if human probability ≥ 61% ─────────────
+if (!$isFinal) exit;
+
+// Fetch the completed row with player and viewer names
+$row = mysqli_fetch_assoc(mysqli_query($cn,
+    "SELECT L.*,
+            CONCAT(P.FIRST_NAME,' ',P.LAST_NAME) AS PLAYER_NAME,
+            CONCAT(P.GRAD_CLASS)                 AS GRAD_CLASS,
+            P.GENDER,
+            CONCAT(V.FIRST_NAME,' ',V.LAST_NAME) AS VIEWER_NAME
+     FROM PP_VIEW_LOG L
+     LEFT JOIN PP_PLAYERS          P ON P.ID = L.PLAYER_ID
+     LEFT JOIN PP_ALLOWED_VIEWERS  V ON V.ID = L.VIEWER_ID
+     WHERE L.ID = $id LIMIT 1"));
+
+if (!$row) exit;
+
+// ── Human probability algorithm (mirrors playerProfileViewList.php) ────────────
+function computeHumanScore($row) {
+    $ua   = strtolower($row['USER_AGENT']  ?? '');
+    $org  = strtolower($row['IP_ORG']      ?? '');
+    $host = strtolower($row['HOST_NAME']   ?? '');
+    $top  = $row['TIME_ON_PAGE'];
+    $sd   = $row['SCROLL_DEPTH'];
+    $score = 50;
+
+    $botKw = ['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
+              'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
+              'crawler','spider','bot','scrapy','wget','curl','python-requests',
+              'facebookexternalhit','twitterbot','linkedinbot',
+              'amazon','amazonaws','google','microsoft','azure','cloudflare',
+              'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps'];
+    foreach ($botKw as $b) {
+        if (strpos($ua, $b) !== false) return 3;
+    }
+
+    $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
+    foreach ($dcKw as $kw) {
+        if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
+    }
+
+    if ($ua === '')                                                         $score -= 35;
+    if (preg_match('/(chrome|firefox|safari|edg|opera)\/[\d.]+/i', $ua))  $score += 12;
+    if (preg_match('/iphone|ipad|ipados|android/i', $ua))                  $score += 10;
+
+    if ($top !== null && $top == 0)       $score -= 25;
+    elseif ($top !== null && $top < 4)    $score -= 12;
+    elseif ($top !== null && $top >= 60)  $score += 25;
+    elseif ($top !== null && $top >= 15)  $score += 15;
+    elseif ($top !== null && $top >= 5)   $score +=  8;
+
+    if ($sd !== null && $sd == 0)         $score -= 12;
+    elseif ($sd !== null && $sd >= 60)    $score += 20;
+    elseif ($sd !== null && $sd >= 25)    $score += 10;
+    elseif ($sd !== null && $sd >= 5)     $score +=  5;
+
+    if ($row['VIDEO_PLAYED'])                    $score += 28;
+    if (!empty($row['LINKS_CLICKED']))            $score += 15;
+    if ($row['IS_RETURN_VISIT'])                  $score += 18;
+    if (!empty($row['SECTIONS_SEEN']))
+        $score += min(count(array_filter(explode(',', $row['SECTIONS_SEEN']))) * 4, 16);
+    if (!empty($row['REFERRER']))                 $score +=  8;
+    if ($row['AUTHENTICATED'])                    $score += 10;
+
+    if ($row['VIDEO_PLAYED'])              $score = max($score, 72);
+    if ($row['IS_RETURN_VISIT'])           $score = max($score, 55);
+    if (!empty($row['LINKS_CLICKED']))     $score = max($score, 55);
+
+    return max(0, min(100, $score));
+}
+
+$humanPct = computeHumanScore($row);
+if ($humanPct < 61) exit;
+
+// ── Build email ───────────────────────────────────────────────────────────────
+function fmtTime($secs) {
+    if ($secs === null) return '—';
+    return $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
+}
+
+$playerName  = $row['PLAYER_NAME'] ?? 'Unknown Player';
+$viewerName  = $row['VIEWER_NAME'] ?? $row['VIEW_CODE'] ?? '—';
+$gradClass   = $row['GRAD_CLASS']  ?? '';
+$gender      = $row['GENDER'] === 'F' ? "Women's" : "Men's";
+$dt          = new DateTime($row['VIEW_DATE_TIME'] ?? 'now', new DateTimeZone('America/New_York'));
+$dt->setTimezone(new DateTimeZone('America/Chicago'));
+$viewTime    = $dt->format('M j, Y g:i:s A').' CT';
+$location    = trim(($row['IP_LOCATION'] ?? '') . ' ' . ($row['IP_ORG'] ? '('.$row['IP_ORG'].')' : ''));
+$timeOnPage  = fmtTime($row['TIME_ON_PAGE']);
+$scrollDepth = $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '—';
+$sections    = $row['SECTIONS_SEEN'] ?: '—';
+$returnVisit = $row['IS_RETURN_VISIT'] ? 'Yes' : 'No';
+$isReturn    = $row['IS_RETURN_VISIT'] ? ' (Return Visit)' : '';
+
+// Format section times
+$secTimesStr = '—';
+if (!empty($row['SECTION_TIMES'])) {
+    $stData = @json_decode($row['SECTION_TIMES'], true);
+    if ($stData) {
+        $parts = [];
+        foreach ($stData as $name => $secs) $parts[] = $name.': '.fmtTime($secs);
+        $secTimesStr = implode(', ', $parts);
+    }
+}
+
+// Format videos watched
+$videosStr = '—';
+if ($row['VIDEO_PLAYED']) {
+    $videosStr = 'Yes';
+    if (!empty($row['VIDEOS_WATCHED'])) {
+        $vwData = @json_decode($row['VIDEOS_WATCHED'], true);
+        if (is_array($vwData)) {
+            $parts = [];
+            foreach ($vwData as $i => $entry) {
+                if (is_array($entry)) {
+                    $parts[] = ($i+1).'. '.($entry['title'] ?? 'Video').' — '.fmtTime($entry['secs'] ?? 0);
+                } else {
+                    $parts[] = $i.' — '.fmtTime($entry);
+                }
+            }
+            $videosStr = implode("\n        ", $parts);
+        }
+    }
+    if ($row['VIDEO_WATCH_SECONDS']) $videosStr .= "\n        Total: ".fmtTime($row['VIDEO_WATCH_SECONDS']);
+}
+
+$linksStr = $row['LINKS_CLICKED'] ? str_replace(',', "\n        ", $row['LINKS_CLICKED']) : '—';
+
+$ua = $row['USER_AGENT'] ?? '';
+$browser = '';
+if (preg_match('/Edg(?:e|\/)([\d.]+)/i', $ua, $m))           $browser = 'Edge '.$m[1];
+elseif (preg_match('/OPR\/([\d.]+)/i', $ua, $m))             $browser = 'Opera '.$m[1];
+elseif (preg_match('/Chrome\/([\d.]+)/i', $ua, $m))          $browser = 'Chrome '.$m[1];
+elseif (preg_match('/Firefox\/([\d.]+)/i', $ua, $m))         $browser = 'Firefox '.$m[1];
+elseif (preg_match('/Version\/([\d.]+).*Safari/i', $ua, $m)) $browser = 'Safari '.$m[1];
+elseif ($ua)                                                   $browser = 'Unknown';
+if (preg_match('/Windows NT ([\d.]+)/i', $ua, $m)) {
+    $wv = ['10.0'=>'11/10','6.3'=>'8.1','6.2'=>'8','6.1'=>'7'];
+    $browser .= ' / Windows '.($wv[$m[1]] ?? $m[1]);
+} elseif (preg_match('/Mac OS X ([\d_]+)/i', $ua, $m))     $browser .= ' / macOS '.str_replace('_','.',$m[1]);
+elseif (preg_match('/Android ([\d.]+)/i', $ua, $m))        $browser .= ' / Android '.$m[1];
+elseif (preg_match('/iPhone OS ([\d_]+)/i', $ua, $m))      $browser .= ' / iOS '.str_replace('_','.',$m[1]);
+
+$subject = "URU Soccer — Profile View: {$playerName} ({$humanPct}% human)";
+
+$body = <<<EMAIL
+A player profile was just viewed on URU Soccer.
+
+  Player      : {$playerName} — {$gender} Team, Class of {$gradClass}
+  Viewed by   : {$viewerName}{$isReturn}
+  Date / Time : {$viewTime}
+
+── Location ─────────────────────────────────────────────────────────────
+  IP Address  : {$row['IP_ADDRESS']}
+  Location    : {$location}
+  Browser     : {$browser}
+  Referrer    : {$row['REFERRER']}
+
+── Engagement ───────────────────────────────────────────────────────────
+  Time on Page   : {$timeOnPage}
+  Scroll Depth   : {$scrollDepth}
+  Sections Seen  : {$sections}
+  Section Times  : {$secTimesStr}
+  Return Visit   : {$returnVisit}
+  Videos         : {$videosStr}
+  Links Clicked  : {$linksStr}
+
+── Score ─────────────────────────────────────────────────────────────────
+  Human Probability: {$humanPct}%
+
+──────────────────────────────────────────────────────────────────────────
+View full log: https://uru.soccer/playerProfileViewList.php
+EMAIL;
+
+$headers  = "From: URU Soccer <noreply@uru.soccer>\r\n";
+$headers .= "Reply-To: noreply@uru.soccer\r\n";
+$headers .= "X-Mailer: PHP/".phpversion()."\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+@mail('tloftus@gmail.com', $subject, $body, $headers);

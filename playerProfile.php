@@ -986,7 +986,16 @@
   function sendFinal() {
     if (finalSent) return;
     finalSent = true;
-    sendUpdate();
+    var sd  = getSectionsData();
+    var fd  = new FormData();
+    fd.append('id',            ROW_ID);
+    fd.append('time_on_page',  getActiveSeconds());
+    fd.append('scroll_depth',  maxScroll);
+    fd.append('sections_seen', sd.seen);
+    fd.append('section_times', sd.times);
+    fd.append('is_final',      1);
+    navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + getActiveSeconds() + '&scroll_depth=' + maxScroll + '&is_final=1';
   }
 
   // Pause/resume on tab visibility changes
