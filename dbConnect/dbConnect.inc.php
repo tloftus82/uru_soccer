@@ -2,9 +2,9 @@
 
   $servername = "localhost";
 
-  $database = "uru";
+  $database = "urusxfzp_uru";
 
-  $username = "tloftus";
+  $username = "urusxfzp_tloftus";
 
   $password = "AGLoftus1206";
 
