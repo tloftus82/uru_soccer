@@ -745,11 +745,18 @@
   var BEACON_URL  = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
   if (!ROW_ID) return;
 
-  var startTime    = Date.now();
   var maxScroll    = 0;
   var videoPlayed  = false;
   var linksClicked = [];
-  var beaconSent   = false;
+  var finalSent    = false;
+
+  // ── Active-time timer (pauses when tab is hidden, resumes on return) ──────────
+  var activeSeconds  = 0;       // accumulated active seconds
+  var visibleSince   = document.hidden ? null : Date.now();
+
+  function getActiveSeconds() {
+    return activeSeconds + (visibleSince ? Math.round((Date.now() - visibleSince) / 1000) : 0);
+  }
 
   // ── Return visit detection (localStorage) ────────────────────────────────────
   var isReturn = 0;
@@ -963,26 +970,47 @@
     }
   });
 
-  // ── Time on page + scroll + sections on unload ────────────────────────────────
-  function sendFinal() {
-    if (beaconSent) return;
-    beaconSent = true;
-    var secs = Math.round((Date.now() - startTime) / 1000);
-    var sd   = getSectionsData();
-    var fd   = new FormData();
-    fd.append('id',             ROW_ID);
-    fd.append('time_on_page',   secs);
-    fd.append('scroll_depth',   maxScroll);
-    fd.append('sections_seen',  sd.seen);
-    fd.append('section_times',  sd.times);
+  // ── Send time + scroll + sections (can be called multiple times) ─────────────
+  function sendUpdate() {
+    var sd  = getSectionsData();
+    var fd  = new FormData();
+    fd.append('id',            ROW_ID);
+    fd.append('time_on_page',  getActiveSeconds());
+    fd.append('scroll_depth',  maxScroll);
+    fd.append('sections_seen', sd.seen);
+    fd.append('section_times', sd.times);
     navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
-                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + secs + '&scroll_depth=' + maxScroll;
+                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&time_on_page=' + getActiveSeconds() + '&scroll_depth=' + maxScroll;
   }
 
+  function sendFinal() {
+    if (finalSent) return;
+    finalSent = true;
+    sendUpdate();
+  }
+
+  // Pause/resume on tab visibility changes
   document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') sendFinal();
+    if (document.hidden) {
+      // Tab hidden — accumulate active time and send current state
+      if (visibleSince) {
+        activeSeconds += Math.round((Date.now() - visibleSince) / 1000);
+        visibleSince = null;
+      }
+      sendUpdate();
+    } else {
+      // Tab visible again — resume timer
+      visibleSince = Date.now();
+    }
   });
-  window.addEventListener('pagehide', sendFinal);
+
+  // Periodic heartbeat every 30s so data isn't lost if browser crashes
+  setInterval(function() {
+    if (!document.hidden) sendUpdate();
+  }, 30000);
+
+  // True page exit
+  window.addEventListener('pagehide',     sendFinal);
   window.addEventListener('beforeunload', sendFinal);
 })();
 
