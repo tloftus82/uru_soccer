@@ -350,6 +350,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Viewer</th>
             <th>Location</th>
             <th>Organization</th>
+            <th>Device</th>
             <th>Engagement</th>
             <th>Auth</th>
           </tr>
@@ -377,6 +378,32 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               elseif (preg_match('/Linux/i', $ua))                      $os = 'Linux';
             }
             $friendlyUA = trim(($browser ?: '') . ($os ? ' / '.$os : ''));
+
+            // Device / bot badge
+            $uaLower = strtolower($ua);
+            $botName = '';
+            foreach (['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
+                      'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
+                      'crawler','spider','bot','scrapy','wget','curl','python-requests',
+                      'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
+              if (strpos($uaLower, $b) !== false) { $botName = ucfirst($b); break; }
+            }
+            if ($botName) {
+              $deviceBadge = '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">'
+                           . htmlspecialchars($botName).'</span>';
+            } else {
+              // Pick icon by OS/browser
+              if (preg_match('/iphone|ipad|ipados/i', $ua))      $icon = 'fa-mobile-screen-button';
+              elseif (preg_match('/android/i', $ua))             $icon = 'fa-mobile-screen-button';
+              elseif (preg_match('/macintosh|mac os/i', $ua))    $icon = 'fa-laptop';
+              elseif (preg_match('/windows/i', $ua))             $icon = 'fa-desktop';
+              elseif (preg_match('/linux/i', $ua))               $icon = 'fa-desktop';
+              else                                                $icon = 'fa-globe';
+              $label = $browser ?: ($ua !== '' ? 'Unknown' : '—');
+              $deviceBadge = '<span style="white-space:nowrap;font-size:12px;">'
+                           . '<i class="fas '.$icon.'" style="opacity:.5;margin-right:4px;font-size:11px;"></i>'
+                           . htmlspecialchars($label).'</span>';
+            }
 
             // Time label
             $top = $row['TIME_ON_PAGE'];
@@ -418,6 +445,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap"><?= htmlspecialchars($row['VIEWER']) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
+            <td><?= $deviceBadge ?></td>
             <td>
               <div class="eng-icons">
                 <?php if ($timeLabel): ?><span class="eng-pill eng-time"><i class="fas fa-clock" style="font-size:9px;"></i> <?= $timeLabel ?></span><?php endif; ?>
@@ -451,7 +479,7 @@ $('#viewTable').DataTable({
   order: [[1,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: [0,6,7] }]
+  columnDefs: [{ orderable: false, targets: [0,7,8] }]
 });
 
 // Hover detail card
