@@ -82,19 +82,6 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
   .pc-video-badge{background:rgba(231,76,60,.85);color:#fff;}
 
   @media(max-width:540px){.player-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
-
-  /* ── Skeleton screens ── */
-  @keyframes pc-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  .pc-skeleton-card{aspect-ratio:3/4;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.11) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:pc-shimmer 1.6s infinite linear;}
-  .pc-skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;margin-top:20px;}
-  @media(max-width:540px){.pc-skeleton-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
-  .pc-skeleton-title{height:18px;border-radius:6px;background:rgba(255,255,255,.07);margin-bottom:8px;width:140px;animation:pc-shimmer 1.6s infinite linear;background-size:200% 100%;}
-  .pc-skeleton-sub{height:13px;border-radius:6px;background:rgba(255,255,255,.05);margin-bottom:20px;width:200px;animation:pc-shimmer 1.6s infinite linear;background-size:200% 100%;}
-
-  /* ── Card stagger-in animation ── */
-  @keyframes pc-card-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-  .pc-flip-wrap{opacity:0;}
-  .pc-flip-wrap.pc-visible{animation:pc-card-in .45s ease both;}
 </style>
 
 <body class="home">
@@ -186,11 +173,7 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
             <div class="title"><?= $dispSectionName ?></div>
             <div class="subtitle"><?= $dispClassName ?></div>
           </div>
-          <!-- Skeleton placeholder — hidden once cards animate in -->
-          <div class="pc-skeleton-grid pc-skeleton-section" aria-hidden="true">
-            <?php for($s=0;$s<min(count($players),12);$s++): ?><div class="pc-skeleton-card"></div><?php endfor; ?>
-          </div>
-          <div class="player-grid" style="display:none">
+          <div class="player-grid">
             <?php foreach($players as $player):
               $imgHeadshot = strlen($player['IMG_HEADSHOT']) > 0
                 ? $player['IMG_HEADSHOT']
@@ -249,36 +232,7 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
 <?php include('includes/extScripts.inc.php'); ?>
 <script>
 (function(){
-  // ── Skeleton → real cards reveal ──
-  var grids    = document.querySelectorAll('.player-grid');
-  var skeletons = document.querySelectorAll('.pc-skeleton-section');
-
-  function revealCards() {
-    skeletons.forEach(function(skel, si) {
-      skel.style.transition = 'opacity .35s ease';
-      skel.style.opacity = '0';
-      setTimeout(function(){ skel.style.display = 'none'; }, 380);
-    });
-    grids.forEach(function(grid) {
-      grid.style.display = '';
-      var cards = grid.querySelectorAll('.pc-flip-wrap');
-      cards.forEach(function(card, i) {
-        setTimeout(function() {
-          card.style.animationDelay = '0ms';
-          card.classList.add('pc-visible');
-        }, i * 60);
-      });
-    });
-  }
-
-  // Reveal after a brief moment so skeleton is always visible at least once
-  if (document.readyState === 'complete') {
-    setTimeout(revealCards, 300);
-  } else {
-    window.addEventListener('load', function(){ setTimeout(revealCards, 300); });
-  }
-
-  // ── Mobile tap-to-flip ──
+  // On touch devices: tap front = flip, tap back "View Profile" = navigate
   if (!window.matchMedia('(hover: none)').matches) return;
   var wraps = document.querySelectorAll('.pc-flip-wrap');
   wraps.forEach(function(wrap){
@@ -290,6 +244,7 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
       }
     });
   });
+  // Tap anywhere outside a flipped card to unflip
   document.addEventListener('click', function(e){
     if (!e.target.closest('.pc-flip-wrap')) {
       wraps.forEach(function(w){ w.classList.remove('flipped'); });
