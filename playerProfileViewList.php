@@ -94,6 +94,7 @@ $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 // ── Fetch page of rows ────────────────────────────────────────────────────────
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
+               IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
@@ -312,11 +313,36 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Location</th>
             <th>Organization</th>
             <th>Host</th>
+            <th>Browser / OS</th>
+            <th>Referrer</th>
             <th>Auth</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($displayViews as $row): ?>
+          <?php foreach ($displayViews as $row):
+            // Parse user-agent to a friendly label
+            $ua = $row['USER_AGENT'];
+            $browser = ''; $os = '';
+            if ($ua !== '') {
+              if (preg_match('/Edg(?:e|\/)([\d.]+)/i', $ua, $m))         $browser = 'Edge '.$m[1];
+              elseif (preg_match('/OPR\/([\d.]+)/i', $ua, $m))           $browser = 'Opera '.$m[1];
+              elseif (preg_match('/Chrome\/([\d.]+)/i', $ua, $m))        $browser = 'Chrome '.$m[1];
+              elseif (preg_match('/Firefox\/([\d.]+)/i', $ua, $m))       $browser = 'Firefox '.$m[1];
+              elseif (preg_match('/Version\/([\d.]+).*Safari/i', $ua, $m)) $browser = 'Safari '.$m[1];
+              elseif (preg_match('/MSIE ([\d.]+)/i', $ua, $m))           $browser = 'IE '.$m[1];
+              elseif ($ua !== '')                                          $browser = 'Other';
+
+              if (preg_match('/Windows NT ([\d.]+)/i', $ua, $m)) {
+                $winVer = ['10.0'=>'11/10','6.3'=>'8.1','6.2'=>'8','6.1'=>'7','6.0'=>'Vista'];
+                $os = 'Windows '.($winVer[$m[1]] ?? $m[1]);
+              } elseif (preg_match('/Mac OS X ([\d_]+)/i', $ua, $m))     $os = 'macOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/Android ([\d.]+)/i', $ua, $m))        $os = 'Android '.$m[1];
+              elseif (preg_match('/iPhone OS ([\d_]+)/i', $ua, $m))      $os = 'iOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/iPad.*OS ([\d_]+)/i', $ua, $m))       $os = 'iPadOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/Linux/i', $ua))                        $os = 'Linux';
+            }
+            $friendlyUA = trim(($browser ? $browser : '') . ($os ? ' / '.$os : ''));
+          ?>
           <tr>
             <td class="text-nowrap" data-order="<?= strtotime($row['VIEW_DATE_TIME']) ?>"><?php
               $dt = new DateTime($row['VIEW_DATE_TIME'], new DateTimeZone('America/New_York'));
@@ -329,6 +355,8 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['HOST_NAME']) ?>"><?= htmlspecialchars($row['HOST_NAME']) ?></td>
+            <td class="text-nowrap" title="<?= htmlspecialchars($ua) ?>"><?= htmlspecialchars($friendlyUA) ?></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['REFERRER']) ?>"><?= htmlspecialchars($row['REFERRER']) ?></td>
             <td><?php if($row['AUTHENTICATED']): ?><span class="badge-auth">yes</span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
           </tr>
           <?php endforeach; ?>
@@ -347,7 +375,7 @@ $('#viewTable').DataTable({
   order: [[0,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: 7 }]
+  columnDefs: [{ orderable: false, targets: 9 }]
 });
 </script>
 </body>

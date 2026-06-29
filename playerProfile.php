@@ -58,15 +58,41 @@
   if($viewAuth == 1 and $playerAuth == 1){$authenticated = 1;}
 
   //insert view record into tracking table
-  $ip_e  = mysqli_real_escape_string($cn, $userIp);
-  $loc_e = mysqli_real_escape_string($cn, $ipLocation);
-  $org_e = mysqli_real_escape_string($cn, $ipOrg);
-  $vc_e  = mysqli_real_escape_string($cn, $viewCode);
-  $pn_e  = mysqli_real_escape_string($cn, $pageName);
-  mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
-    VALUES ($playerId, $viewerId, '$vc_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e')");
+  $ip_e       = mysqli_real_escape_string($cn, $userIp);
+  $loc_e      = mysqli_real_escape_string($cn, $ipLocation);
+  $org_e      = mysqli_real_escape_string($cn, $ipOrg);
+  $vc_e       = mysqli_real_escape_string($cn, $viewCode);
+  $pn_e       = mysqli_real_escape_string($cn, $pageName);
+  $referrer   = substr($_SERVER['HTTP_REFERER']    ?? '', 0, 500);
+  $userAgent  = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500);
+  $ref_e      = mysqli_real_escape_string($cn, $referrer);
+  $ua_e       = mysqli_real_escape_string($cn, $userAgent);
+
+  // Ensure columns exist (safe on GoDaddy — IF NOT EXISTS is no-op after first run)
+  mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER VARCHAR(500) NULL");
+  mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT VARCHAR(500) NULL");
+
+  mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG, REFERRER, USER_AGENT)
+    VALUES ($playerId, $viewerId, '$vc_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e', '$ref_e', '$ua_e')");
+  $newRowId = mysqli_insert_id($cn);
+
   mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
     VALUES ('$pn_e', NOW(), '$ip_e', '', '$loc_e', '$org_e')");
+
+  // Fire async reverse DNS — non-blocking, page doesn't wait for it
+  if ($newRowId && function_exists('curl_init')) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'uru.soccer';
+    $rdns_ch = curl_init("{$scheme}://{$host}/resolveHostname.php?id={$newRowId}&ip=".urlencode($userIp));
+    curl_setopt_array($rdns_ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_TIMEOUT        => 1,
+      CURLOPT_CONNECTTIMEOUT => 1,
+      CURLOPT_USERAGENT      => 'URUSoccer-Internal/1.0',
+    ]);
+    curl_exec($rdns_ch);
+    curl_close($rdns_ch);
+  }
 
   //kill page load if viewer or player isn't validated
   if($authenticated == 0){echo "Improperly formatted request."; die;}
