@@ -154,7 +154,7 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
             <?php foreach($players as $player):
               $imgHeadshot = strlen($player['IMG_HEADSHOT']) > 0
                 ? $player['IMG_HEADSHOT']
-                : ($player['GENDER'] == 'M' ? 'images/headshots/nophotomale.svg' : 'images/headshots/nophotofemale.svg');
+                : ($player['GENDER'] == 'M' ? 'images/headshots/nophotomale.jpg' : 'images/headshots/nophotofemale.jpg');
             ?>
             <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="player-card">
               <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>" loading="lazy">
