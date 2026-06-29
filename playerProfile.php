@@ -840,9 +840,16 @@
     }
   }
 
-  function attachYTPlayer() {
+  function attachYTPlayer(attempts) {
+    if (ytPlayer) return; // already attached
+    attempts = attempts || 0;
     var iframe = document.querySelector('.mfp-iframe');
-    if (!iframe || !ytReady) return;
+    if (!iframe) return;
+    if (!ytReady) {
+      // API not loaded yet — retry up to 20 times (6 seconds total)
+      if (attempts < 20) setTimeout(function(){ attachYTPlayer(attempts + 1); }, 300);
+      return;
+    }
     ytPlayer = new YT.Player(iframe, {
       events: {
         onStateChange: function(e) {
@@ -892,7 +899,7 @@
           // Capture which video was clicked
           var el = $.magnificPopup.instance.currItem && $.magnificPopup.instance.currItem.el;
           ytCurrentTitle = el ? (el.attr('data-video-title') || '') : '';
-          setTimeout(attachYTPlayer, 800);
+          setTimeout(function(){ attachYTPlayer(0); }, 500);
 
           if (!videoPlayed) {
             videoPlayed = true;
