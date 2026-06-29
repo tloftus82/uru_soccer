@@ -40,7 +40,7 @@ $metaDescription = 'Contact URU Soccer — reach out to learn more about our col
             </div>
             <div class="info-list">
               <ul>
-                <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "Phone:"; } if($_SESSION['lang'] == 'es'){ echo "Telefono:"; } ?></strong>(402) 508-0568</li>
+                <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "Phone:"; } if($_SESSION['lang'] == 'es'){ echo "Telefono:"; } ?></strong><a href="tel:+14025080568" style="color:inherit;">(402) 508-0568</a></li>
                 <li><strong><?php if($_SESSION['lang'] == 'en'){ echo "E-mail:"; } if($_SESSION['lang'] == 'es'){ echo "Correo:"; } ?></strong><a href='mailto:uruhighperformance@gmail.com'>uruhighperformance@gmail.com</a></li>
               </ul>
             </div>

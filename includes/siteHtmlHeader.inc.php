@@ -41,6 +41,7 @@
   <meta property="og:description" content="<?= htmlspecialchars($metaDescription) ?>">
   <?php endif; ?>
   <meta property="og:image" content="https://uru.soccer/<?= htmlspecialchars($ogImage ?? 'images/logos/uru_logoOnly.png') ?>">
+  <link rel="canonical" href="https://uru.soccer<?= htmlspecialchars(strtok($_SERVER['REQUEST_URI'], '?')) ?>">
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
   <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i|Mr+Dafoe&display=swap" rel="stylesheet">

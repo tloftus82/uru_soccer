@@ -28,7 +28,7 @@ if (isset($_POST['_pw'])) {
     }
 
     if ($valid) {
-        setcookie('uru_admin', COOKIE_TOKEN, time() + 86400 * 30, '/', '', false, true);
+        setcookie('uru_admin', COOKIE_TOKEN, ['expires' => time() + 86400 * 30, 'path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Strict']);
         header('Location: admin.php'); exit;
     }
     $loginError = true;

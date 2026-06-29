@@ -1,18 +1,13 @@
 <?php
-  ini_set('display_errors', 1);
-  ini_set('display_startup_errors', 1);
-  error_reporting(E_ALL);
-
   include('dbConnect/dbConnect.inc.php');
 
   //get user's IP address
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
-  $hostName = gethostbyaddr($userIp);
   $ipLocation = ""; $ipOrg = "";
   try {
     $prev = ini_set('default_socket_timeout', 3);
-    $ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+    $ipDetails = @json_decode(@file_get_contents("https://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
     ini_set('default_socket_timeout', $prev);
     if ($ipDetails && !empty($ipDetails->city)) {
       $ipLocation = $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country;
@@ -363,10 +358,6 @@
     }
   </style>
 		
-  <!--[if lt IE 9]>
-  <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
-  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
 </head>
 
 <body class="home">

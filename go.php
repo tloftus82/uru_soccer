@@ -12,7 +12,7 @@ $pageName  = $_SERVER['REQUEST_URI'];
 $ipLocation = ""; $ipOrg = "";
 try {
     $prev = ini_set('default_socket_timeout', 3);
-    $ipDetails = @json_decode(@file_get_contents("http://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
+    $ipDetails = @json_decode(@file_get_contents("https://ip-api.com/json/".$userIp."?fields=city,regionName,country,org"));
     ini_set('default_socket_timeout', $prev);
     if ($ipDetails && !empty($ipDetails->city)) {
         $ipLocation = $ipDetails->city.", ".$ipDetails->regionName.", ".$ipDetails->country;
@@ -38,7 +38,9 @@ if ($rr && $row = mysqli_fetch_assoc($rr)) {
                        VALUES (NULL, $vid, '$ve', '$slug_e', NOW(), 0, '$userIp', '$hn', '$loc_e', '$org_e')");
     mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)
                        VALUES ('$pn', NOW(), '$userIp', '$hn', '$loc_e', '$org_e')");
-    header('Location: ' . $row['DEST_URL']);
+    $destUrl = $row['DEST_URL'];
+    if (!preg_match('#^https?://#i', $destUrl)) { http_response_code(404); include __DIR__ . '/404.php'; exit; }
+    header('Location: ' . $destUrl);
     exit;
 }
 
@@ -49,7 +51,6 @@ $vr = mysqli_query($cn, "SELECT ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE='$ve'
 if (!$vr || !mysqli_fetch_assoc($vr)) { http_response_code(404); include __DIR__ . '/404.php'; exit; }
 
 // Look up player by URL_SLUG (DB), falling back to first-last name match
-mysqli_query($cn, "ALTER TABLE PP_PLAYERS ADD COLUMN IF NOT EXISTS URL_SLUG VARCHAR(200) NULL");
 $pr = mysqli_query($cn, "
     SELECT ID FROM PP_PLAYERS
     WHERE IS_ACTIVE=1
