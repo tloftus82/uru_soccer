@@ -154,6 +154,33 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   table.dataTable thead th{background:#1a3a5c;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.5px;}
   table.dataTable tbody tr:hover{background:rgba(26,58,92,.05)!important;}
   .section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a3a5c;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #1a3a5c;}
+
+  /* Compact table */
+  table.dataTable tbody td{vertical-align:middle;padding:6px 10px;}
+  .eng-icons{display:flex;gap:5px;align-items:center;}
+  .eng-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:8px;white-space:nowrap;}
+  .eng-time{background:#e8f0fe;color:#1a3a5c;}
+  .eng-scroll{background:#e8f5e9;color:#1b5e20;}
+  .eng-video{background:#fdecea;color:#b71c1c;}
+  .eng-link{background:#fff3e0;color:#e65100;}
+  .eng-none{color:#ccc;font-size:11px;}
+
+  /* Hover detail card */
+  .detail-wrap{position:relative;display:inline-block;}
+  .detail-btn{background:none;border:none;padding:0 4px;color:#aaa;cursor:pointer;font-size:12px;line-height:1;}
+  .detail-btn:hover{color:#1a3a5c;}
+  .detail-card{
+    display:none;position:fixed;z-index:9999;
+    background:#fff;border:1px solid #dde3ea;border-radius:10px;
+    box-shadow:0 8px 28px rgba(0,0,0,.18);
+    width:320px;padding:14px 16px;font-size:12px;line-height:1.5;
+    pointer-events:none;
+  }
+  .detail-card.visible{display:block;}
+  .detail-card dl{margin:0;display:grid;grid-template-columns:90px 1fr;row-gap:4px;column-gap:8px;}
+  .detail-card dt{font-weight:600;color:#555;white-space:nowrap;}
+  .detail-card dd{margin:0;color:#222;word-break:break-all;}
+  .detail-card .dc-head{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#1a3a5c;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #eee;}
 </style>
 </head>
 <body>
@@ -316,76 +343,93 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
       <table id="viewTable" class="table table-sm table-hover w-100" style="font-size:12px;">
         <thead>
           <tr>
+            <th style="width:1px;"></th>
             <th>Date / Time</th>
             <th>Player</th>
             <th>Viewer</th>
-            <th>IP Address</th>
             <th>Location</th>
-            <th>Organization</th>
-            <th>Host</th>
-            <th>Browser / OS</th>
-            <th>Referrer</th>
-            <th>Time</th>
-            <th>Scroll</th>
-            <th>Video</th>
-            <th>Links Clicked</th>
+            <th>Engagement</th>
             <th>Auth</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($displayViews as $row):
-            // Parse user-agent to a friendly label
+            // Parse user-agent
             $ua = $row['USER_AGENT'];
             $browser = ''; $os = '';
             if ($ua !== '') {
-              if (preg_match('/Edg(?:e|\/)([\d.]+)/i', $ua, $m))         $browser = 'Edge '.$m[1];
-              elseif (preg_match('/OPR\/([\d.]+)/i', $ua, $m))           $browser = 'Opera '.$m[1];
-              elseif (preg_match('/Chrome\/([\d.]+)/i', $ua, $m))        $browser = 'Chrome '.$m[1];
-              elseif (preg_match('/Firefox\/([\d.]+)/i', $ua, $m))       $browser = 'Firefox '.$m[1];
+              if (preg_match('/Edg(?:e|\/)([\d.]+)/i', $ua, $m))           $browser = 'Edge '.$m[1];
+              elseif (preg_match('/OPR\/([\d.]+)/i', $ua, $m))             $browser = 'Opera '.$m[1];
+              elseif (preg_match('/Chrome\/([\d.]+)/i', $ua, $m))          $browser = 'Chrome '.$m[1];
+              elseif (preg_match('/Firefox\/([\d.]+)/i', $ua, $m))         $browser = 'Firefox '.$m[1];
               elseif (preg_match('/Version\/([\d.]+).*Safari/i', $ua, $m)) $browser = 'Safari '.$m[1];
-              elseif (preg_match('/MSIE ([\d.]+)/i', $ua, $m))           $browser = 'IE '.$m[1];
-              elseif ($ua !== '')                                          $browser = 'Other';
-
+              elseif (preg_match('/MSIE ([\d.]+)/i', $ua, $m))             $browser = 'IE '.$m[1];
+              elseif ($ua !== '')                                            $browser = 'Other';
               if (preg_match('/Windows NT ([\d.]+)/i', $ua, $m)) {
                 $winVer = ['10.0'=>'11/10','6.3'=>'8.1','6.2'=>'8','6.1'=>'7','6.0'=>'Vista'];
                 $os = 'Windows '.($winVer[$m[1]] ?? $m[1]);
-              } elseif (preg_match('/Mac OS X ([\d_]+)/i', $ua, $m))     $os = 'macOS '.str_replace('_','.',$m[1]);
-              elseif (preg_match('/Android ([\d.]+)/i', $ua, $m))        $os = 'Android '.$m[1];
-              elseif (preg_match('/iPhone OS ([\d_]+)/i', $ua, $m))      $os = 'iOS '.str_replace('_','.',$m[1]);
-              elseif (preg_match('/iPad.*OS ([\d_]+)/i', $ua, $m))       $os = 'iPadOS '.str_replace('_','.',$m[1]);
-              elseif (preg_match('/Linux/i', $ua))                        $os = 'Linux';
+              } elseif (preg_match('/Mac OS X ([\d_]+)/i', $ua, $m))   $os = 'macOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/Android ([\d.]+)/i', $ua, $m))      $os = 'Android '.$m[1];
+              elseif (preg_match('/iPhone OS ([\d_]+)/i', $ua, $m))    $os = 'iOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/iPad.*OS ([\d_]+)/i', $ua, $m))     $os = 'iPadOS '.str_replace('_','.',$m[1]);
+              elseif (preg_match('/Linux/i', $ua))                      $os = 'Linux';
             }
-            $friendlyUA = trim(($browser ? $browser : '') . ($os ? ' / '.$os : ''));
+            $friendlyUA = trim(($browser ?: '') . ($os ? ' / '.$os : ''));
+
+            // Time label
+            $top = $row['TIME_ON_PAGE'];
+            if ($top === null)  $timeLabel = '';
+            elseif ($top < 60)  $timeLabel = $top.'s';
+            else                $timeLabel = floor($top/60).'m '.($top%60).'s';
+
+            // Detail card data (JSON-safe)
+            $dc = htmlspecialchars(json_encode([
+              'ip'      => $row['IP_ADDRESS'],
+              'org'     => $row['IP_ORG'],
+              'host'    => $row['HOST_NAME'],
+              'browser' => $friendlyUA,
+              'ref'     => $row['REFERRER'],
+              'time'    => $timeLabel,
+              'scroll'  => $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '',
+              'video'   => $row['VIDEO_PLAYED'] ? 'Yes' : '',
+              'links'   => $row['LINKS_CLICKED'],
+            ]), ENT_QUOTES);
           ?>
           <tr>
+            <td>
+              <div class="detail-wrap">
+                <button class="detail-btn" data-dc="<?= $dc ?>"><i class="fas fa-circle-info"></i></button>
+              </div>
+            </td>
             <td class="text-nowrap" data-order="<?= strtotime($row['VIEW_DATE_TIME']) ?>"><?php
               $dt = new DateTime($row['VIEW_DATE_TIME'], new DateTimeZone('America/New_York'));
               $dt->setTimezone(new DateTimeZone('America/Chicago'));
-              echo $dt->format('Y-m-d g:i:s A');
+              echo $dt->format('M j, Y g:i A');
             ?> <span class="text-muted" style="font-size:10px;">CT</span></td>
-            <td><?= htmlspecialchars($row['PLAYER']) ?></td>
-            <td><?= htmlspecialchars($row['VIEWER']) ?></td>
-            <td class="text-nowrap text-muted"><?= htmlspecialchars($row['IP_ADDRESS']) ?></td>
+            <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
+            <td class="text-nowrap"><?= htmlspecialchars($row['VIEWER']) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
-            <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
-            <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['HOST_NAME']) ?>"><?= htmlspecialchars($row['HOST_NAME']) ?></td>
-            <td class="text-nowrap" title="<?= htmlspecialchars($ua) ?>"><?= htmlspecialchars($friendlyUA) ?></td>
-            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['REFERRER']) ?>"><?= htmlspecialchars($row['REFERRER']) ?></td>
-            <td class="text-nowrap"><?php
-              $top = $row['TIME_ON_PAGE'];
-              if ($top === null) { echo '<span class="text-muted">—</span>'; }
-              elseif ($top < 60) { echo $top.'s'; }
-              else               { echo floor($top/60).'m '.($top%60).'s'; }
-            ?></td>
-            <td class="text-nowrap"><?= $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '<span class="text-muted">—</span>' ?></td>
-            <td><?= $row['VIDEO_PLAYED'] ? '<span style="color:#e74c3c;"><i class="fas fa-play-circle"></i></span>' : '<span class="text-muted">—</span>' ?></td>
-            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['LINKS_CLICKED']) ?>"><?= htmlspecialchars($row['LINKS_CLICKED']) ?></td>
+            <td>
+              <div class="eng-icons">
+                <?php if ($timeLabel): ?><span class="eng-pill eng-time"><i class="fas fa-clock" style="font-size:9px;"></i> <?= $timeLabel ?></span><?php endif; ?>
+                <?php if ($row['SCROLL_DEPTH'] !== null): ?><span class="eng-pill eng-scroll"><i class="fas fa-arrows-up-down" style="font-size:9px;"></i> <?= $row['SCROLL_DEPTH'] ?>%</span><?php endif; ?>
+                <?php if ($row['VIDEO_PLAYED']): ?><span class="eng-pill eng-video"><i class="fas fa-play" style="font-size:9px;"></i> Video</span><?php endif; ?>
+                <?php if ($row['LINKS_CLICKED']): ?><span class="eng-pill eng-link"><i class="fas fa-arrow-up-right-from-square" style="font-size:9px;"></i> Link</span><?php endif; ?>
+                <?php if (!$timeLabel && $row['SCROLL_DEPTH'] === null && !$row['VIDEO_PLAYED'] && !$row['LINKS_CLICKED']): ?><span class="eng-none">—</span><?php endif; ?>
+              </div>
+            </td>
             <td><?php if($row['AUTHENTICATED']): ?><span class="badge-auth">yes</span><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
           </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
     </div>
+  </div>
+
+  <!-- Floating detail card -->
+  <div class="detail-card" id="detailCard">
+    <div class="dc-head"><i class="fas fa-circle-info me-1"></i>View Detail</div>
+    <dl id="detailBody"></dl>
   </div>
 
 </div>
@@ -395,11 +439,70 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script>
 $('#viewTable').DataTable({
-  order: [[0,'desc']],
+  order: [[1,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: [9,10,11,12,13] }]
+  columnDefs: [{ orderable: false, targets: [0,5,6] }]
 });
+
+// Hover detail card
+(function(){
+  var card = document.getElementById('detailCard');
+  var body = document.getElementById('detailBody');
+  var LABELS = {
+    ip:'IP Address', org:'Organization', host:'Hostname',
+    browser:'Browser / OS', ref:'Referrer', time:'Time on Page',
+    scroll:'Scroll Depth', video:'Video Played', links:'Links Clicked'
+  };
+
+  function show(btn, data) {
+    var html = '';
+    for (var k in LABELS) {
+      if (!data[k]) continue;
+      html += '<dt>'+LABELS[k]+'</dt><dd>'+escHtml(data[k])+'</dd>';
+    }
+    if (!html) html = '<dt colspan="2" style="color:#aaa;">No detail available</dt>';
+    body.innerHTML = html;
+    card.classList.add('visible');
+    position(btn);
+  }
+
+  function position(btn) {
+    var r = btn.getBoundingClientRect();
+    var cw = card.offsetWidth, ch = card.offsetHeight;
+    var top = r.bottom + 6;
+    var left = r.left;
+    if (left + cw > window.innerWidth - 10) left = window.innerWidth - cw - 10;
+    if (top + ch > window.innerHeight - 10) top = r.top - ch - 6;
+    card.style.top  = top  + 'px';
+    card.style.left = left + 'px';
+  }
+
+  function hide() { card.classList.remove('visible'); }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.addEventListener('mouseover', function(e) {
+    var btn = e.target.closest('.detail-btn');
+    if (!btn) return;
+    var data = JSON.parse(btn.getAttribute('data-dc'));
+    show(btn, data);
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    var btn = e.target.closest('.detail-btn');
+    if (!btn) return;
+    // Only hide if not moving into the card
+    var rel = e.relatedTarget;
+    if (rel && (rel === card || card.contains(rel))) return;
+    hide();
+  });
+
+  card.addEventListener('mouseleave', hide);
+  document.addEventListener('scroll', hide, true);
+})();
 </script>
 </body>
 </html>
