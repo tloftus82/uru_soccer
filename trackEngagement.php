@@ -92,6 +92,9 @@ if (!empty($setParts)) {
 http_response_code(204);
 
 // ── Email notification on final beacon if human probability ≥ 61% ─────────────
+$logFile = __DIR__ . '/engagement_debug.log';
+if ($isFinal) file_put_contents($logFile, date('Y-m-d H:i:s')." FINAL id=$id top=$timeOnPage\n", FILE_APPEND);
+
 if (!$isFinal) exit;
 
 // Fetch the completed row with player and viewer names
@@ -105,6 +108,7 @@ $row = mysqli_fetch_assoc(mysqli_query($cn,
      LEFT JOIN PP_PLAYERS          P ON P.ID = L.PLAYER_ID
      LEFT JOIN PP_ALLOWED_VIEWERS  V ON V.ID = L.VIEWER_ID
      WHERE L.ID = $id LIMIT 1"));
+file_put_contents($logFile, date('Y-m-d H:i:s')." ROW=".($row?'ok':'NULL')." db_top=".($row['TIME_ON_PAGE']??'?')."\n", FILE_APPEND);
 
 if (!$row) exit;
 
@@ -163,7 +167,8 @@ function computeHumanScore($row) {
 }
 
 $humanPct = computeHumanScore($row);
-if ($humanPct < 61) exit;
+file_put_contents($logFile, date('Y-m-d H:i:s')." SCORE=$humanPct\n", FILE_APPEND);
+if ($humanPct < 61) { file_put_contents($logFile, date('Y-m-d H:i:s')." EXIT score too low\n", FILE_APPEND); exit; }
 
 // ── Build email ───────────────────────────────────────────────────────────────
 function fmtTime($secs) {
@@ -272,4 +277,5 @@ $headers .= "X-Mailer: PHP/".phpversion()."\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
-@mail('tloftus@gmail.com', $subject, $body, $headers, '-f noreply@uru.soccer');
+$mailResult = mail('tloftus@gmail.com', $subject, $body, $headers, '-f noreply@uru.soccer');
+file_put_contents($logFile, date('Y-m-d H:i:s')." MAIL=".($mailResult?'ok':'FAILED')."\n", FILE_APPEND);
