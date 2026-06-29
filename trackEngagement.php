@@ -89,8 +89,7 @@ if (!empty($setParts)) {
 http_response_code(204);
 
 // ── Email notification on final beacon if human probability ≥ 61% ─────────────
-// Only send email on final beacon, and only if page was open at least 5 seconds
-if (!$isFinal || $timeOnPage < 5) exit;
+if (!$isFinal) exit;
 
 // Fetch the completed row with player and viewer names
 $row = mysqli_fetch_assoc(mysqli_query($cn,
@@ -104,7 +103,8 @@ $row = mysqli_fetch_assoc(mysqli_query($cn,
      LEFT JOIN PP_ALLOWED_VIEWERS  V ON V.ID = L.VIEWER_ID
      WHERE L.ID = $id LIMIT 1"));
 
-if (!$row) exit;
+// Use the stored TIME_ON_PAGE (max across all beacons) not just this beacon's value
+if (!$row || (int)$row['TIME_ON_PAGE'] < 5) exit;
 
 // ── Human probability algorithm (mirrors playerProfileViewList.php) ────────────
 function computeHumanScore($row) {
