@@ -89,7 +89,8 @@ if (!empty($setParts)) {
 http_response_code(204);
 
 // ── Email notification on final beacon if human probability ≥ 61% ─────────────
-if (!$isFinal) exit;
+// Only send email on final beacon, and only if page was open at least 5 seconds
+if (!$isFinal || $timeOnPage < 5) exit;
 
 // Fetch the completed row with player and viewer names
 $row = mysqli_fetch_assoc(mysqli_query($cn,

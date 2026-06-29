@@ -1018,8 +1018,11 @@
     if (!document.hidden) sendUpdate();
   }, 30000);
 
-  // True page exit
-  window.addEventListener('pagehide',     sendFinal);
+  // True page exit — pagehide with persisted=false means real unload, not bfcache
+  window.addEventListener('pagehide', function(e) {
+    if (!e.persisted) sendFinal();
+  });
+  // beforeunload fallback — finalSent guard prevents double-firing
   window.addEventListener('beforeunload', sendFinal);
 })();
 
