@@ -433,10 +433,16 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               if (is_array($vwData)) {
                 $parts = [];
                 foreach ($vwData as $i => $entry) {
-                  $title = $entry['title'] ?? 'Video';
-                  $secs  = intval($entry['secs'] ?? 0);
-                  $tl    = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
-                  $parts[] = ($i+1).'. '.$title.' — '.$tl;
+                  // New format: [{title, secs}] — Old format: {"Title": secs}
+                  if (is_array($entry)) {
+                    $title = $entry['title'] ?? 'Video';
+                    $secs  = intval($entry['secs'] ?? 0);
+                  } else {
+                    $title = $i;
+                    $secs  = intval($entry);
+                  }
+                  $tl = $secs < 60 ? $secs.'s' : floor($secs/60).'m '.($secs%60).'s';
+                  $parts[] = (is_int($i) ? ($i+1).'. ' : '').$title.' — '.$tl;
                 }
                 $vwDetail = implode("\n", $parts);
               }
