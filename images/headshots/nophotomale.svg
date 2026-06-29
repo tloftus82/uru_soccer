@@ -1,79 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2e3338"/>
-      <stop offset="100%" stop-color="#1e2226"/>
+      <stop offset="0%" stop-color="#2c3036"/>
+      <stop offset="100%" stop-color="#1a1d21"/>
     </linearGradient>
-    <linearGradient id="jersey" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#38B6FF"/>
-      <stop offset="100%" stop-color="#1a9ae0"/>
+    <linearGradient id="silhouette" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a5260"/>
+      <stop offset="100%" stop-color="#353b47"/>
     </linearGradient>
-    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#c8a882"/>
-      <stop offset="100%" stop-color="#b8956e"/>
-    </linearGradient>
-    <clipPath id="circle">
-      <rect width="400" height="400"/>
+    <clipPath id="card">
+      <rect width="400" height="400" rx="0"/>
     </clipPath>
   </defs>
 
   <!-- Background -->
   <rect width="400" height="400" fill="url(#bg)"/>
 
-  <!-- Subtle grid lines -->
-  <line x1="0" y1="200" x2="400" y2="200" stroke="#38B6FF" stroke-opacity="0.04" stroke-width="1"/>
-  <line x1="200" y1="0" x2="200" y2="400" stroke="#38B6FF" stroke-opacity="0.04" stroke-width="1"/>
+  <!-- Subtle bottom accent bar -->
+  <rect x="0" y="360" width="400" height="40" fill="#38B6FF" opacity="0.08"/>
 
-  <!-- Body / torso (jersey) -->
-  <ellipse cx="200" cy="330" rx="115" ry="90" fill="url(#jersey)" opacity="0.95"/>
+  <!-- Silhouette: shoulders / body -->
+  <path d="M-10 400 Q60 280 140 265 Q170 258 200 258 Q230 258 260 265 Q340 280 410 400 Z" fill="url(#silhouette)"/>
 
-  <!-- Jersey collar -->
-  <ellipse cx="200" cy="248" rx="28" ry="14" fill="url(#jersey)"/>
+  <!-- Silhouette: head (circle) -->
+  <circle cx="200" cy="168" r="72" fill="url(#silhouette)"/>
 
-  <!-- Jersey number area -->
-  <text x="200" y="320" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="white" opacity="0.25">?</text>
+  <!-- URU blue top accent line -->
+  <rect x="0" y="0" width="400" height="4" fill="#38B6FF" opacity="0.6"/>
 
-  <!-- Neck -->
-  <rect x="183" y="232" width="34" height="26" rx="8" fill="url(#skin)"/>
-
-  <!-- Head -->
-  <ellipse cx="200" cy="200" rx="54" ry="60" fill="url(#skin)"/>
-
-  <!-- Hair (male — short crop) -->
-  <ellipse cx="200" cy="152" rx="54" ry="24" fill="#2a1f14"/>
-  <rect x="146" y="145" width="108" height="20" fill="#2a1f14"/>
-  <!-- side fade -->
-  <rect x="146" y="160" width="14" height="16" rx="4" fill="#2a1f14"/>
-  <rect x="240" y="160" width="14" height="16" rx="4" fill="#2a1f14"/>
-
-  <!-- Eyes -->
-  <ellipse cx="178" cy="203" rx="8" ry="8.5" fill="white"/>
-  <ellipse cx="222" cy="203" rx="8" ry="8.5" fill="white"/>
-  <ellipse cx="179" cy="204" rx="5" ry="5.5" fill="#3a2a1a"/>
-  <ellipse cx="223" cy="204" rx="5" ry="5.5" fill="#3a2a1a"/>
-  <circle cx="180" cy="202" r="1.5" fill="white"/>
-  <circle cx="224" cy="202" r="1.5" fill="white"/>
-
-  <!-- Eyebrows -->
-  <path d="M169 193 Q179 188 189 192" stroke="#2a1f14" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <path d="M211 192 Q221 188 231 193" stroke="#2a1f14" stroke-width="3" fill="none" stroke-linecap="round"/>
-
-  <!-- Nose -->
-  <path d="M197 210 Q196 222 200 225 Q204 222 203 210" stroke="#a07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-
-  <!-- Mouth (neutral slight smile) -->
-  <path d="M188 236 Q200 244 212 236" stroke="#9a6040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-
-  <!-- Ear left -->
-  <ellipse cx="146" cy="207" rx="9" ry="12" fill="#b8956e"/>
-  <!-- Ear right -->
-  <ellipse cx="254" cy="207" rx="9" ry="12" fill="#b8956e"/>
-
-  <!-- URU accent stripe on jersey -->
-  <rect x="176" y="258" width="5" height="52" rx="2" fill="white" opacity="0.3"/>
-  <rect x="219" y="258" width="5" height="52" rx="2" fill="white" opacity="0.3"/>
-
-  <!-- Bottom label -->
-  <rect x="0" y="370" width="400" height="30" fill="#38B6FF" opacity="0.12"/>
-  <text x="200" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="600" fill="#38B6FF" letter-spacing="2" opacity="0.7">URU SOCCER</text>
+  <!-- Bottom text -->
+  <text x="200" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="600" fill="#38B6FF" letter-spacing="3" opacity="0.5">URU SOCCER</text>
 </svg>
