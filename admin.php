@@ -845,6 +845,19 @@ $fa         = "admin.php?section=lookups";
                 <div class="mt-2 d-flex align-items-center gap-2">
                   <img id="preview_IMG_HEADSHOT" src="<?= v($playerInfo,'IMG_HEADSHOT') ?>" style="height:64px;width:64px;border-radius:50%;object-fit:cover;<?= empty($playerInfo['IMG_HEADSHOT'])?'display:none':'' ?>" onerror="this.style.display='none'">
                   <button type="button" class="btn btn-sm btn-outline-primary" id="cropBtn_IMG_HEADSHOT" style="<?= empty($playerInfo['IMG_HEADSHOT'])?'display:none':'' ?>" onclick="openCrop('IMG_HEADSHOT',1)"><i class="fas fa-crop-alt me-1"></i>Crop / Edit</button>
+                  <?php
+                    $hsPath = $playerInfo['IMG_HEADSHOT'] ?? '';
+                    $hsFile = $hsPath ? __DIR__.'/'.$hsPath : '';
+                    if ($hsFile && file_exists($hsFile)):
+                      $hsSize = filesize($hsFile);
+                      $hsSizeStr = $hsSize >= 1048576 ? round($hsSize/1048576,1).'MB' : round($hsSize/1024).'KB';
+                  ?>
+                  <span id="size_IMG_HEADSHOT" class="text-muted" style="font-size:12px;"><?= $hsSizeStr ?></span>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="compressImage('IMG_HEADSHOT')" id="compressBtn_IMG_HEADSHOT"><i class="fas fa-compress-arrows-alt me-1"></i>Compress</button>
+                  <?php else: ?>
+                  <span id="size_IMG_HEADSHOT" class="text-muted" style="font-size:12px;"></span>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="compressImage('IMG_HEADSHOT')" id="compressBtn_IMG_HEADSHOT" style="display:none"><i class="fas fa-compress-arrows-alt me-1"></i>Compress</button>
+                  <?php endif; ?>
                 </div>
               </div>
               <div class="col-12">
@@ -857,6 +870,19 @@ $fa         = "admin.php?section=lookups";
                 <div class="mt-2 d-flex align-items-center gap-2">
                   <img id="preview_IMG_ACTION" src="<?= v($playerInfo,'IMG_ACTION') ?>" style="height:64px;border-radius:4px;object-fit:cover;max-width:120px;<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onerror="this.style.display='none'">
                   <button type="button" class="btn btn-sm btn-outline-primary" id="cropBtn_IMG_ACTION" style="<?= empty($playerInfo['IMG_ACTION'])?'display:none':'' ?>" onclick="openCrop('IMG_ACTION',NaN)"><i class="fas fa-crop-alt me-1"></i>Crop / Edit</button>
+                  <?php
+                    $acPath = $playerInfo['IMG_ACTION'] ?? '';
+                    $acFile = $acPath ? __DIR__.'/'.$acPath : '';
+                    if ($acFile && file_exists($acFile)):
+                      $acSize = filesize($acFile);
+                      $acSizeStr = $acSize >= 1048576 ? round($acSize/1048576,1).'MB' : round($acSize/1024).'KB';
+                  ?>
+                  <span id="size_IMG_ACTION" class="text-muted" style="font-size:12px;"><?= $acSizeStr ?></span>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="compressImage('IMG_ACTION')" id="compressBtn_IMG_ACTION"><i class="fas fa-compress-arrows-alt me-1"></i>Compress</button>
+                  <?php else: ?>
+                  <span id="size_IMG_ACTION" class="text-muted" style="font-size:12px;"></span>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="compressImage('IMG_ACTION')" id="compressBtn_IMG_ACTION" style="display:none"><i class="fas fa-compress-arrows-alt me-1"></i>Compress</button>
+                  <?php endif; ?>
                 </div>
               </div>
               <div class="col-12">
@@ -1643,6 +1669,41 @@ function saveCrop() {
     }
   })
   .catch(function(){ alert('Network error saving image.'); });
+}
+
+function compressImage(field) {
+  var path = document.getElementById('path_' + field).value.trim();
+  if (!path) { alert('No image path set.'); return; }
+  var btn = document.getElementById('compressBtn_' + field);
+  var sizeEl = document.getElementById('size_' + field);
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Compressing...';
+  fetch('compressImage.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'file_path=' + encodeURIComponent(path),
+    credentials: 'same-origin'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    btn.disabled = false;
+    if (data.success) {
+      sizeEl.textContent = data.new_size;
+      sizeEl.style.color = '#27ae60';
+      btn.innerHTML = '<i class="fas fa-check me-1"></i>Compressed';
+      btn.className = 'btn btn-sm btn-outline-success';
+      // Bust preview cache
+      var preview = document.getElementById('preview_' + field);
+      if (preview) preview.src = path + '?t=' + Date.now();
+      // Show before/after
+      sizeEl.title = 'Was: ' + data.old_size + ' → Now: ' + data.new_size;
+      sizeEl.textContent = data.old_size + ' → ' + data.new_size;
+    } else {
+      btn.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i>Compress';
+      alert('Compression failed: ' + (data.error || 'unknown error'));
+    }
+  })
+  .catch(function(){ btn.disabled = false; btn.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i>Compress'; alert('Network error.'); });
 }
 
 function uploadPdf(fileInput) {
