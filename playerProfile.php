@@ -594,8 +594,8 @@
           <div class="coming-soon-card"><i class="fas fa-video"></i> Coming Soon</div>
           <?php else: ?>
           <div class="video-cards">
-            <?php foreach($videosArray as $video): ?>
-            <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" data-video-title="<?= htmlspecialchars($video['VIDEO_TYPE_DESC']) ?>" style="text-decoration:none;color:inherit;">
+            <?php foreach($videosArray as $vIdx => $video): ?>
+            <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" data-video-title="<?= htmlspecialchars(($vIdx+1).'. '.$video['VIDEO_TYPE_DESC']) ?>" style="text-decoration:none;color:inherit;">
               <div class="vc-thumb">
                 <img src="<?= htmlspecialchars($video['IMG_THUMBNAIL']) ?>" alt="" loading="lazy">
                 <div class="vc-play"><i class="fas fa-play-circle"></i></div>
