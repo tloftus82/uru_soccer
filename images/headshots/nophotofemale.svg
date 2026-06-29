@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e3338"/>
+      <stop offset="100%" stop-color="#1e2226"/>
+    </linearGradient>
+    <linearGradient id="jersey" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38B6FF"/>
+      <stop offset="100%" stop-color="#1a9ae0"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c8a882"/>
+      <stop offset="100%" stop-color="#b8956e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="200" x2="400" y2="200" stroke="#38B6FF" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="200" y1="0" x2="200" y2="400" stroke="#38B6FF" stroke-opacity="0.04" stroke-width="1"/>
+
+  <!-- Body / torso (jersey) -->
+  <ellipse cx="200" cy="330" rx="115" ry="90" fill="url(#jersey)" opacity="0.95"/>
+
+  <!-- Jersey collar (V-neck) -->
+  <path d="M172 248 L200 270 L228 248" stroke="url(#jersey)" stroke-width="2" fill="none"/>
+
+  <!-- Jersey number area -->
+  <text x="200" y="320" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="white" opacity="0.25">?</text>
+
+  <!-- Neck -->
+  <rect x="183" y="232" width="34" height="26" rx="8" fill="url(#skin)"/>
+
+  <!-- Head -->
+  <ellipse cx="200" cy="198" rx="54" ry="60" fill="url(#skin)"/>
+
+  <!-- Hair — long, flowing past shoulders -->
+  <!-- Back hair -->
+  <ellipse cx="200" cy="148" rx="62" ry="28" fill="#1a0e06"/>
+  <rect x="138" y="145" width="124" height="30" fill="#1a0e06"/>
+  <!-- Left side hair (long) -->
+  <path d="M138 160 Q120 210 128 290 Q148 310 160 300 Q140 250 146 200 Z" fill="#1a0e06"/>
+  <!-- Right side hair (long) -->
+  <path d="M262 160 Q280 210 272 290 Q252 310 240 300 Q260 250 254 200 Z" fill="#1a0e06"/>
+  <!-- Hair highlight -->
+  <path d="M178 148 Q200 138 218 148" stroke="#4a2e18" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Ears -->
+  <ellipse cx="146" cy="205" rx="9" ry="12" fill="#b8956e"/>
+  <ellipse cx="254" cy="205" rx="9" ry="12" fill="#b8956e"/>
+
+  <!-- Eyes -->
+  <ellipse cx="178" cy="200" rx="8" ry="9" fill="white"/>
+  <ellipse cx="222" cy="200" rx="8" ry="9" fill="white"/>
+  <ellipse cx="179" cy="201" rx="5" ry="5.5" fill="#3a2a1a"/>
+  <ellipse cx="223" cy="201" rx="5" ry="5.5" fill="#3a2a1a"/>
+  <circle cx="180" cy="199" r="1.5" fill="white"/>
+  <circle cx="224" cy="199" r="1.5" fill="white"/>
+
+  <!-- Lashes (upper) -->
+  <path d="M170 192 Q178 188 188 191" stroke="#1a0e06" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M212 191 Q222 188 230 192" stroke="#1a0e06" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyebrows (arched) -->
+  <path d="M169 190 Q179 184 190 188" stroke="#2a1f14" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M210 188 Q221 184 231 190" stroke="#2a1f14" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose -->
+  <path d="M197 208 Q196 220 200 223 Q204 220 203 208" stroke="#a07850" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Mouth (gentle smile) -->
+  <path d="M188 234 Q200 243 212 234" stroke="#9a6040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Ponytail / hair tie on top -->
+  <ellipse cx="200" cy="145" rx="12" ry="8" fill="#38B6FF" opacity="0.7"/>
+
+  <!-- URU accent stripe on jersey -->
+  <rect x="176" y="258" width="5" height="52" rx="2" fill="white" opacity="0.3"/>
+  <rect x="219" y="258" width="5" height="52" rx="2" fill="white" opacity="0.3"/>
+
+  <!-- Bottom label -->
+  <rect x="0" y="370" width="400" height="30" fill="#38B6FF" opacity="0.12"/>
+  <text x="200" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="600" fill="#38B6FF" letter-spacing="2" opacity="0.7">URU SOCCER</text>
+</svg>

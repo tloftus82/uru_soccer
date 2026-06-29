@@ -152,8 +152,8 @@
   if(strlen($playerInfo['IMG_HEADSHOT'] ?? '') > 0){
     $imgHeadshot = $playerInfo['IMG_HEADSHOT'];
   } else {
-    if($playerInfo['GENDER'] == "M"){$imgHeadshot = 'images/headshots/nophotomale.jpg';}
-    if($playerInfo['GENDER'] == "F"){$imgHeadshot = 'images/headshots/nophotofemale.jpg';}    
+    if($playerInfo['GENDER'] == "M"){$imgHeadshot = 'images/headshots/nophotomale.svg';}
+    if($playerInfo['GENDER'] == "F"){$imgHeadshot = 'images/headshots/nophotofemale.svg';}    
   };
 
   $imgAction = "";
