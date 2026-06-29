@@ -398,10 +398,13 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               elseif (preg_match('/windows/i', $ua))             $icon = 'fa-desktop';
               elseif (preg_match('/linux/i', $ua))               $icon = 'fa-desktop';
               else                                                $icon = 'fa-globe';
-              $label = $browser ?: ($ua !== '' ? 'Unknown' : '—');
-              $deviceBadge = '<span style="white-space:nowrap;font-size:12px;">'
-                           . '<i class="fas '.$icon.'" style="opacity:.5;margin-right:4px;font-size:11px;"></i>'
-                           . htmlspecialchars($label).'</span>';
+              $label1 = $browser ?: ($ua !== '' ? 'Unknown' : '—');
+              $label2 = $os ?: '';
+              $deviceBadge = '<span style="font-size:10px;line-height:1.4;">'
+                           . '<i class="fas '.$icon.'" style="opacity:.5;margin-right:3px;font-size:9px;"></i>'
+                           . htmlspecialchars($label1)
+                           . ($label2 ? '<br><span style="opacity:.55;padding-left:13px;">'.htmlspecialchars($label2).'</span>' : '')
+                           . '</span>';
             }
 
             // Time label
