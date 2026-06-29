@@ -117,10 +117,10 @@
 									<p>
 										<?php
 										if($_SESSION['lang'] == 'en'){
-											echo "Join our college recruiting workshop and gain valuable insights into the journey of finding the perfect fit. Discover the secrets of navigating the admissions process, understanding eligibility requirements, acing tryouts, and making memorable campus visits. Learn how to unlock financial aid and scholarship opportunities that can make your dreams a reality. Don't miss this opportunity to take control of your future. Our next workshop is Thursday, July 20, 2023 at 8:30PM via Zoom.  Sign up <a href=\"https://forms.gle/CUBasT8y6rvpCTWg6\" target='_blank'>here</a>!";
+											echo "Join our college recruiting workshop and gain valuable insights into the journey of finding the perfect fit. Discover the secrets of navigating the admissions process, understanding eligibility requirements, acing tryouts, and making memorable campus visits. Learn how to unlock financial aid and scholarship opportunities that can make your dreams a reality. Don't miss this opportunity to take control of your future.";
 										}
 										if($_SESSION['lang'] == 'es'){
-											echo "Unase a nuestro taller de reclutamiento universitario y obtenga informacion valiosa sobre el camino para encontrar el lugar perfecto. Descubra los secretos para navegar el proceso de admision, comprender los requisitos de elegibilidad, destacar en las pruebas y realizar visitas memorables al campus. Aprenda como acceder a ayuda financiera y oportunidades de becas que pueden hacer realidad sus suenos. No pierda esta oportunidad de tomar el control de su futuro. Nuestro proximo taller es el jueves 20 de julio de 2023 a las 8:30 PM via Zoom. Registrese <a href=\"https://forms.gle/CUBasT8y6rvpCTWg6\" target='_blank'>aqui</a>!";
+											echo "Unase a nuestro taller de reclutamiento universitario y obtenga informacion valiosa sobre el camino para encontrar el lugar perfecto. Descubra los secretos para navegar el proceso de admision, comprender los requisitos de elegibilidad, destacar en las pruebas y realizar visitas memorables al campus. Aprenda como acceder a ayuda financiera y oportunidades de becas que pueden hacer realidad sus suenos. No pierda esta oportunidad de tomar el control de su futuro.";
 										}
 										?>
 									</p>
