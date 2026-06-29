@@ -73,7 +73,7 @@ function sqlVal($cn, $val) {
 }
 
 // ── Routing ───────────────────────────────────────────────────────────────────
-$section  = $_GET['section'] ?? 'players';   // players | lookups | dbdump
+$section  = $_GET['section'] ?? 'players';   // players | lookups | settings | urlslugs | redirects | siteviews | dbdump
 $playerId = isset($_GET['p']) ? (int)$_GET['p'] : 0;
 $isNew    = isset($_GET['new']) && $_GET['new'] == 1;
 if ($isNew) $playerId = 0;
@@ -713,6 +713,7 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php?section=settings" class="<?= $section === 'settings' ? 'active' : '' ?>"><i class="fas fa-cog me-1"></i>Site Settings</a>
   <a href="admin.php?section=urlslugs" class="<?= $section === 'urlslugs' ? 'active' : '' ?>"><i class="fas fa-link me-1"></i>URL Names</a>
   <a href="admin.php?section=redirects" class="<?= $section === 'redirects' ? 'active' : '' ?>"><i class="fas fa-external-link-alt me-1"></i>Redirects</a>
+  <a href="admin.php?section=siteviews" class="<?= $section === 'siteviews' ? 'active' : '' ?>"><i class="fas fa-chart-bar me-1"></i>Site Views</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
   <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
 </div>
@@ -1461,6 +1462,195 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
   this.value = this.value.toLowerCase().replace(/[^a-z0-9\-]/g,'');
 });
 </script>
+
+<?php elseif ($section === 'siteviews'):
+  $svDays   = max(1, min(365, (int)($_GET['days'] ?? 30)));
+  $svSearch = trim($_GET['q'] ?? '');
+
+  // ── Aggregate stats ───────────────────────────────────────────────────────
+  $sv = [];
+
+  $r = mysqli_query($cn, "SELECT COUNT(*) c FROM SITE_VIEW_LOG WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY");
+  $sv['total']   = (int)mysqli_fetch_assoc($r)['c'];
+
+  $r = mysqli_query($cn, "SELECT COUNT(*) c FROM SITE_VIEW_LOG WHERE DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'))=CURDATE()");
+  $sv['today']   = (int)mysqli_fetch_assoc($r)['c'];
+
+  $r = mysqli_query($cn, "SELECT COUNT(DISTINCT IP_ADDRESS) c FROM SITE_VIEW_LOG WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY");
+  $sv['unique']  = (int)mysqli_fetch_assoc($r)['c'];
+
+  $r = mysqli_query($cn, "SELECT COUNT(DISTINCT IP_ADDRESS) c FROM SITE_VIEW_LOG WHERE DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'))=CURDATE()");
+  $sv['uToday']  = (int)mysqli_fetch_assoc($r)['c'];
+
+  // Top pages
+  $topPages = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT PAGE, COUNT(*) hits FROM SITE_VIEW_LOG
+     WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY
+     GROUP BY PAGE ORDER BY hits DESC LIMIT 15"), MYSQLI_ASSOC);
+
+  // Top locations
+  $topLocs = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT IP_LOCATION, COUNT(*) hits FROM SITE_VIEW_LOG
+     WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY AND IP_LOCATION != ''
+     GROUP BY IP_LOCATION ORDER BY hits DESC LIMIT 10"), MYSQLI_ASSOC);
+
+  // Views per day (last N days)
+  $perDay = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago')) dy, COUNT(*) hits
+     FROM SITE_VIEW_LOG
+     WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY
+     GROUP BY dy ORDER BY dy ASC"), MYSQLI_ASSOC);
+
+  // Detail log
+  $svWhere = "WHERE 1=1";
+  if ($svSearch !== '') {
+    $svSearch_e = mysqli_real_escape_string($cn, $svSearch);
+    $svWhere .= " AND (PAGE LIKE '%$svSearch_e%' OR IP_ADDRESS LIKE '%$svSearch_e%' OR IP_LOCATION LIKE '%$svSearch_e%' OR IP_ORG LIKE '%$svSearch_e%')";
+  }
+  $detailRows = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT ID,
+            DATE_FORMAT(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'),'%m/%d/%y %h:%i %p') AS VDT,
+            PAGE, IP_ADDRESS, IP_LOCATION, IP_ORG
+     FROM SITE_VIEW_LOG $svWhere
+     ORDER BY ID DESC LIMIT 200"), MYSQLI_ASSOC);
+?>
+<div class="container-fluid px-4 pt-3">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h5 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-secondary"></i>Site View Log</h5>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      <span class="text-muted small">Range:</span>
+      <?php foreach([7,30,90,365] as $d): ?>
+      <a href="admin.php?section=siteviews&days=<?=$d?><?= $svSearch ? '&q='.urlencode($svSearch) : '' ?>"
+         class="btn btn-sm <?= $svDays==$d ? 'btn-dark' : 'btn-outline-secondary' ?>"><?=$d?> days</a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="row g-3 mb-4">
+    <?php
+    $cards = [
+      ['Total Views',      $sv['total'],  'fas fa-eye',        'primary'],
+      ['Today\'s Views',   $sv['today'],  'fas fa-calendar-day','success'],
+      ['Unique IPs',       $sv['unique'], 'fas fa-users',      'info'],
+      ['Unique IPs Today', $sv['uToday'], 'fas fa-user-check', 'warning'],
+    ];
+    foreach ($cards as $c): ?>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center bg-<?=$c[3]?> bg-opacity-10" style="width:48px;height:48px;flex-shrink:0;">
+            <i class="<?=$c[0]?> text-<?=$c[3]?>" style="font-size:20px;"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-4 lh-1"><?= number_format($c[1]) ?></div>
+            <div class="text-muted small"><?= $c[0] ?></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <?php endforeach; ?>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- Views per day chart -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Views Per Day</h6>
+          <?php if ($perDay):
+            $maxHits = max(array_column($perDay, 'hits')) ?: 1; ?>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:120px;overflow-x:auto;">
+            <?php foreach ($perDay as $pd):
+              $pct = round($pd['hits'] / $maxHits * 100); ?>
+            <div title="<?= htmlspecialchars($pd['dy']) ?>: <?= $pd['hits'] ?> views"
+                 style="flex:1;min-width:8px;height:<?=$pct?>%;background:#0d6efd;border-radius:3px 3px 0 0;opacity:.8;cursor:default;"></div>
+            <?php endforeach; ?>
+          </div>
+          <div class="d-flex justify-content-between text-muted mt-1" style="font-size:10px;">
+            <span><?= htmlspecialchars($perDay[0]['dy'] ?? '') ?></span>
+            <span><?= htmlspecialchars(end($perDay)['dy'] ?? '') ?></span>
+          </div>
+          <?php else: ?><p class="text-muted fst-italic mb-0">No data.</p><?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top locations -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Top Locations</h6>
+          <?php if ($topLocs): ?>
+          <ul class="list-unstyled mb-0" style="font-size:13px;">
+            <?php foreach ($topLocs as $loc): ?>
+            <li class="d-flex justify-content-between border-bottom py-1">
+              <span class="text-truncate me-2"><?= htmlspecialchars($loc['IP_LOCATION']) ?></span>
+              <span class="badge bg-secondary"><?= $loc['hits'] ?></span>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+          <?php else: ?><p class="text-muted fst-italic mb-0">No data.</p><?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top pages -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">Top Pages</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" style="font-size:13px;">
+          <thead class="table-light"><tr><th>Page</th><th class="text-end" style="width:80px">Hits</th></tr></thead>
+          <tbody>
+            <?php foreach ($topPages as $pg): ?>
+            <tr>
+              <td class="font-monospace"><?= htmlspecialchars($pg['PAGE']) ?></td>
+              <td class="text-end"><span class="badge bg-primary"><?= $pg['hits'] ?></span></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail log -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h6 class="fw-bold mb-0">Detail Log <span class="text-muted fw-normal small">(latest 200)</span></h6>
+        <form method="GET" action="admin.php" class="d-flex gap-2">
+          <input type="hidden" name="section" value="siteviews">
+          <input type="hidden" name="days" value="<?= $svDays ?>">
+          <input type="text" name="q" value="<?= htmlspecialchars($svSearch) ?>" placeholder="Filter page / IP / location…" class="form-control form-control-sm" style="width:240px;">
+          <button class="btn btn-sm btn-outline-primary">Filter</button>
+          <?php if ($svSearch): ?><a href="admin.php?section=siteviews&days=<?=$svDays?>" class="btn btn-sm btn-outline-secondary">Clear</a><?php endif; ?>
+        </form>
+      </div>
+      <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
+        <table class="table table-sm table-hover table-bordered mb-0" style="font-size:12px;font-family:monospace;">
+          <thead class="table-dark sticky-top">
+            <tr><th>#</th><th>Date / Time (CT)</th><th>Page</th><th>IP</th><th>Location</th><th>Org</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($detailRows as $dr): ?>
+            <tr>
+              <td><?= $dr['ID'] ?></td>
+              <td style="white-space:nowrap"><?= htmlspecialchars($dr['VDT']) ?></td>
+              <td><?= htmlspecialchars($dr['PAGE']) ?></td>
+              <td><?= htmlspecialchars($dr['IP_ADDRESS']) ?></td>
+              <td><?= htmlspecialchars($dr['IP_LOCATION']) ?></td>
+              <td><?= htmlspecialchars($dr['IP_ORG']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
 <?php elseif ($section === 'dbdump'):
   $dumpTables = [
