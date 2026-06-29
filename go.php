@@ -5,10 +5,9 @@ $slug = strtolower(preg_replace('/[^a-z0-9\-]/i', '', $_GET['slug'] ?? ''));
 $v    = preg_replace('/[^a-z0-9\-]/i', '', $_GET['v'] ?? '56ed5e');
 if ($v === '') $v = '56ed5e';
 
-if ($slug === '') { header('Location: /'); exit; }
+if ($slug === '') { http_response_code(404); include __DIR__ . '/404.php'; exit; }
 
 $userIp    = $_SERVER['REMOTE_ADDR'];
-$hostName  = @gethostbyaddr($userIp) ?: '';
 $pageName  = $_SERVER['REQUEST_URI'];
 $ipLocation = ""; $ipOrg = "";
 try {
@@ -29,7 +28,7 @@ if ($rr && $row = mysqli_fetch_assoc($rr)) {
     mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REDIRECT_SLUG VARCHAR(200) NULL");
 
     $ve    = mysqli_real_escape_string($cn, $v);
-    $hn    = mysqli_real_escape_string($cn, $hostName);
+    $hn    = '';
     $pn    = mysqli_real_escape_string($cn, $pageName);
     $loc_e = mysqli_real_escape_string($cn, $ipLocation);
     $org_e = mysqli_real_escape_string($cn, $ipOrg);
@@ -47,7 +46,7 @@ if ($rr && $row = mysqli_fetch_assoc($rr)) {
 // Validate view code exists
 $ve = mysqli_real_escape_string($cn, $v);
 $vr = mysqli_query($cn, "SELECT ID FROM PP_ALLOWED_VIEWERS WHERE VIEW_CODE='$ve' LIMIT 1");
-if (!$vr || !mysqli_fetch_assoc($vr)) { header('Location: /'); exit; }
+if (!$vr || !mysqli_fetch_assoc($vr)) { http_response_code(404); include __DIR__ . '/404.php'; exit; }
 
 // Look up player by URL_SLUG (DB), falling back to first-last name match
 mysqli_query($cn, "ALTER TABLE PP_PLAYERS ADD COLUMN IF NOT EXISTS URL_SLUG VARCHAR(200) NULL");
@@ -58,7 +57,7 @@ $pr = mysqli_query($cn, "
     LIMIT 1
 ");
 
-if (!$pr || !($prow = mysqli_fetch_assoc($pr))) { header('Location: /'); exit; }
+if (!$pr || !($prow = mysqli_fetch_assoc($pr))) { http_response_code(404); include __DIR__ . '/404.php'; exit; }
 
 $pid = (int)$prow['ID'];
 // Internal forward — keeps the pretty URL in the browser bar
