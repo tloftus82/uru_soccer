@@ -7,23 +7,26 @@ include __DIR__ . '/dbConnect/dbConnect.inc.php';
 // Accept both POST (sendBeacon FormData) and GET (Image fallback)
 $req = array_merge($_GET, $_POST);
 
-$id           = intval($req['id']           ?? 0);
-$timeOnPage   = isset($req['time_on_page'])  ? intval($req['time_on_page'])  : -1;
-$scrollDepth  = isset($req['scroll_depth'])  ? intval($req['scroll_depth'])  : -1;
-$videoPlayed  = intval($req['video_played']  ?? 0);
-$linkClicked  = substr(trim($req['link_clicked'] ?? ''), 0, 300);
+$id              = intval($req['id']                ?? 0);
+$timeOnPage      = isset($req['time_on_page'])       ? intval($req['time_on_page'])       : -1;
+$scrollDepth     = isset($req['scroll_depth'])       ? intval($req['scroll_depth'])       : -1;
+$videoPlayed     = intval($req['video_played']       ?? 0);
+$videoWatchSecs  = isset($req['video_watch_seconds']) ? intval($req['video_watch_seconds']) : -1;
+$linkClicked     = substr(trim($req['link_clicked']  ?? ''), 0, 300);
 
 if ($id <= 0) { http_response_code(400); exit; }
 
 // Clamp values to sane ranges
-$timeOnPage  = max(-1, min($timeOnPage,  86400));
-$scrollDepth = max(-1, min($scrollDepth, 100));
-$videoPlayed = $videoPlayed ? 1 : 0;
+$timeOnPage     = max(-1, min($timeOnPage,     86400));
+$scrollDepth    = max(-1, min($scrollDepth,    100));
+$videoPlayed    = $videoPlayed ? 1 : 0;
+$videoWatchSecs = max(-1, min($videoWatchSecs, 86400));
 
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS TIME_ON_PAGE   SMALLINT     UNSIGNED NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SCROLL_DEPTH   TINYINT      UNSIGNED NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED   TINYINT      UNSIGNED NULL DEFAULT 0");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED  VARCHAR(2000) NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS TIME_ON_PAGE        SMALLINT      UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SCROLL_DEPTH        TINYINT       UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED        TINYINT       UNSIGNED NULL DEFAULT 0");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_WATCH_SECONDS SMALLINT      UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED       VARCHAR(2000) NULL");
 
 // Handle link click — append to comma-separated list, avoid duplicates
 if ($linkClicked !== '') {
@@ -39,9 +42,10 @@ if ($linkClicked !== '') {
 
 // Build SET clause for numeric fields
 $setParts = [];
-if ($timeOnPage  >= 0) $setParts[] = "TIME_ON_PAGE = $timeOnPage";
-if ($scrollDepth >= 0) $setParts[] = "SCROLL_DEPTH = GREATEST(IFNULL(SCROLL_DEPTH,0), $scrollDepth)";
-if ($videoPlayed)      $setParts[] = "VIDEO_PLAYED = 1";
+if ($timeOnPage     >= 0) $setParts[] = "TIME_ON_PAGE        = $timeOnPage";
+if ($scrollDepth    >= 0) $setParts[] = "SCROLL_DEPTH        = GREATEST(IFNULL(SCROLL_DEPTH,0), $scrollDepth)";
+if ($videoPlayed)         $setParts[] = "VIDEO_PLAYED        = 1";
+if ($videoWatchSecs >= 0) $setParts[] = "VIDEO_WATCH_SECONDS = IFNULL(VIDEO_WATCH_SECONDS,0) + $videoWatchSecs";
 
 if (!empty($setParts)) {
     $set = implode(', ', $setParts);

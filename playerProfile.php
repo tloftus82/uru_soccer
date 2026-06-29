@@ -740,8 +740,8 @@
 <script>
 // ── Engagement tracking ───────────────────────────────────────────────────────
 (function(){
-  var ROW_ID      = <?= (int)$newRowId ?>;
-  var BEACON_URL  = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
+  var ROW_ID     = <?= (int)$newRowId ?>;
+  var BEACON_URL = '<?= ((!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http').'://'.$_SERVER['HTTP_HOST'] ?>/trackEngagement.php';
   if (!ROW_ID) return;
 
   var startTime    = Date.now();
@@ -750,7 +750,109 @@
   var linksClicked = [];
   var beaconSent   = false;
 
-  // Scroll depth
+  // ── YouTube watch-time tracking ──────────────────────────────────────────────
+  var ytPlayer        = null;
+  var ytWatchStart    = null;
+  var ytWatchSeconds  = 0;
+  var ytReady         = false;
+
+  // Load YouTube IFrame API
+  window.onYouTubeIframeAPIReady = function() { ytReady = true; };
+  var ytScript = document.createElement('script');
+  ytScript.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(ytScript);
+
+  function ytAccumulate() {
+    if (ytWatchStart !== null) {
+      ytWatchSeconds += Math.round((Date.now() - ytWatchStart) / 1000);
+      ytWatchStart = null;
+    }
+  }
+
+  function attachYTPlayer() {
+    var iframe = document.querySelector('.mfp-iframe');
+    if (!iframe || !ytReady) return;
+    // src already has enablejsapi=1 from re-init below
+    ytPlayer = new YT.Player(iframe, {
+      events: {
+        onStateChange: function(e) {
+          if (e.data === YT.PlayerState.PLAYING) {
+            ytWatchStart = Date.now();
+          } else {
+            ytAccumulate();
+          }
+        }
+      }
+    });
+  }
+
+  // Re-init .has-popup-video to inject enablejsapi=1 into the iframe src
+  // and attach YT player on open / send watch time on close
+  $(function() {
+    $('.has-popup-video').magnificPopup('destroy');
+    $('.has-popup-video').magnificPopup({
+      disableOn: 700,
+      type: 'iframe',
+      iframe: {
+        patterns: {
+          youtube: {
+            index: 'youtube.com/',
+            id: function(url) {
+              var m = url.match(/[?&]v=([^&]+)/) || url.match(/embed\/([^?&]+)/);
+              return m ? m[1] : null;
+            },
+            src: 'https://www.youtube.com/embed/%id%?autoplay=1&enablejsapi=1&origin='+location.origin
+          },
+          youtube_short: {
+            index: 'youtu.be/',
+            id: 'youtu.be/',
+            src: 'https://www.youtube.com/embed/%id%?autoplay=1&enablejsapi=1&origin='+location.origin
+          }
+        }
+      },
+      removalDelay: 160,
+      preloader: false,
+      fixedContentPos: false,
+      mainClass: 'mfp-fade',
+      callbacks: {
+        markupParse: function(template, values, item) {
+          template.find('iframe').attr('allow', 'autoplay');
+        },
+        open: function() {
+          ytWatchStart   = null;
+          ytWatchSeconds = 0;
+          // Give the iframe a moment to render before attaching
+          setTimeout(attachYTPlayer, 800);
+
+          if (!videoPlayed) {
+            videoPlayed = true;
+            var fd = new FormData();
+            fd.append('id', ROW_ID);
+            fd.append('video_played', 1);
+            navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                                 : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_played=1';
+          }
+        },
+        close: function() {
+          ytAccumulate();
+          if (ytPlayer && typeof ytPlayer.destroy === 'function') {
+            try { ytPlayer.destroy(); } catch(e) {}
+          }
+          ytPlayer = null;
+          if (ytWatchSeconds > 0) {
+            var fd = new FormData();
+            fd.append('id', ROW_ID);
+            fd.append('video_watch_seconds', ytWatchSeconds);
+            navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
+                                 : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_watch_seconds=' + ytWatchSeconds;
+          }
+          ytWatchSeconds = 0;
+        }
+      }
+    });
+  });
+
+  // ── Scroll depth ─────────────────────────────────────────────────────────────
   function calcScroll() {
     var el  = document.documentElement;
     var pct = Math.round((el.scrollTop + el.clientHeight) / el.scrollHeight * 100);
@@ -759,7 +861,7 @@
   window.addEventListener('scroll', calcScroll, {passive:true});
   calcScroll();
 
-  // External link clicks (email, social, phone, external URLs)
+  // ── External link clicks ─────────────────────────────────────────────────────
   document.addEventListener('click', function(e) {
     var a = e.target.closest('a[href]');
     if (!a) return;
@@ -768,7 +870,6 @@
                      href.indexOf(location.hostname) === -1;
     if (isExternal && linksClicked.indexOf(href) === -1) {
       linksClicked.push(href.substring(0, 300));
-      // Fire immediately so click isn't lost before unload
       var fd = new FormData();
       fd.append('id',           ROW_ID);
       fd.append('link_clicked', href.substring(0, 300));
@@ -777,18 +878,7 @@
     }
   });
 
-  // Video play via Magnific Popup open event
-  $(document).on('mfpOpen', function() {
-    if (videoPlayed) return;
-    videoPlayed = true;
-    var fd = new FormData();
-    fd.append('id',           ROW_ID);
-    fd.append('video_played', 1);
-    navigator.sendBeacon ? navigator.sendBeacon(BEACON_URL, fd)
-                         : (new Image()).src = BEACON_URL + '?id=' + ROW_ID + '&video_played=1';
-  });
-
-  // Send time-on-page + scroll depth on unload
+  // ── Time on page + scroll depth on unload ────────────────────────────────────
   function sendFinal() {
     if (beaconSent) return;
     beaconSent = true;

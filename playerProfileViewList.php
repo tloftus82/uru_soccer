@@ -13,8 +13,9 @@ mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER    
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT    VARCHAR(500)  NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS TIME_ON_PAGE  SMALLINT UNSIGNED NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SCROLL_DEPTH  TINYINT  UNSIGNED NULL");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED  TINYINT  UNSIGNED NULL DEFAULT 0");
-mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED VARCHAR(2000) NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_PLAYED        TINYINT       UNSIGNED NULL DEFAULT 0");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS VIDEO_WATCH_SECONDS SMALLINT      UNSIGNED NULL");
+mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS LINKS_CLICKED       VARCHAR(2000) NULL");
 
 // ── Bot fingerprint patterns (IP_ORG or HOST_NAME contains any of these) ──────
 $botPatterns = [
@@ -104,7 +105,7 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
-               IFNULL(A.LINKS_CLICKED,'') AS LINKS_CLICKED,
+               A.VIDEO_WATCH_SECONDS, IFNULL(A.LINKS_CLICKED,'') AS LINKS_CLICKED,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
         FROM PP_VIEW_LOG A
@@ -382,6 +383,12 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             elseif ($top < 60)  $timeLabel = $top.'s';
             else                $timeLabel = floor($top/60).'m '.($top%60).'s';
 
+            // Video watch time label
+            $vws = $row['VIDEO_WATCH_SECONDS'];
+            if ($vws === null)  $vwLabel = '';
+            elseif ($vws < 60)  $vwLabel = $vws.'s';
+            else                $vwLabel = floor($vws/60).'m '.($vws%60).'s';
+
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
               'ip'      => $row['IP_ADDRESS'],
@@ -391,7 +398,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               'ref'     => $row['REFERRER'],
               'time'    => $timeLabel,
               'scroll'  => $row['SCROLL_DEPTH'] !== null ? $row['SCROLL_DEPTH'].'%' : '',
-              'video'   => $row['VIDEO_PLAYED'] ? 'Yes' : '',
+              'video'   => $row['VIDEO_PLAYED'] ? ($vwLabel ? 'Yes — watched '.$vwLabel : 'Yes') : '',
               'links'   => $row['LINKS_CLICKED'],
             ]), ENT_QUOTES);
           ?>
@@ -452,7 +459,7 @@ $('#viewTable').DataTable({
   var LABELS = {
     ip:'IP Address', org:'Organization', host:'Hostname',
     browser:'Browser / OS', ref:'Referrer', time:'Time on Page',
-    scroll:'Scroll Depth', video:'Video Played', links:'Links Clicked'
+    scroll:'Scroll Depth', video:'Video', links:'Links Clicked'
   };
 
   function show(btn, data) {
