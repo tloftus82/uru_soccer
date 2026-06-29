@@ -1473,13 +1473,13 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
   $r = mysqli_query($cn, "SELECT COUNT(*) c FROM SITE_VIEW_LOG WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY");
   $sv['total']   = (int)mysqli_fetch_assoc($r)['c'];
 
-  $r = mysqli_query($cn, "SELECT COUNT(*) c FROM SITE_VIEW_LOG WHERE DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'))=CURDATE()");
+  $r = mysqli_query($cn, "SELECT COUNT(*) c FROM SITE_VIEW_LOG WHERE DATE(VIEW_DATE_TIME - INTERVAL 1 HOUR)=CURDATE()");
   $sv['today']   = (int)mysqli_fetch_assoc($r)['c'];
 
   $r = mysqli_query($cn, "SELECT COUNT(DISTINCT IP_ADDRESS) c FROM SITE_VIEW_LOG WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY");
   $sv['unique']  = (int)mysqli_fetch_assoc($r)['c'];
 
-  $r = mysqli_query($cn, "SELECT COUNT(DISTINCT IP_ADDRESS) c FROM SITE_VIEW_LOG WHERE DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'))=CURDATE()");
+  $r = mysqli_query($cn, "SELECT COUNT(DISTINCT IP_ADDRESS) c FROM SITE_VIEW_LOG WHERE DATE(VIEW_DATE_TIME - INTERVAL 1 HOUR)=CURDATE()");
   $sv['uToday']  = (int)mysqli_fetch_assoc($r)['c'];
 
   // Top pages
@@ -1496,7 +1496,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
 
   // Views per day (last N days)
   $perDay = mysqli_fetch_all(mysqli_query($cn,
-    "SELECT DATE(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago')) dy, COUNT(*) hits
+    "SELECT DATE(VIEW_DATE_TIME - INTERVAL 1 HOUR) dy, COUNT(*) hits
      FROM SITE_VIEW_LOG
      WHERE VIEW_DATE_TIME >= NOW() - INTERVAL $svDays DAY
      GROUP BY dy ORDER BY dy ASC"), MYSQLI_ASSOC);
@@ -1509,7 +1509,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
   }
   $detailRows = mysqli_fetch_all(mysqli_query($cn,
     "SELECT ID,
-            DATE_FORMAT(CONVERT_TZ(VIEW_DATE_TIME,'America/New_York','America/Chicago'),'%m/%d/%y %h:%i %p') AS VDT,
+            DATE_FORMAT(VIEW_DATE_TIME - INTERVAL 1 HOUR,'%m/%d/%y %h:%i %p') AS VDT,
             PAGE, IP_ADDRESS, IP_LOCATION, IP_ORG
      FROM SITE_VIEW_LOG $svWhere
      ORDER BY ID DESC LIMIT 200"), MYSQLI_ASSOC);
@@ -1563,7 +1563,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
           <div style="display:flex;align-items:flex-end;gap:3px;height:120px;overflow-x:auto;">
             <?php foreach ($perDay as $pd):
               $pct = round($pd['hits'] / $maxHits * 100); ?>
-            <div title="<?= htmlspecialchars($pd['dy']) ?>: <?= $pd['hits'] ?> views"
+            <div title="<?= htmlspecialchars($pd['dy'] ?? '') ?>: <?= $pd['hits'] ?> views"
                  style="flex:1;min-width:8px;height:<?=$pct?>%;background:#0d6efd;border-radius:3px 3px 0 0;opacity:.8;cursor:default;"></div>
             <?php endforeach; ?>
           </div>
