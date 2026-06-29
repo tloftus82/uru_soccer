@@ -173,13 +173,13 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
     display:none;position:fixed;z-index:9999;
     background:#fff;border:1px solid #dde3ea;border-radius:10px;
     box-shadow:0 8px 28px rgba(0,0,0,.18);
-    width:320px;padding:14px 16px;font-size:12px;line-height:1.5;
+    width:600px;padding:14px 16px;font-size:12px;line-height:1.5;
     pointer-events:none;
   }
   .detail-card.visible{display:block;}
   .detail-card dl{margin:0;display:grid;grid-template-columns:90px 1fr;row-gap:4px;column-gap:8px;}
   .detail-card dt{font-weight:600;color:#555;white-space:nowrap;}
-  .detail-card dd{margin:0;color:#222;word-break:break-all;}
+  .detail-card dd{margin:0;color:#222;word-break:break-word;}
   .detail-card .dc-head{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#1a3a5c;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #eee;}
 </style>
 </head>
