@@ -434,7 +434,7 @@ function writeHtaccessRewrites($cn) {
     // Strip everything from RewriteEngine On downward
     $static = preg_replace('/\n*RewriteEngine On[\s\S]*/s', '', $raw);
 
-    // Custom redirects block — route through go.php for tracking
+    // Custom redirects block — explicit rules so they take priority over catch-all
     $redirRows = mysqli_fetch_all(mysqli_query($cn,
         "SELECT SLUG FROM URU_REDIRECTS WHERE IS_ACTIVE=1 ORDER BY SLUG"), MYSQLI_ASSOC);
     $redirBlock = '';
@@ -443,26 +443,14 @@ function writeHtaccessRewrites($cn) {
         $redirBlock .= "RewriteRule ^" . $r['SLUG'] . "/([a-z0-9-]+)$ go.php?slug=" . $r['SLUG'] . "&v=$1 [L,QSA,NC]\n";
     }
 
-    // Player profile rules
-    $playerRows = mysqli_fetch_all(mysqli_query($cn,
-        "SELECT A.ID, LOWER(A.FIRST_NAME) AS FN, LOWER(A.LAST_NAME) AS LN
-         FROM PP_PLAYERS A WHERE A.IS_ACTIVE=1 ORDER BY A.ID"), MYSQLI_ASSOC);
-    // Parse current slugs from existing .htaccess player rules
-    $existingSlugMap = [];
-    preg_match_all('/^RewriteRule \^([a-z0-9\-]+)\$ playerProfile\.php\?p=(\d+)/m', $raw, $m);
-    foreach ($m[2] as $i => $pid) $existingSlugMap[(int)$pid] = $m[1][$i];
-
-    $playerBlock = '';
-    foreach ($playerRows as $p) {
-        $slug = $existingSlugMap[$p['ID']] ?? ($p['FN'] . '-' . $p['LN']);
-        $playerBlock .= "RewriteRule ^{$slug}$ playerProfile.php?p={$p['ID']}&v=56ed5e [L,QSA,NC]\n";
-    }
-
+    // Player slugs now stored in DB — no per-player rules needed.
+    // A single catch-all routes all pretty URLs through go.php.
     $newContent = rtrim($static) . "\n\nRewriteEngine On\n";
     $newContent .= "# ── Two-part player/event URLs ───────────────────────────────────────────────\n";
-    $newContent .= "RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=$1&v=$2 [L,QSA,NC]\n";
+    $newContent .= "RewriteRule ^([a-z0-9-]+)/([a-z0-9-]+)$ go.php?slug=\$1&v=\$2 [L,QSA,NC]\n";
     if ($redirBlock) $newContent .= "# ── Custom Redirects ─────────────────────────────────────────────────────────\n" . $redirBlock;
-    if ($playerBlock) $newContent .= "# ── Player Profiles ──────────────────────────────────────────────────────────\n" . $playerBlock;
+    $newContent .= "# ── Player / catch-all (slugs resolved in go.php via DB) ─────────────────────\n";
+    $newContent .= "RewriteRule ^([a-z0-9-]+)$ go.php?slug=\$1&v=56ed5e [L,QSA,NC]\n";
 
     file_put_contents($htFile, $newContent);
 }
@@ -519,9 +507,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'redirects') {
 
 // ── POST: URL Slugs ───────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
-    $slugs     = $_POST['slugs'] ?? [];   // [player_id => slug]
-    $trackCode = '56ed5e';
-    $errors    = [];
+    $slugs  = $_POST['slugs'] ?? [];   // [player_id => slug]
+    $errors = [];
+
+    // Ensure URL_SLUG column exists
+    mysqli_query($cn, "ALTER TABLE PP_PLAYERS ADD COLUMN IF NOT EXISTS URL_SLUG VARCHAR(200) NULL");
 
     // Validate slugs
     $seen = [];
@@ -537,23 +527,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'urlslugs') {
     }
 
     if (empty($errors)) {
-        // Persist slug overrides into a temporary lookup used by writeHtaccessRewrites
-        // We store them directly in .htaccess via the helper, but first we need to
-        // update the existing slug map in .htaccess so the helper can read them back.
-        // Write slugs directly into .htaccess player block, then call helper.
-        $htFile  = __DIR__ . '/.htaccess';
-        $raw     = file_get_contents($htFile);
-        // Update player lines with new slugs before calling shared helper
+        // Save slugs to database — no .htaccess writing needed
         foreach ($slugs as $pid => $slug) {
-            $raw = preg_replace(
-                '/^(RewriteRule \^)[a-z0-9\-]+(\$ playerProfile\.php\?p=' . $pid . '&)/m',
-                '${1}' . $slug . '${2}',
-                $raw
-            );
+            $pid  = (int)$pid;
+            $slug_e = esc($cn, $slug);
+            mysqli_query($cn, "UPDATE PP_PLAYERS SET URL_SLUG='$slug_e' WHERE ID=$pid");
         }
-        file_put_contents($htFile, $raw);
-        writeHtaccessRewrites($cn);
-        $flashMsg  = 'URL names saved and .htaccess updated.';
+        $flashMsg  = 'URL names saved.';
         $flashType = 'success';
     } else {
         $flashMsg  = implode('<br>', $errors);
