@@ -44,43 +44,20 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
 <?php $isEs = ($_SESSION['lang'] == 'es'); ?>
 
 <style>
-  /* ── Grid ── */
   .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;margin-top:20px;}
-
-  /* ── Flip wrapper ── */
-  .pc-flip-wrap{perspective:1000px;aspect-ratio:3/4;cursor:pointer;}
-  .pc-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);}
-  .pc-flip-wrap:hover .pc-flip-inner,
-  .pc-flip-wrap.flipped .pc-flip-inner{transform:rotateY(180deg);}
-
-  /* ── Both faces ── */
-  .pc-front,.pc-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;overflow:hidden;}
-
-  /* ── Front ── */
-  .pc-front{display:block;text-decoration:none;color:inherit;}
-  .pc-front .pc-photo{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
-  .pc-front-overlay{position:absolute;bottom:0;left:0;right:0;padding:14px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.45) 55%,transparent 100%);}
-  .pc-front-overlay .pc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;}
-  .pc-front-overlay .pc-name{font-size:14px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:2px;}
-  .pc-front-overlay .pc-pos{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.6);}
-
-  /* ── Back ── */
-  .pc-back{transform:rotateY(180deg);background:linear-gradient(145deg,#1a1e24 0%,#252d38 100%);border:1px solid rgba(56,182,255,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px;text-align:center;gap:0;}
-  .pc-back-accent{width:32px;height:3px;background:#38B6FF;border-radius:2px;margin-bottom:12px;flex-shrink:0;}
-  .pc-back .pc-name{font-size:15px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px;}
-  .pc-back .pc-pos{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#38B6FF;margin-bottom:4px;}
-  .pc-back .pc-location{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:12px;}
-  .pc-back .pc-stats{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px;}
-  .pc-back .pc-stat{background:rgba(56,182,255,.12);border:1px solid rgba(56,182,255,.25);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;color:#fff;}
-  .pc-back .pc-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}
-  .pc-view-btn{display:inline-block;background:#38B6FF;color:#fff;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:7px 18px;border-radius:20px;text-decoration:none;transition:background .2s;flex-shrink:0;}
-  .pc-view-btn:hover{background:#1fa3f0;color:#fff;text-decoration:none;}
-
-  /* ── Shared badges ── */
-  .pc-committed,.pc-video-badge{font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;line-height:1.4;display:inline-flex;align-items:center;gap:4px;}
-  .pc-committed{background:#27ae60;color:#fff;}
-  .pc-video-badge{background:rgba(231,76,60,.85);color:#fff;}
-
+  .player-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:background .2s,transform .2s;text-decoration:none;color:inherit;}
+  .player-card:hover{background:rgba(255,255,255,0.14);transform:translateY(-4px);color:inherit;text-decoration:none;}
+  .player-card .pc-photo{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:top;display:block;}
+  .player-card .pc-body{padding:14px 14px 16px;display:flex;flex-direction:column;flex:1;}
+  .player-card .pc-name{font-size:15px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+  .player-card .pc-pos{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.55;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .player-card .pc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;}
+  .player-card .pc-stat{background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+  .player-card .pc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+  .player-card .pc-committed,
+  .player-card .pc-video-badge{font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;letter-spacing:1px;line-height:1.4;display:inline-flex;align-items:center;gap:4px;}
+  .player-card .pc-committed{background:#27ae60;color:#fff;}
+  .player-card .pc-video-badge{background:rgba(231,76,60,0.85);color:#fff;}
   @media(max-width:540px){.player-grid{grid-template-columns:repeat(2,1fr);gap:12px;}}
 </style>
 
@@ -179,45 +156,25 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
                 ? $player['IMG_HEADSHOT']
                 : ($player['GENDER'] == 'M' ? 'images/headshots/nophotomale.jpg' : 'images/headshots/nophotofemale.jpg');
             ?>
-            <div class="pc-flip-wrap">
-              <div class="pc-flip-inner">
-                <!-- FRONT: full photo with name overlay -->
-                <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="pc-front">
-                  <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>" loading="lazy">
-                  <div class="pc-front-overlay">
-                    <?php if($player['COMMITTED_FLAG'] == 1 || $player['VIDEO_COUNT'] > 0): ?>
-                    <div class="pc-badges">
-                      <?php if($player['COMMITTED_FLAG'] == 1): ?><span class="pc-committed"><?= $committedLabel ?></span><?php endif; ?>
-                      <?php if($player['VIDEO_COUNT'] > 0): ?><span class="pc-video-badge"><i class="fas fa-play"></i> Video</span><?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                    <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
-                    <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
-                  </div>
-                </a>
-                <!-- BACK: stats + link -->
-                <div class="pc-back">
-                  <div class="pc-back-accent"></div>
-                  <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
-                  <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
-                  <?php if(!empty($player['FULL_LOCATION'])): ?>
-                  <div class="pc-location"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:3px;opacity:.5;"></i><?= htmlspecialchars(abbrevState($player['FULL_LOCATION'], $stateAbbr)) ?></div>
-                  <?php endif; ?>
-                  <div class="pc-stats">
-                    <?php if(strlen($player['GPA'])       > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['GPA']) ?> GPA</span><?php endif; ?>
-                    <?php if(strlen($player['ACT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['ACT_SCORE']) ?> ACT</span><?php endif; ?>
-                    <?php if(strlen($player['SAT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['SAT_SCORE']) ?> SAT</span><?php endif; ?>
-                  </div>
-                  <?php if($player['COMMITTED_FLAG'] == 1 || $player['VIDEO_COUNT'] > 0): ?>
-                  <div class="pc-badges">
-                    <?php if($player['COMMITTED_FLAG'] == 1): ?><span class="pc-committed"><?= $committedLabel ?></span><?php endif; ?>
-                    <?php if($player['VIDEO_COUNT'] > 0): ?><span class="pc-video-badge"><i class="fas fa-play"></i> Video</span><?php endif; ?>
-                  </div>
-                  <?php endif; ?>
-                  <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="pc-view-btn"><?= $isEs ? 'Ver Perfil' : 'View Profile' ?> &rsaquo;</a>
+            <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="player-card">
+              <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>" loading="lazy">
+              <div class="pc-body">
+                <?php if($player['COMMITTED_FLAG'] == 1 || $player['VIDEO_COUNT'] > 0): ?>
+                <div class="pc-badges">
+                  <?php if($player['COMMITTED_FLAG'] == 1): ?><span class="pc-committed"><?= $committedLabel ?></span><?php endif; ?>
+                  <?php if($player['VIDEO_COUNT'] > 0): ?><span class="pc-video-badge"><i class="fas fa-play"></i> <?= $isEs ? 'Video' : 'Video' ?></span><?php endif; ?>
+                </div>
+                <?php endif; ?>
+                <div class="pc-name"><?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?></div>
+                <div class="pc-pos"><?= htmlspecialchars($player['POSITION_PRI'] ?? '') ?></div>
+                <?php if(!empty($player['FULL_LOCATION'])): ?><div class="pc-pos"><i class="fas fa-map-marker-alt" style="opacity:.5;font-size:9px;margin-right:3px;"></i><?= htmlspecialchars(abbrevState($player['FULL_LOCATION'], $stateAbbr)) ?></div><?php endif; ?>
+                <div class="pc-stats">
+                  <?php if(strlen($player['GPA'])       > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['GPA']) ?> GPA</span><?php endif; ?>
+                  <?php if(strlen($player['ACT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['ACT_SCORE']) ?> ACT</span><?php endif; ?>
+                  <?php if(strlen($player['SAT_SCORE']) > 0): ?><span class="pc-stat"><?= htmlspecialchars($player['SAT_SCORE']) ?> SAT</span><?php endif; ?>
                 </div>
               </div>
-            </div>
+            </a>
             <?php endforeach; ?>
           </div>
         </div>
@@ -230,27 +187,6 @@ $metaDescription = 'URU Soccer player profiles — browse student-athletes seeki
 
 <?php include('includes/siteFooter.inc.php'); ?>
 <?php include('includes/extScripts.inc.php'); ?>
-<script>
-(function(){
-  // On touch devices: tap front = flip, tap back "View Profile" = navigate
-  if (!window.matchMedia('(hover: none)').matches) return;
-  var wraps = document.querySelectorAll('.pc-flip-wrap');
-  wraps.forEach(function(wrap){
-    wrap.querySelector('.pc-front').addEventListener('click', function(e){
-      if (!wrap.classList.contains('flipped')) {
-        e.preventDefault();
-        wraps.forEach(function(w){ w.classList.remove('flipped'); });
-        wrap.classList.add('flipped');
-      }
-    });
-  });
-  // Tap anywhere outside a flipped card to unflip
-  document.addEventListener('click', function(e){
-    if (!e.target.closest('.pc-flip-wrap')) {
-      wraps.forEach(function(w){ w.classList.remove('flipped'); });
-    }
-  });
-})();
-</script>
+
 </body>
 </html>
