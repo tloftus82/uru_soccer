@@ -21,6 +21,62 @@ mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SECTIONS_SEE
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS SECTION_TIMES       VARCHAR(500)   NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS IS_RETURN_VISIT     TINYINT        UNSIGNED NULL DEFAULT 0");
 
+// ── Human probability score (0–100) ──────────────────────────────────────────
+function humanScore($row, $botPatterns) {
+    $ua      = strtolower($row['USER_AGENT']  ?? '');
+    $org     = strtolower($row['IP_ORG']      ?? '');
+    $host    = strtolower($row['HOST_NAME']   ?? '');
+    $top     = $row['TIME_ON_PAGE'];    // null = not yet received
+    $sd      = $row['SCROLL_DEPTH'];
+    $score   = 50;
+
+    // Hard bot: known bot UA or org/host → clamp to 3
+    foreach ($botPatterns as $b) {
+        if (strpos($ua, $b) !== false || strpos($org, $b) !== false || strpos($host, $b) !== false) {
+            return 3;
+        }
+    }
+
+    // ── Signals that lower score ──────────────────────────────────────────────
+    if ($ua === '')                                          $score -= 35; // no UA
+    $dcKeywords = ['amazon','google','microsoft','azure','digitalocean','linode',
+                   'vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
+    foreach ($dcKeywords as $kw) {
+        if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
+    }
+    if ($top !== null && $top == 0)                         $score -= 25;
+    elseif ($top !== null && $top < 4)                      $score -= 12;
+    if ($sd !== null && $sd == 0)                           $score -= 12;
+
+    // ── Signals that raise score ──────────────────────────────────────────────
+    // Real browser with version number
+    if (preg_match('/(chrome|firefox|safari|edg|opera)\/[\d.]+/i', $ua)) $score += 12;
+    // Mobile UA (bots rarely fake these accurately)
+    if (preg_match('/iphone|ipad|ipados|android/i', $ua))                 $score += 10;
+    // Time on page
+    if ($top !== null && $top >= 60)      $score += 25;
+    elseif ($top !== null && $top >= 15)  $score += 15;
+    elseif ($top !== null && $top >= 5)   $score +=  8;
+    // Scroll depth
+    if ($sd !== null && $sd >= 60)        $score += 20;
+    elseif ($sd !== null && $sd >= 25)    $score += 10;
+    elseif ($sd !== null && $sd >= 5)     $score +=  5;
+    // Engagement
+    if ($row['VIDEO_PLAYED'])             $score += 28; // watching a video is very human
+    if (!empty($row['LINKS_CLICKED']))    $score += 15;
+    if ($row['IS_RETURN_VISIT'])          $score += 18;
+    if (!empty($row['SECTIONS_SEEN']))    $score += min(count(array_filter(explode(',', $row['SECTIONS_SEEN']))) * 4, 16);
+    if (!empty($row['REFERRER']))         $score +=  8;
+    if ($row['AUTHENTICATED'])            $score += 10; // had a valid view code
+
+    // Floors: once a human does something a bot never does, set a minimum
+    if ($row['VIDEO_PLAYED'])          $score = max($score, 72);
+    if ($row['IS_RETURN_VISIT'])       $score = max($score, 55);
+    if (!empty($row['LINKS_CLICKED'])) $score = max($score, 55);
+
+    return max(0, min(100, $score));
+}
+
 // ── Bot fingerprint patterns (IP_ORG or HOST_NAME contains any of these) ──────
 $botPatterns = [
     // Cloud / datacenter providers — rarely real coaches
@@ -172,6 +228,12 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   .eng-video{background:#fdecea;color:#b71c1c;}
   .eng-link{background:#fff3e0;color:#e65100;}
   .eng-none{color:#ccc;font-size:11px;}
+  .human-score{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;}
+  .hs-bot   {background:#fdecea;color:#c0392b;}
+  .hs-low   {background:#fff3e0;color:#e65100;}
+  .hs-mid   {background:#fffde7;color:#f57f17;}
+  .hs-high  {background:#e8f5e9;color:#1b5e20;}
+  .hs-sure  {background:#c8e6c9;color:#1b5e20;}
 
   /* Detail card */
   .detail-wrap{position:relative;display:inline-block;}
@@ -357,6 +419,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Location</th>
             <th>Organization</th>
             <th>Device</th>
+            <th>Human %</th>
             <th>Engagement</th>
             <th>Auth</th>
           </tr>
@@ -494,7 +557,16 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
+            <?php
+              $hs = humanScore($row, $botPatterns);
+              if      ($hs <= 15) $hsCls = 'hs-bot';
+              elseif  ($hs <= 35) $hsCls = 'hs-low';
+              elseif  ($hs <= 60) $hsCls = 'hs-mid';
+              elseif  ($hs <= 80) $hsCls = 'hs-high';
+              else                $hsCls = 'hs-sure';
+            ?>
             <td><?= $deviceBadge ?></td>
+            <td><span class="human-score <?= $hsCls ?>"><?= $hs ?>%</span></td>
             <td>
               <div class="eng-icons">
                 <?php if ($timeLabel): ?><span class="eng-pill eng-time"><i class="fas fa-clock" style="font-size:9px;"></i> <?= $timeLabel ?></span><?php endif; ?>
@@ -529,7 +601,7 @@ $('#viewTable').DataTable({
   order: [[1,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: [0,7,8] }]
+  columnDefs: [{ orderable: false, targets: [0,8,9] }]
 });
 
 // Detail card: hover to preview, click to pin (stays open for copying)
