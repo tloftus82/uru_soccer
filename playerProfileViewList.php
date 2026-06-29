@@ -166,7 +166,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   .eng-link{background:#fff3e0;color:#e65100;}
   .eng-none{color:#ccc;font-size:11px;}
 
-  /* Hover detail card */
+  /* Detail card */
   .detail-wrap{position:relative;display:inline-block;}
   .detail-btn{background:none;border:none;padding:0 4px;color:#aaa;cursor:pointer;font-size:12px;line-height:1;}
   .detail-btn:hover{color:#1a3a5c;}
@@ -482,65 +482,67 @@ $('#viewTable').DataTable({
   columnDefs: [{ orderable: false, targets: [0,7,8] }]
 });
 
-// Hover detail card
+// Click-to-open detail card (stays open so you can copy text)
 (function(){
-  var card = document.getElementById('detailCard');
-  var body = document.getElementById('detailBody');
+  var card      = document.getElementById('detailCard');
+  var body      = document.getElementById('detailBody');
+  var activeBtn = null;
   var LABELS = {
     ip:'IP Address', org:'Organization', host:'Hostname',
     browser:'Browser / OS', ref:'Referrer', time:'Time on Page',
     scroll:'Scroll Depth', video:'Video', links:'Links Clicked'
   };
 
-  function show(btn, data) {
-    var html = '';
-    for (var k in LABELS) {
-      if (!data[k]) continue;
-      var val = (k === 'links' && data[k])
-  ? data[k].split(',').map(function(s){ return escHtml(s.trim()); }).join('<br>')
-  : escHtml(data[k]);
-html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
-    }
-    if (!html) html = '<dt colspan="2" style="color:#aaa;">No detail available</dt>';
-    body.innerHTML = html;
-    card.classList.add('visible');
-    position(btn);
-  }
-
-  function position(btn) {
-    var r = btn.getBoundingClientRect();
-    var cw = card.offsetWidth, ch = card.offsetHeight;
-    var top = r.bottom + 6;
-    var left = r.left;
-    if (left + cw > window.innerWidth - 10) left = window.innerWidth - cw - 10;
-    if (top + ch > window.innerHeight - 10) top = r.top - ch - 6;
-    card.style.top  = top  + 'px';
-    card.style.left = left + 'px';
-  }
-
-  function hide() { card.classList.remove('visible'); }
-
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  document.addEventListener('mouseover', function(e) {
-    var btn = e.target.closest('.detail-btn');
-    if (!btn) return;
+  function position(btn) {
+    var r  = btn.getBoundingClientRect();
+    var cw = card.offsetWidth, ch = card.offsetHeight;
+    var top  = r.bottom + 6;
+    var left = r.left;
+    if (left + cw > window.innerWidth  - 10) left = window.innerWidth  - cw - 10;
+    if (top  + ch > window.innerHeight - 10) top  = r.top - ch - 6;
+    card.style.top  = top  + 'px';
+    card.style.left = left + 'px';
+  }
+
+  function show(btn) {
     var data = JSON.parse(btn.getAttribute('data-dc'));
-    show(btn, data);
-  });
+    var html = '';
+    for (var k in LABELS) {
+      if (!data[k]) continue;
+      var val = (k === 'links')
+        ? data[k].split(',').map(function(s){ return escHtml(s.trim()); }).join('<br>')
+        : escHtml(data[k]);
+      html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
+    }
+    if (!html) html = '<dd style="color:#aaa;grid-column:1/-1;">No detail available</dd>';
+    body.innerHTML = html;
+    card.classList.add('visible');
+    activeBtn = btn;
+    btn.style.color = '#1a3a5c';
+    position(btn);
+  }
 
-  document.addEventListener('mouseout', function(e) {
+  function hide() {
+    card.classList.remove('visible');
+    if (activeBtn) { activeBtn.style.color = ''; activeBtn = null; }
+  }
+
+  document.addEventListener('click', function(e) {
     var btn = e.target.closest('.detail-btn');
-    if (!btn) return;
-    // Only hide if not moving into the card
-    var rel = e.relatedTarget;
-    if (rel && (rel === card || card.contains(rel))) return;
-    hide();
+    if (btn) {
+      e.stopPropagation();
+      if (activeBtn === btn) { hide(); return; }
+      hide();
+      show(btn);
+      return;
+    }
+    if (!card.contains(e.target)) hide();
   });
 
-  card.addEventListener('mouseleave', hide);
   document.addEventListener('scroll', hide, true);
 })();
 </script>
