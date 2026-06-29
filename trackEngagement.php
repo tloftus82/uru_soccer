@@ -277,5 +277,8 @@ $headers .= "X-Mailer: PHP/".phpversion()."\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 
-$mailResult = mail('tloftus@gmail.com', $subject, $body, $headers, '-f noreply@uru.soccer');
-file_put_contents($logFile, date('Y-m-d H:i:s')." MAIL=".($mailResult?'ok':'FAILED')."\n", FILE_APPEND);
+error_clear_last();
+$mailResult = mail('tloftus@gmail.com', $subject, $body, $headers);
+$mailErr = error_get_last();
+file_put_contents($logFile, date('Y-m-d H:i:s')." MAIL=".($mailResult?'ok':'FAILED')
+    ." err=".($mailErr['message']??'none')."\n", FILE_APPEND);
