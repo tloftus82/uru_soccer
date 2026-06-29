@@ -36,6 +36,7 @@
 <!doctype html>
 <html lang="en-US">
 
+<?php $metaDescription = 'URU Soccer player profiles — browse student-athletes seeking collegiate soccer opportunities. View stats, accolades, highlight videos, and contact information.'; ?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 <?php $isEs = ($_SESSION['lang'] == 'es'); ?>
 
@@ -153,7 +154,7 @@
                 : ($player['GENDER'] == 'M' ? 'images/headshots/nophotomale.jpg' : 'images/headshots/nophotofemale.jpg');
             ?>
             <a href="playerProfile.php?p=<?= $player['ID'] ?>&v=<?= $trackViewCode ?>" class="player-card">
-              <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>">
+              <img class="pc-photo" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="<?= htmlspecialchars($player['FIRST_NAME'].' '.$player['LAST_NAME']) ?>" loading="lazy">
               <div class="pc-body">
                 <?php if($player['COMMITTED_FLAG'] == 1 || $player['VIDEO_COUNT'] > 0): ?>
                 <div class="pc-badges">

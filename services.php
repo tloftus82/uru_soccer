@@ -3,6 +3,7 @@
 <!doctype html>
 <html lang="en-US">
 
+<?php $metaDescription = 'URU Soccer services — college recruiting guidance, player evaluations, and workshop resources to help student-athletes navigate the admissions process.'; ?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

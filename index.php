@@ -26,6 +26,7 @@ $showFliers = $hpFlierEnabled || $hpFlier2Enabled;
 <!-- GitHub auto-deploy test: OK -->
 <html lang="en-US">
 
+<?php $metaDescription = 'URU Soccer — helping regional student-athletes pursue collegiate soccer opportunities. Explore player profiles, training programs, and recruiting resources.'; ?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

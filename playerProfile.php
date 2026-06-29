@@ -228,8 +228,9 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo $playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' • '.$playerInfo['POSITION_PRI'].' • Class of '.$playerInfo['GRAD_CLASS']; ?></title>
+  <meta name="description" content="<?php echo htmlspecialchars($playerInfo['FIRST_NAME'].' '.$playerInfo['LAST_NAME'].' is a '.$playerInfo['POSITION_PRI'].' from '.$playerInfo['FULL_LOCATION'].', Class of '.$playerInfo['GRAD_CLASS'].'. View profile, accolades, and highlight videos.'); ?>">
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
   <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
@@ -418,7 +419,7 @@
 
             <!-- Mobile full-bleed hero (hidden on desktop) -->
             <div class="mobile-hero">
-              <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="">
+              <img class="mobile-hero-img" src="<?= htmlspecialchars(!empty($playerInfo['IMG_ACTION']) ? $playerInfo['IMG_ACTION'] : $imgHeadshot) ?>" alt="" loading="lazy">
               <div class="mobile-hero-grad"></div>
               <img class="mobile-hero-avatar" src="<?= htmlspecialchars($imgHeadshot) ?>" alt="">
               <div class="mobile-hero-text">
@@ -533,7 +534,7 @@
             <div class="accolade-card">
               <div class="ac-header">
                 <?php if (!empty($accolade['IMG_LOGO'])): ?>
-                  <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="">
+                  <img class="ac-logo" src="<?= htmlspecialchars($accolade['IMG_LOGO']) ?>" alt="" loading="lazy">
                 <?php else: ?>
                   <div class="ac-logo-fallback"><i class="fas fa-trophy"></i></div>
                 <?php endif; ?>
@@ -565,7 +566,7 @@
             <?php foreach($videosArray as $video): ?>
             <a href="<?= htmlspecialchars($video['VIDEO_URL']) ?>" class="video-card has-popup-video" style="text-decoration:none;color:inherit;">
               <div class="vc-thumb">
-                <img src="<?= htmlspecialchars($video['IMG_THUMBNAIL']) ?>" alt="">
+                <img src="<?= htmlspecialchars($video['IMG_THUMBNAIL']) ?>" alt="" loading="lazy">
                 <div class="vc-play"><i class="fas fa-play-circle"></i></div>
               </div>
               <div class="vc-body">

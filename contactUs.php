@@ -3,6 +3,7 @@
 <!doctype html>
 <html lang="en-US">
 
+<?php $metaDescription = 'Contact URU Soccer — reach out to learn more about our college recruiting services, training programs, and how we can help your student-athlete.'; ?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

@@ -21,6 +21,7 @@ $hpFlier2Bust    = @filemtime(__DIR__ . '/' . $hpFlier2Img) ?: time();
 <!doctype html>
 <html lang="en-US">
 
+<?php $metaDescription = 'URU High Performance Soccer Training — skill development sessions and camps for youth and high school players in the region.'; ?>
 <?php include('includes/siteHtmlHeader.inc.php'); ?>
 
 <body class="home">

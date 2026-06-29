@@ -32,12 +32,15 @@ $ipOrg = "";
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>
 <?php 
   if($_SESSION['lang'] == 'en'){echo "URU.soccer &#8226; Education Through Soccer</title>";}
   if($_SESSION['lang'] == 'es'){echo "URU.soccer &#8226; Educacion a Traves del Futbol</title>";}
 ?>
+  <?php if (!empty($metaDescription)): ?>
+  <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
+  <?php endif; ?>
   <link rel="shortcut icon" href="images/favicons/favicon.ico">
 
   <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
