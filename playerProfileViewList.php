@@ -349,6 +349,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Player</th>
             <th>Viewer</th>
             <th>Location</th>
+            <th>Organization</th>
             <th>Engagement</th>
             <th>Auth</th>
           </tr>
@@ -416,6 +417,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap"><?= htmlspecialchars($row['PLAYER']) ?></td>
             <td class="text-nowrap"><?= htmlspecialchars($row['VIEWER']) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
+            <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td>
               <div class="eng-icons">
                 <?php if ($timeLabel): ?><span class="eng-pill eng-time"><i class="fas fa-clock" style="font-size:9px;"></i> <?= $timeLabel ?></span><?php endif; ?>
@@ -449,7 +451,7 @@ $('#viewTable').DataTable({
   order: [[1,'desc']],
   pageLength: 200,
   lengthMenu: [25,50,100,500],
-  columnDefs: [{ orderable: false, targets: [0,5,6] }]
+  columnDefs: [{ orderable: false, targets: [0,6,7] }]
 });
 
 // Hover detail card
