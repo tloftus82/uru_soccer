@@ -14,24 +14,24 @@ $defaultData = [
     ['role' => 'Team Manager',     'name' => 'Tom Loftus',         'email' => 'tloftus@gmail.com',        'phone' => '(712) 389-0141'],
   ],
   'players' => [
-    ['num'=>0,  'name'=>'Millie Squier',            'grad'=>'2029','pos'=>'CB · W',    'hs'=>'Dakota Valley High School',          'email'=>'milliesquier@gmail.com',      'phone'=>'(605) 670-1907','profile'=>'uru.soccer/millie-squier',     'video'=>'','committed'=>''],
-    ['num'=>1,  'name'=>'Ava Squier',               'grad'=>'2029','pos'=>'CB · W',    'hs'=>'Dakota Valley High School',          'email'=>'avasquier8@gmail.com',        'phone'=>'(605) 670-2408','profile'=>'uru.soccer/ava-squier',        'video'=>'','committed'=>''],
-    ['num'=>3,  'name'=>'Alexandra Loftus',         'grad'=>'2027','pos'=>'GK',        'hs'=>'Sioux City North High School',       'email'=>'allieloftus@gmail.com',       'phone'=>'(712) 266-5702','profile'=>'uru.soccer/alexandra-loftus',  'video'=>'Highlight & Match Video','committed'=>''],
-    ['num'=>4,  'name'=>'Sophia Meyer',             'grad'=>'2027','pos'=>'W · CB',    'hs'=>'Dakota Valley High School',          'email'=>'smeyer0404@icloud.com',       'phone'=>'(712) 281-9099','profile'=>'uru.soccer/sophia-meyer',      'video'=>'Highlight Video','committed'=>''],
-    ['num'=>7,  'name'=>'Juliet Bainbridge',        'grad'=>'2027','pos'=>'ST',        'hs'=>'Bishop Heelan High School',          'email'=>'julietbainbridge@icloud.com', 'phone'=>'(712) 202-4347','profile'=>'uru.soccer/juliet-bainbridge', 'video'=>'','committed'=>''],
-    ['num'=>8,  'name'=>'Jordyn Wilson',            'grad'=>'2026','pos'=>'D · CM',    'hs'=>'Sioux City East High School',        'email'=>'jordyjwil8@gmail.com',        'phone'=>'(712) 899-9459','profile'=>'uru.soccer/jordyn-wilson',     'video'=>'','committed'=>'Briar Cliff University'],
-    ['num'=>9,  'name'=>'Jasmin Aguilar-Maldonado', 'grad'=>'2026','pos'=>'D · M',    'hs'=>'Sioux City East High School',        'email'=>'jasminaguilarm@icloud.com',   'phone'=>'(712) 899-7837','profile'=>'uru.soccer/jasmin-aguilar',    'video'=>'','committed'=>'Briar Cliff University'],
-    ['num'=>10, 'name'=>'Aliana Nolasco',           'grad'=>'2026','pos'=>'ST',        'hs'=>'Sioux City East High School',        'email'=>'aliana.nolasco@icloud.com',   'phone'=>'(712) 454-9723','profile'=>'',                             'video'=>'','committed'=>'Dakota Wesleyan University'],
-    ['num'=>11, 'name'=>'Mya Kleve',                'grad'=>'2027','pos'=>'M · CB',    'hs'=>'Sergeant Bluff-Luton High School',   'email'=>'myakleve@gmail.com',          'phone'=>'(712) 577-4749','profile'=>'uru.soccer/mya-kleve',         'video'=>'Highlight Video','committed'=>''],
-    ['num'=>12, 'name'=>'Mackenzie Molstad',        'grad'=>'2029','pos'=>'W · CM',    'hs'=>'Bishop Heelan High School',          'email'=>'mackenziemolstad@gmail.com',  'phone'=>'(712) 898-9898','profile'=>'uru.soccer/mackenzie-molstad', 'video'=>'','committed'=>''],
-    ['num'=>13, 'name'=>'Peyton Rose',              'grad'=>'2028','pos'=>'CB',        'hs'=>'Sioux City North High School',       'email'=>'prosie1325@gmail.com',        'phone'=>'(712) 203-4208','profile'=>'uru.soccer/peyton-rose',       'video'=>'','committed'=>''],
-    ['num'=>15, 'name'=>'Grace Jensen',             'grad'=>'2027','pos'=>'CM · LW',   'hs'=>'Sioux City North High School',       'email'=>'jenseng415@gmail.com',        'phone'=>'(712) 204-0934','profile'=>'uru.soccer/grace-jensen',      'video'=>'','committed'=>''],
-    ['num'=>22, 'name'=>'Baylee Reyes',             'grad'=>'2026','pos'=>'CDM',       'hs'=>'Bishop Heelan High School',          'email'=>'bayleereyes00@gmail.com',     'phone'=>'(712) 389-8317','profile'=>'uru.soccer/baylee-reyes',      'video'=>'Highlight Video','committed'=>'Morningside University'],
-    ['num'=>23, 'name'=>'Collins Nessa',            'grad'=>'2028','pos'=>'D',         'hs'=>'MOC-Floyd Valley High School',       'email'=>'collins.nessa10@gmail.com',   'phone'=>'(712) 395-0822','profile'=>'uru.soccer/collins-nessa',     'video'=>'','committed'=>''],
-    ['num'=>29, 'name'=>'Yuliana Hernandez',        'grad'=>'2030','pos'=>'ST',        'hs'=>'MOC-Floyd Valley High School',       'email'=>'yulianahernandez.490@icloud.com','phone'=>'(712) 231-9825','profile'=>'uru.soccer/yuliana-hernandez','video'=>'','committed'=>''],
-    ['num'=>37, 'name'=>'Mallory Riibe',            'grad'=>'2029','pos'=>'W · CAM',   'hs'=>'Dakota Valley High School',          'email'=>'malloryriibe@gmail.com',      'phone'=>'(712) 454-8426','profile'=>'uru.soccer/mallory-riibe',     'video'=>'','committed'=>''],
-    ['num'=>66, 'name'=>'Ava Peters',               'grad'=>'2028','pos'=>'W · ST',    'hs'=>'Bishop Heelan High School',          'email'=>'pava6610@gmail.com',          'phone'=>'(712) 540-5650','profile'=>'uru.soccer/ava-peters',        'video'=>'','committed'=>''],
-    ['num'=>99, 'name'=>'Ingrid Gustafson',         'grad'=>'2028','pos'=>'W · ST',    'hs'=>'Spencer High School',                'email'=>'28igustafson@e-hawks.org',    'phone'=>'(712) 480-0430','profile'=>'',                             'video'=>'','committed'=>''],
+    ['num'=>0,  'name'=>'Millie Squier',            'grad'=>'2029','pos'=>'CB · W',    'hs'=>'Dakota Valley High School',          'email'=>'milliesquier@gmail.com',      'phone'=>'(605) 670-1907','profile'=>'uru.soccer/millie-squier',     'qrSlug'=>'millie-squier',     'video'=>'','committed'=>''],
+    ['num'=>1,  'name'=>'Ava Squier',               'grad'=>'2029','pos'=>'CB · W',    'hs'=>'Dakota Valley High School',          'email'=>'avasquier8@gmail.com',        'phone'=>'(605) 670-2408','profile'=>'uru.soccer/ava-squier',        'qrSlug'=>'ava-squier',        'video'=>'','committed'=>''],
+    ['num'=>3,  'name'=>'Alexandra Loftus',         'grad'=>'2027','pos'=>'GK',        'hs'=>'Sioux City North High School',       'email'=>'allieloftus@gmail.com',       'phone'=>'(712) 266-5702','profile'=>'uru.soccer/alexandra-loftus',  'qrSlug'=>'alexandra-loftus',  'video'=>'Highlight & Match Video','committed'=>''],
+    ['num'=>4,  'name'=>'Sophia Meyer',             'grad'=>'2027','pos'=>'W · CB',    'hs'=>'Dakota Valley High School',          'email'=>'smeyer0404@icloud.com',       'phone'=>'(712) 281-9099','profile'=>'uru.soccer/sophia-meyer',      'qrSlug'=>'sophia-meyer',      'video'=>'Highlight Video','committed'=>''],
+    ['num'=>7,  'name'=>'Juliet Bainbridge',        'grad'=>'2027','pos'=>'ST',        'hs'=>'Bishop Heelan High School',          'email'=>'julietbainbridge@icloud.com', 'phone'=>'(712) 202-4347','profile'=>'uru.soccer/juliet-bainbridge', 'qrSlug'=>'juliet-bainbridge', 'video'=>'','committed'=>''],
+    ['num'=>8,  'name'=>'Jordyn Wilson',            'grad'=>'2026','pos'=>'D · CM',    'hs'=>'Sioux City East High School',        'email'=>'jordyjwil8@gmail.com',        'phone'=>'(712) 899-9459','profile'=>'uru.soccer/jordyn-wilson',     'qrSlug'=>'jordyn-wilson',     'video'=>'','committed'=>'Briar Cliff University'],
+    ['num'=>9,  'name'=>'Jasmin Aguilar-Maldonado', 'grad'=>'2026','pos'=>'D · M',    'hs'=>'Sioux City East High School',        'email'=>'jasminaguilarm@icloud.com',   'phone'=>'(712) 899-7837','profile'=>'uru.soccer/jasmin-aguilar',    'qrSlug'=>'jasmin-aguilar',    'video'=>'','committed'=>'Briar Cliff University'],
+    ['num'=>10, 'name'=>'Aliana Nolasco',           'grad'=>'2026','pos'=>'ST',        'hs'=>'Sioux City East High School',        'email'=>'aliana.nolasco@icloud.com',   'phone'=>'(712) 454-9723','profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>'Dakota Wesleyan University'],
+    ['num'=>11, 'name'=>'Mya Kleve',                'grad'=>'2027','pos'=>'M · CB',    'hs'=>'Sergeant Bluff-Luton High School',   'email'=>'myakleve@gmail.com',          'phone'=>'(712) 577-4749','profile'=>'uru.soccer/mya-kleve',         'qrSlug'=>'mya-kleve',         'video'=>'Highlight Video','committed'=>''],
+    ['num'=>12, 'name'=>'Mackenzie Molstad',        'grad'=>'2029','pos'=>'W · CM',    'hs'=>'Bishop Heelan High School',          'email'=>'mackenziemolstad@gmail.com',  'phone'=>'(712) 898-9898','profile'=>'uru.soccer/mackenzie-molstad', 'qrSlug'=>'mackenzie-molstad', 'video'=>'','committed'=>''],
+    ['num'=>13, 'name'=>'Peyton Rose',              'grad'=>'2028','pos'=>'CB',        'hs'=>'Sioux City North High School',       'email'=>'prosie1325@gmail.com',        'phone'=>'(712) 203-4208','profile'=>'uru.soccer/peyton-rose',       'qrSlug'=>'peyton-rose',       'video'=>'','committed'=>''],
+    ['num'=>15, 'name'=>'Grace Jensen',             'grad'=>'2027','pos'=>'CM · LW',   'hs'=>'Sioux City North High School',       'email'=>'jenseng415@gmail.com',        'phone'=>'(712) 204-0934','profile'=>'uru.soccer/grace-jensen',      'qrSlug'=>'grace-jensen',      'video'=>'','committed'=>''],
+    ['num'=>22, 'name'=>'Baylee Reyes',             'grad'=>'2026','pos'=>'CDM',       'hs'=>'Bishop Heelan High School',          'email'=>'bayleereyes00@gmail.com',     'phone'=>'(712) 389-8317','profile'=>'uru.soccer/baylee-reyes',      'qrSlug'=>'baylee-reyes',      'video'=>'Highlight Video','committed'=>'Morningside University'],
+    ['num'=>23, 'name'=>'Collins Nessa',            'grad'=>'2028','pos'=>'D',         'hs'=>'MOC-Floyd Valley High School',       'email'=>'collins.nessa10@gmail.com',   'phone'=>'(712) 395-0822','profile'=>'uru.soccer/collins-nessa',     'qrSlug'=>'collins-nessa',     'video'=>'','committed'=>''],
+    ['num'=>29, 'name'=>'Yuliana Hernandez',        'grad'=>'2030','pos'=>'ST',        'hs'=>'MOC-Floyd Valley High School',       'email'=>'yulianahernandez.490@icloud.com','phone'=>'(712) 231-9825','profile'=>'uru.soccer/yuliana-hernandez','qrSlug'=>'yuliana-hernandez','video'=>'','committed'=>''],
+    ['num'=>37, 'name'=>'Mallory Riibe',            'grad'=>'2029','pos'=>'W · CAM',   'hs'=>'Dakota Valley High School',          'email'=>'malloryriibe@gmail.com',      'phone'=>'(712) 454-8426','profile'=>'uru.soccer/mallory-riibe',     'qrSlug'=>'mallory-riibe',     'video'=>'','committed'=>''],
+    ['num'=>66, 'name'=>'Ava Peters',               'grad'=>'2028','pos'=>'W · ST',    'hs'=>'Bishop Heelan High School',          'email'=>'pava6610@gmail.com',          'phone'=>'(712) 540-5650','profile'=>'uru.soccer/ava-peters',        'qrSlug'=>'ava-peters',        'video'=>'','committed'=>''],
+    ['num'=>99, 'name'=>'Ingrid Gustafson',         'grad'=>'2028','pos'=>'W · ST',    'hs'=>'Spencer High School',                'email'=>'28igustafson@e-hawks.org',    'phone'=>'(712) 480-0430','profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
   ],
 ];
 
@@ -56,9 +56,9 @@ $showQr  = $d['showQr'] ?? true;
 
 $gradColors = ['2026'=>'#C8920A','2027'=>'#18160f','2028'=>'#666','2029'=>'#999','2030'=>'#b3afa2'];
 
-function qrPath($profile) {
-  if (!$profile) return '';
-  $slug = basename($profile);
+function qrPath($qrSlug) {
+  if (!$qrSlug) return '';
+  $slug = basename($qrSlug); // prevent path traversal
   $path = __DIR__ . '/assets/qr/' . $slug . '.svg';
   return file_exists($path) ? 'assets/qr/' . $slug . '.svg' : '';
 }
@@ -197,7 +197,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
     <!-- Players pane -->
     <div class="drawer-pane" id="pane-players">
       <table class="edit-table" id="playersTable">
-        <thead><tr><th style="width:38px">#</th><th>Name</th><th style="width:60px">Grad</th><th style="width:100px">Position</th><th>High School</th><th>Email</th><th style="width:110px">Phone</th><th>Profile Slug</th><th>Video Label</th><th>Committed To</th><th></th></tr></thead>
+        <thead><tr><th style="width:38px">#</th><th>Name</th><th style="width:60px">Grad</th><th style="width:100px">Position</th><th>High School</th><th>Email</th><th style="width:110px">Phone</th><th>Display URL</th><th>QR Slug</th><th>Video Label</th><th>Committed To</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($players as $i => $p): ?>
         <tr data-pi="<?= $i ?>">
@@ -209,6 +209,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
           <td><input class="p-email" value="<?= h($p['email']) ?>"></td>
           <td><input class="p-phone" value="<?= h($p['phone']) ?>" style="width:108px"></td>
           <td><input class="p-profile" value="<?= h($p['profile']) ?>" placeholder="uru.soccer/slug"></td>
+          <td><input class="p-qrslug" value="<?= h($p['qrSlug'] ?? '') ?>" placeholder="e.g. millie-squier"></td>
           <td><input class="p-video" value="<?= h($p['video']) ?>" placeholder="e.g. Highlight Video"></td>
           <td><input class="p-committed" value="<?= h($p['committed']) ?>" placeholder="College name or blank"></td>
           <td><button class="btn-red" onclick="removeRow(this)">✕</button></td>
@@ -278,8 +279,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
         $committed = trim($p['committed'] ?? '');
         $rowBg     = $committed ? '#fdf8ec' : ($i % 2 ? '#faf9f5' : '#ffffff');
         $gradColor = $committed ? ($gradColors[$p['grad']] ?? '#555') : '#18160f';
-        $qr        = $showQr ? qrPath($p['profile'] ?? '') : '';
-        $slug      = $p['profile'] ? basename($p['profile']) : '';
+        $qr        = $showQr ? qrPath($p['qrSlug'] ?? '') : '';
       ?>
       <div style="display:grid;grid-template-columns:34px 1.6fr 54px 82px 1.2fr 1.9fr 2fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
         <div style="padding:3px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:#C8920A;"><?= (int)$p['num'] ?></div>
@@ -369,6 +369,7 @@ function collectData() {
       email:     tr.querySelector('.p-email').value,
       phone:     tr.querySelector('.p-phone').value,
       profile:   tr.querySelector('.p-profile').value,
+      qrSlug:    tr.querySelector('.p-qrslug').value,
       video:     tr.querySelector('.p-video').value,
       committed: tr.querySelector('.p-committed').value,
     });
@@ -406,7 +407,7 @@ function addStaffRow() {
 
 function addPlayerRow() {
   const tr = document.createElement('tr');
-  tr.innerHTML = `<td><input class="p-num" type="number" value="0" style="width:46px"></td><td><input class="p-name" value=""></td><td><input class="p-grad" value="" style="width:52px"></td><td><input class="p-pos" value=""></td><td><input class="p-hs" value=""></td><td><input class="p-email" value=""></td><td><input class="p-phone" value="" style="width:108px"></td><td><input class="p-profile" value="" placeholder="uru.soccer/slug"></td><td><input class="p-video" value="" placeholder="e.g. Highlight Video"></td><td><input class="p-committed" value="" placeholder="College name or blank"></td><td><button class="btn-red" onclick="removeRow(this)">✕</button></td>`;
+  tr.innerHTML = `<td><input class="p-num" type="number" value="0" style="width:46px"></td><td><input class="p-name" value=""></td><td><input class="p-grad" value="" style="width:52px"></td><td><input class="p-pos" value=""></td><td><input class="p-hs" value=""></td><td><input class="p-email" value=""></td><td><input class="p-phone" value="" style="width:108px"></td><td><input class="p-profile" value="" placeholder="uru.soccer/slug"></td><td><input class="p-qrslug" value="" placeholder="e.g. millie-squier"></td><td><input class="p-video" value="" placeholder="e.g. Highlight Video"></td><td><input class="p-committed" value="" placeholder="College name or blank"></td><td><button class="btn-red" onclick="removeRow(this)">✕</button></td>`;
   document.querySelector('#playersTable tbody').appendChild(tr);
 }
 
@@ -440,8 +441,7 @@ function renderPage(data) {
     const committed = (p.committed || '').trim();
     const rowBg   = committed ? '#fdf8ec' : (i % 2 ? '#faf9f5' : '#ffffff');
     const gradClr = committed ? (gradColors[p.grad] || '#555') : '#18160f';
-    const slug    = p.profile ? p.profile.split('/').pop() : '';
-    const qrSrc   = (data.showQr && slug) ? `assets/qr/${slug}.svg` : '';
+    const qrSrc   = (data.showQr && p.qrSlug) ? `assets/qr/${p.qrSlug}.svg` : '';
     return `<div style="display:grid;grid-template-columns:34px 1.6fr 54px 82px 1.2fr 1.9fr 2fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
       <div style="padding:3px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:#C8920A;">${p.num}</div>
       <div style="padding:2px 8px;display:flex;flex-direction:column;justify-content:center;">
