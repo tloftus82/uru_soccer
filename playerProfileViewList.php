@@ -85,6 +85,7 @@ $botPatterns = [
     'zscaler','imperva','sucuri','incapsula','datacenter','data center','hosting',
     'server','vps','dedicated','colocation','colo','teleport','crawl','spider',
     'bot','scraper','semrush','ahrefs','moz.com','majestic','pingdom','uptime',
+    'godlike','server farm',
 ];
 
 // ── Filters from GET ───────────────────────────────────────────────────────────
@@ -102,7 +103,7 @@ $offset         = ($page - 1) * $perPage;
 $botSqlParts = [];
 foreach ($botPatterns as $p) {
     $ps = mysqli_real_escape_string($cn, $p);
-    $botSqlParts[] = "LOWER(CONCAT(IFNULL(A.IP_ORG,''),' ',IFNULL(A.HOST_NAME,''))) LIKE '%$ps%'";
+    $botSqlParts[] = "LOWER(CONCAT(IFNULL(A.IP_ORG,''),' ',IFNULL(A.HOST_NAME,''),' ',IFNULL(A.USER_AGENT,''))) LIKE '%$ps%'";
 }
 $botSql = implode(' OR ', $botSqlParts);
 
