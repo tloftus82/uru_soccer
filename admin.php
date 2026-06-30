@@ -73,7 +73,7 @@ function sqlVal($cn, $val) {
 }
 
 // ── Routing ───────────────────────────────────────────────────────────────────
-$section  = $_GET['section'] ?? 'players';   // players | lookups | settings | urlslugs | redirects | siteviews | dbdump
+$section  = $_GET['section'] ?? 'players';   // players | lookups | settings | urlslugs | redirects | siteviews | dbdump | clearlogs
 $playerId = isset($_GET['p']) ? (int)$_GET['p'] : 0;
 $isNew    = isset($_GET['new']) && $_GET['new'] == 1;
 if ($isNew) $playerId = 0;
@@ -445,6 +445,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'settings') {
     exit;
 }
 
+// ── Clear logs ────────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $section === 'clearlogs') {
+    $target = $_POST['LOG_TARGET'] ?? '';
+    $deleted = 0;
+    if ($target === 'pp' || $target === 'both') {
+        mysqli_query($cn, "TRUNCATE TABLE PP_VIEW_LOG");
+        $deleted++;
+    }
+    if ($target === 'site' || $target === 'both') {
+        mysqli_query($cn, "TRUNCATE TABLE SITE_VIEW_LOG");
+        $deleted++;
+    }
+    $msg = $deleted ? 'Log(s) cleared successfully.' : 'Nothing selected.';
+    header("Location: admin.php?section=clearlogs&msg=".urlencode($msg)."&msgtype=success");
+    exit;
+}
+
 // ── Helper: write .htaccess rewrite blocks ────────────────────────────────────
 function writeHtaccessRewrites($cn) {
     $htFile = __DIR__ . '/.htaccess';
@@ -715,6 +732,7 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php?section=redirects" class="<?= $section === 'redirects' ? 'active' : '' ?>"><i class="fas fa-external-link-alt me-1"></i>Redirects</a>
   <a href="admin.php?section=siteviews" class="<?= $section === 'siteviews' ? 'active' : '' ?>"><i class="fas fa-chart-bar me-1"></i>Site Views</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
+  <a href="admin.php?section=clearlogs" class="<?= $section === 'clearlogs' ? 'active' : '' ?>"><i class="fas fa-trash-alt me-1"></i>Clear Logs</a>
   <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
 </div>
 
@@ -1731,6 +1749,48 @@ function copyDump() {
 </script>
 
 <?php endif; // dbdump ?>
+
+<?php if ($section === 'clearlogs'): ?>
+<?php
+  $ppCount   = mysqli_fetch_assoc(mysqli_query($cn, "SELECT COUNT(*) AS c FROM PP_VIEW_LOG"))['c'] ?? 0;
+  $siteCount = mysqli_fetch_assoc(mysqli_query($cn, "SELECT COUNT(*) AS c FROM SITE_VIEW_LOG"))['c'] ?? 0;
+?>
+<div style="max-width:560px;margin:0 auto;padding-top:32px;">
+  <h4 style="color:#1a3a5c;margin-bottom:6px;"><i class="fas fa-trash-alt me-2"></i>Clear Logs</h4>
+  <p class="text-muted" style="font-size:13px;margin-bottom:24px;">Permanently deletes all records from the selected log table. This cannot be undone.</p>
+
+  <?php if (!empty($_GET['msg'])): ?>
+    <div class="alert alert-<?= $_GET['msgtype'] === 'success' ? 'success' : 'danger' ?> py-2"><?= htmlspecialchars($_GET['msg']) ?></div>
+  <?php endif; ?>
+
+  <div style="background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:28px;">
+    <form method="POST" action="admin.php?section=clearlogs" onsubmit="return confirm('Are you sure? This cannot be undone.');">
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:600;font-size:14px;display:block;margin-bottom:10px;">Select log to clear:</label>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="LOG_TARGET" id="lt-pp" value="pp">
+          <label class="form-check-label" for="lt-pp">
+            Profile View Log <span class="text-muted" style="font-size:12px;">(<?= number_format($ppCount) ?> rows)</span>
+          </label>
+        </div>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="LOG_TARGET" id="lt-site" value="site">
+          <label class="form-check-label" for="lt-site">
+            Site View Log <span class="text-muted" style="font-size:12px;">(<?= number_format($siteCount) ?> rows)</span>
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="LOG_TARGET" id="lt-both" value="both">
+          <label class="form-check-label" for="lt-both">
+            <strong>Both</strong> <span class="text-muted" style="font-size:12px;">(<?= number_format($ppCount + $siteCount) ?> rows total)</span>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt me-1"></i>Clear Selected Log(s)</button>
+    </form>
+  </div>
+</div>
+<?php endif; // clearlogs ?>
 
 </div><!-- /container -->
 
