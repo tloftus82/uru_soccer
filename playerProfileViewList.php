@@ -457,6 +457,19 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                       'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
               if (strpos($uaLower, $b) !== false) { $botName = ucfirst($b); break; }
             }
+            // Also flag by datacenter org/host even if UA looks clean
+            if (!$botName) {
+                $orgLower  = strtolower($row['IP_ORG']   ?? '');
+                $hostLower = strtolower($row['HOST_NAME'] ?? '');
+                foreach (['amazon','amazonaws','google','microsoft','azure','cloudflare',
+                          'digitalocean','linode','vultr','ovh','hetzner','datacenter',
+                          'data center','hosting','vps','godlike','server farm'] as $dc) {
+                    if (strpos($orgLower, $dc) !== false || strpos($hostLower, $dc) !== false) {
+                        $botName = $row['IP_ORG'] ? substr($row['IP_ORG'], 0, 30) : 'Datacenter';
+                        break;
+                    }
+                }
+            }
             if ($botName) {
               $deviceBadge = '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">'
                            . htmlspecialchars($botName).'</span>';
