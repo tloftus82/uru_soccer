@@ -30,6 +30,9 @@ function humanScore($row, $botPatterns) {
     $sd      = $row['SCROLL_DEPTH'];
     $score   = 50;
 
+    // Hard bot: same IP hit 3+ profiles within 10s → clamp to 5
+    if (($row['BURST_COUNT'] ?? 1) >= 3) return 5;
+
     // Hard bot: known bot UA or org/host → clamp to 3
     foreach ($botPatterns as $b) {
         if (strpos($ua, $b) !== false || strpos($org, $b) !== false || strpos($host, $b) !== false) {
@@ -113,7 +116,10 @@ if ($filterPlayer)          $where[] = "A.PLAYER_ID = $filterPlayer";
 if ($filterViewer)          $where[] = "A.VIEWER_ID = $filterViewer";
 if ($filterDateFrom !== '') $where[] = "DATE(A.VIEW_DATE_TIME) >= '".mysqli_real_escape_string($cn, $filterDateFrom)."'";
 if ($filterDateTo   !== '') $where[] = "DATE(A.VIEW_DATE_TIME) <= '".mysqli_real_escape_string($cn, $filterDateTo)."'";
-if ($hideBots)              $where[] = "NOT ($botSql)";
+if ($hideBots) {
+    $where[] = "NOT ($botSql)";
+    $where[] = "(SELECT COUNT(*) FROM PP_VIEW_LOG B WHERE B.IP_ADDRESS = A.IP_ADDRESS AND ABS(TIMESTAMPDIFF(SECOND, B.VIEW_DATE_TIME, A.VIEW_DATE_TIME)) <= 10) < 3";
+}
 if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 
 $whereStr    = implode(' AND ', $where);
@@ -171,7 +177,10 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
                IFNULL(A.SECTIONS_SEEN,'') AS SECTIONS_SEEN, IFNULL(A.SECTION_TIMES,'') AS SECTION_TIMES,
                IFNULL(A.IS_RETURN_VISIT,0) AS IS_RETURN_VISIT,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
-               COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER
+               COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER,
+               (SELECT COUNT(*) FROM PP_VIEW_LOG B
+                WHERE B.IP_ADDRESS = A.IP_ADDRESS
+                AND ABS(TIMESTAMPDIFF(SECOND, B.VIEW_DATE_TIME, A.VIEW_DATE_TIME)) <= 10) AS BURST_COUNT
         FROM PP_VIEW_LOG A
         LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
         LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
@@ -457,6 +466,10 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                       'crawler','spider','bot','scrapy','wget','curl','python-requests',
                       'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
               if (strpos($uaLower, $b) !== false) { $botName = ucfirst($b); break; }
+            }
+            // Flag IP burst — same IP hit 3+ profiles within 10s
+            if (!$botName && ($row['BURST_COUNT'] ?? 1) >= 3) {
+                $botName = 'IP Burst ('.$row['BURST_COUNT'].')';
             }
             // Also flag by datacenter org/host even if UA looks clean
             if (!$botName) {

@@ -108,6 +108,13 @@ $row = mysqli_fetch_assoc(mysqli_query($cn,
 
 if (!$row) exit;
 
+// Burst detection — same IP hit 3+ profiles within 10s → skip email
+$burstRow = mysqli_fetch_assoc(mysqli_query($cn,
+    "SELECT COUNT(*) AS cnt FROM PP_VIEW_LOG
+     WHERE IP_ADDRESS = '".mysqli_real_escape_string($cn, $row['IP_ADDRESS'])."'
+     AND ABS(TIMESTAMPDIFF(SECOND, VIEW_DATE_TIME, '".mysqli_real_escape_string($cn, $row['VIEW_DATE_TIME'])."')) <= 10"));
+if (($burstRow['cnt'] ?? 1) >= 3) exit;
+
 // ── Human probability algorithm (mirrors playerProfileViewList.php) ────────────
 function computeHumanScore($row) {
     $ua   = strtolower($row['USER_AGENT']  ?? '');
