@@ -40,6 +40,21 @@ function humanScore($row, $botPatterns) {
         }
     }
 
+    // Hard bot: spoofed / impossible browser or OS version → clamp to 4
+    $uaRaw = $row['USER_AGENT'] ?? '';
+    if (
+        // Browser versions that never existed or are ancient (pre-2019)
+        preg_match('/Firefox\/([\d]+)/i',        $uaRaw, $m) && (int)$m[1] < 68  ||
+        preg_match('/Chrome\/([\d]+)/i',          $uaRaw, $m) && (int)$m[1] < 74  ||
+        preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
+        preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
+        preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+        // Windows version strings that don't match any real NT release
+        (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
+         !in_array($m[1], ['NT', '95', '98', 'NT 4.0','NT 5.0','NT 5.1','NT 5.2','NT 6.0','NT 6.1','NT 6.2','NT 6.3','NT 10.0']) &&
+         !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
+    ) { return 4; }
+
     // ── Signals that lower score ──────────────────────────────────────────────
     if ($ua === '')                                          $score -= 35; // no UA
     $dcKeywords = ['amazon','google','microsoft','azure','digitalocean','linode',
@@ -466,6 +481,19 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                       'crawler','spider','bot','scrapy','wget','curl','python-requests',
                       'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
               if (strpos($uaLower, $b) !== false) { $botName = ucfirst($b); break; }
+            }
+            // Flag spoofed / impossible browser or OS version
+            if (!$botName) {
+                $uaRaw = $row['USER_AGENT'] ?? '';
+                if (
+                    preg_match('/Firefox\/([\d]+)/i',        $uaRaw, $m) && (int)$m[1] < 68  ||
+                    preg_match('/Chrome\/([\d]+)/i',          $uaRaw, $m) && (int)$m[1] < 74  ||
+                    preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
+                    preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
+                    preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+                    (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
+                     !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
+                ) { $botName = 'Spoof UA'; }
             }
             // Flag IP burst — same IP hit 3+ profiles within 10s
             if (!$botName && ($row['BURST_COUNT'] ?? 1) >= 3) {

@@ -134,6 +134,18 @@ function computeHumanScore($row) {
         if (strpos($ua, $b) !== false) return 3;
     }
 
+    // Hard bot: spoofed / impossible browser or OS version → clamp to 4
+    $uaRaw = $row['USER_AGENT'] ?? '';
+    if (
+        preg_match('/Firefox\/([\d]+)/i',        $uaRaw, $m) && (int)$m[1] < 68  ||
+        preg_match('/Chrome\/([\d]+)/i',          $uaRaw, $m) && (int)$m[1] < 74  ||
+        preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
+        preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
+        preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+        (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
+         !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
+    ) { return 4; }
+
     $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
     foreach ($dcKw as $kw) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
