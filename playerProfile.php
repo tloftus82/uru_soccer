@@ -45,7 +45,7 @@
   $playerAuth = 0;
   if (isset($_GET['p'])) {
     $playerId = (int)$_GET['p']; // cast to int — eliminates any injection possibility
-    $stmt = mysqli_prepare($cn, "SELECT 1 FROM PP_PLAYERS WHERE ID = ? LIMIT 1");
+    $stmt = mysqli_prepare($cn, "SELECT 1 FROM PP_PLAYERS WHERE ID = ? AND IS_ACTIVE = 1 LIMIT 1");
     if ($stmt) {
       mysqli_stmt_bind_param($stmt, 'i', $playerId);
       mysqli_stmt_execute($stmt);
