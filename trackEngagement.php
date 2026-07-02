@@ -142,6 +142,8 @@ function computeHumanScore($row) {
         preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
         preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
         preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+        preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
+        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
         (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
          !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
     ) { return 4; }

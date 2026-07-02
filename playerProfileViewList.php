@@ -49,6 +49,8 @@ function humanScore($row, $botPatterns) {
         preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
         preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
         preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+        preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
+        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
         // Windows version strings that don't match any real NT release
         (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
          !in_array($m[1], ['NT', '95', '98', 'NT 4.0','NT 5.0','NT 5.1','NT 5.2','NT 6.0','NT 6.1','NT 6.2','NT 6.3','NT 10.0']) &&
@@ -491,6 +493,8 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                     preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
                     preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
                     preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
+                    preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
+                    preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
                     (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
                      !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
                 ) { $botName = 'Spoof UA'; }
