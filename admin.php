@@ -682,8 +682,9 @@ $fa         = "admin.php?section=lookups";
     .nav-tabs .nav-link{color:#1a3a5c;font-weight:600;font-size:13px;border:none;padding:10px 18px;}
     .nav-tabs .nav-link:hover{color:#27ae60;background:transparent;}
     .nav-tabs .nav-link.active{color:#fff;background:#1a3a5c;border-radius:6px 6px 0 0;}
-    .card-section{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px;margin-bottom:20px;}
+    .card-section{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px;margin-bottom:20px;overflow-x:auto;}
     .card-section h5{color:#1a3a5c;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e8eef5;padding-bottom:10px;margin-bottom:18px;}
+    .tab-pane{overflow-x:auto;}
     .form-label{font-weight:600;font-size:13px;color:#3a4a5c;margin-bottom:4px;}
     .field-hint{font-size:11px;color:#8a9ab0;margin-top:3px;}
     .table thead th{background:#eef2f7;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#4a5a6c;border:none;}
@@ -707,6 +708,49 @@ $fa         = "admin.php?section=lookups";
     #cropContainer img{max-width:100%;display:block;}
     #cropContainer.circle-crop .cropper-view-box,
     #cropContainer.circle-crop .cropper-face{border-radius:50%;}
+
+    /* ── Responsive nav ── */
+    .section-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none;}
+    .section-nav::-webkit-scrollbar{display:none;}
+    .section-nav a{white-space:nowrap;flex-shrink:0;}
+    .nav-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none;}
+    .nav-tabs::-webkit-scrollbar{display:none;}
+    .nav-tabs .nav-link{white-space:nowrap;}
+
+    /* ── Responsive tables — all tables scroll horizontally inside their container ── */
+    .table{min-width:520px;-webkit-overflow-scrolling:touch;}
+
+    /* ── Mobile layout ── */
+    @media(max-width:767px){
+      .uru-header{padding:10px 14px;}
+      .uru-header h1{font-size:16px;}
+      .uru-header .d-flex.gap-2{gap:6px !important;}
+      .uru-header .btn-sm{font-size:11px;padding:4px 8px;}
+      .container-fluid{padding-left:12px !important;padding-right:12px !important;}
+      .card-section{padding:14px;}
+      /* Stack two-column form fields to single column */
+      .col-6{width:100% !important;flex:0 0 100% !important;max-width:100% !important;}
+      .col-xl-6{width:100% !important;flex:0 0 100% !important;max-width:100% !important;}
+      /* Player list table — hide less-critical cols on small screens */
+      .tbl-hide-mobile{display:none !important;}
+      /* Nav tabs — scroll horizontally */
+      .nav-tabs .nav-link{padding:8px 12px;font-size:12px;}
+      /* Add panel forms */
+      .add-panel .row .col-md-4,
+      .add-panel .row .col-md-3,
+      .add-panel .row .col-md-2{width:100%;flex:0 0 100%;max-width:100%;}
+      /* Action buttons in tables */
+      .btn-group-actions{display:flex;flex-wrap:wrap;gap:4px;}
+      /* Player search full width */
+      #playerSearch{max-width:100%;}
+      /* Accolade/video/ref rows */
+      .row.g-3 > [class*="col-md"]{width:100%;flex:0 0 100%;max-width:100%;}
+    }
+
+    @media(max-width:480px){
+      .section-nav a{padding:8px 12px;font-size:12px;}
+      .uru-header h1{font-size:14px;}
+    }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -756,7 +800,7 @@ $fa         = "admin.php?section=lookups";
   </div>
   <input type="text" id="playerSearch" class="form-control mb-3" placeholder="Type name to filter...">
   <table class="table table-hover table-sm align-middle" id="playerTable">
-    <thead><tr><th style="width:50px"></th><th>Name</th><th>Position</th><th>Class</th><th>Status</th><th style="width:100px"></th></tr></thead>
+    <thead><tr><th style="width:50px"></th><th>Name</th><th class="tbl-hide-mobile">Position</th><th class="tbl-hide-mobile">Class</th><th>Status</th><th style="width:100px"></th></tr></thead>
     <tbody>
     <?php foreach ($allPlayers as $pl): ?>
     <tr class="player-row" data-name="<?= htmlspecialchars(strtolower($pl['FIRST_NAME'].' '.$pl['LAST_NAME'])) ?>">
@@ -771,8 +815,8 @@ $fa         = "admin.php?section=lookups";
         <strong><?= htmlspecialchars($pl['LAST_NAME'].', '.$pl['FIRST_NAME']) ?></strong>
         <?php if ($pl['COMMITTED_FLAG']): ?><span class="committed-badge ms-2">COMMITTED</span><?php endif; ?>
       </td>
-      <td><?= htmlspecialchars($pl['POSITION'] ?? '—') ?></td>
-      <td><?= (int)$pl['GRAD_CLASS'] ?></td>
+      <td class="tbl-hide-mobile"><?= htmlspecialchars($pl['POSITION'] ?? '—') ?></td>
+      <td class="tbl-hide-mobile"><?= (int)$pl['GRAD_CLASS'] ?></td>
       <td><?= $pl['IS_ACTIVE'] ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>' ?></td>
       <td><a href="admin.php?p=<?= $pl['ID'] ?>" class="btn btn-sm btn-uru"><i class="fas fa-pencil-alt me-1"></i>Edit</a></td>
     </tr>
@@ -953,13 +997,13 @@ $fa         = "admin.php?section=lookups";
         <input type="hidden" name="ORDER" id="accoladeOrder">
       </form>
       <table class="table table-hover table-sm align-middle">
-        <thead><tr><th style="width:30px"></th><th>Time Period</th><th>Organization</th><th>Text</th><th style="width:60px"></th></tr></thead>
+        <thead><tr><th style="width:30px"></th><th class="tbl-hide-mobile">Time Period</th><th class="tbl-hide-mobile">Organization</th><th>Text</th><th style="width:60px"></th></tr></thead>
         <tbody id="accoladeBody">
         <?php foreach ($accolades as $acc): ?>
         <tr data-id="<?= $acc['ID'] ?>">
           <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
-          <td><?= htmlspecialchars($acc['TIME_PER_DESC']) ?></td>
-          <td><?= htmlspecialchars($acc['ORG_NAME']) ?></td>
+          <td class="tbl-hide-mobile"><?= htmlspecialchars($acc['TIME_PER_DESC']) ?></td>
+          <td class="tbl-hide-mobile"><?= htmlspecialchars($acc['ORG_NAME']) ?></td>
           <td><?= nl2br(htmlspecialchars(mb_substr($acc['ACCOLADES_TEXT'],0,100))) ?><?= mb_strlen($acc['ACCOLADES_TEXT'])>100?'&hellip;':'' ?></td>
           <td class="d-flex gap-1"><a href="?p=<?=$playerId?>&section=players&tab=tab-accolades&edit_acc=<?=$acc['ID']?>" class="btn btn-outline-secondary btn-sm"><i class="fas fa-edit"></i></a><form method="POST" action="<?= $formAction ?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_ACCOLADE"><input type="hidden" name="ACCOLADE_ID" value="<?= $acc['ID'] ?>"><input type="hidden" name="ACTIVE_TAB" value="tab-accolades"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
         </tr>
@@ -999,15 +1043,15 @@ $fa         = "admin.php?section=lookups";
         <input type="hidden" name="ORDER" id="videoOrder">
       </form>
       <table class="table table-hover table-sm align-middle">
-        <thead><tr><th style="width:30px"></th><th>Type</th><th>Time Period</th><th>Org</th><th>Length</th><th>URL</th><th style="width:60px"></th></tr></thead>
+        <thead><tr><th style="width:30px"></th><th>Type</th><th class="tbl-hide-mobile">Time Period</th><th class="tbl-hide-mobile">Org</th><th class="tbl-hide-mobile">Length</th><th>URL</th><th style="width:60px"></th></tr></thead>
         <tbody id="videoBody">
         <?php foreach ($videos as $vid): ?>
         <tr data-id="<?=$vid['ID']?>">
           <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
           <td><?=htmlspecialchars($vid['VIDEO_TYPE_DESC'])?></td>
-          <td><?=htmlspecialchars($vid['TIME_PER_DESC']??'—')?></td>
-          <td><?=htmlspecialchars($vid['ORG_NAME']??'—')?></td>
-          <td><?=(int)$vid['VIDEO_LENGTH_M']?> min</td>
+          <td class="tbl-hide-mobile"><?=htmlspecialchars($vid['TIME_PER_DESC']??'—')?></td>
+          <td class="tbl-hide-mobile"><?=htmlspecialchars($vid['ORG_NAME']??'—')?></td>
+          <td class="tbl-hide-mobile"><?=(int)$vid['VIDEO_LENGTH_M']?> min</td>
           <td><a href="<?=htmlspecialchars($vid['VIDEO_URL'])?>" target="_blank" class="text-truncate d-inline-block" style="max-width:180px"><?=htmlspecialchars($vid['VIDEO_URL'])?></a></td>
           <td><form method="POST" action="<?=$formAction?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_VIDEO"><input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']?>"><input type="hidden" name="ACTIVE_TAB" value="tab-videos"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
         </tr>
@@ -1049,16 +1093,16 @@ $fa         = "admin.php?section=lookups";
         <input type="hidden" name="ACTION" value="UPDATE_REFERENCES">
         <input type="hidden" name="ACTIVE_TAB" value="tab-references">
         <table class="table table-hover table-sm align-middle">
-          <thead><tr><th style="width:30px"></th><th>Type</th><th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th style="width:100px">Active</th><th style="width:60px"></th></tr></thead>
+          <thead><tr><th style="width:30px"></th><th class="tbl-hide-mobile">Type</th><th>Name</th><th class="tbl-hide-mobile">Organization</th><th class="tbl-hide-mobile">Email</th><th class="tbl-hide-mobile">Phone</th><th style="width:100px">Active</th><th style="width:60px"></th></tr></thead>
           <tbody id="refBody">
           <?php foreach ($references as $ref): ?>
           <tr data-id="<?=$ref['ID']?>">
             <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
-            <td><?=htmlspecialchars($ref['REF_TYPE'])?></td>
+            <td class="tbl-hide-mobile"><?=htmlspecialchars($ref['REF_TYPE'])?></td>
             <td><?=htmlspecialchars($ref['CONTACT_NAME'])?></td>
-            <td><?=htmlspecialchars($ref['ORG_NAME'])?></td>
-            <td><?=htmlspecialchars($ref['EMAIL_ADDRESS']??'')?></td>
-            <td><?=htmlspecialchars($ref['PHONE_NUMBER']??'')?></td>
+            <td class="tbl-hide-mobile"><?=htmlspecialchars($ref['ORG_NAME'])?></td>
+            <td class="tbl-hide-mobile"><?=htmlspecialchars($ref['EMAIL_ADDRESS']??'')?></td>
+            <td class="tbl-hide-mobile"><?=htmlspecialchars($ref['PHONE_NUMBER']??'')?></td>
             <td><select class="form-select form-select-sm" name="REF_ACTIVE[<?=$ref['ID']?>]"><option value="1" <?=sel($ref['IS_ACTIVE'],1)?>>Yes</option><option value="0" <?=sel($ref['IS_ACTIVE'],0)?>>No</option></select></td>
             <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteRef(<?=$ref['ID']?>)"><i class="fas fa-trash"></i></button></td>
           </tr>
@@ -1077,10 +1121,10 @@ $fa         = "admin.php?section=lookups";
         <input type="hidden" name="ACTIVE_TAB" value="tab-references">
         <div class="add-panel">
           <table class="table table-sm table-hover align-middle mb-3">
-            <thead><tr><th style="width:40px">Add</th><th>Type</th><th>Name</th><th>Organization</th><th>Email</th><th>Phone</th></tr></thead>
+            <thead><tr><th style="width:40px">Add</th><th class="tbl-hide-mobile">Type</th><th>Name</th><th class="tbl-hide-mobile">Organization</th><th class="tbl-hide-mobile">Email</th><th class="tbl-hide-mobile">Phone</th></tr></thead>
             <tbody>
             <?php foreach ($availableContacts as $cont): ?>
-            <tr><td><input type="checkbox" name="ADD_CONTACT_IDS[]" value="<?=$cont['ID']?>" class="form-check-input"></td><td><?=htmlspecialchars($cont['REF_TYPE'])?></td><td><?=htmlspecialchars($cont['CONTACT_NAME'])?></td><td><?=htmlspecialchars($cont['ORG_NAME'])?></td><td><?=htmlspecialchars($cont['EMAIL_ADDRESS']??'')?></td><td><?=htmlspecialchars($cont['PHONE_NUMBER']??'')?></td></tr>
+            <tr><td><input type="checkbox" name="ADD_CONTACT_IDS[]" value="<?=$cont['ID']?>" class="form-check-input"></td><td class="tbl-hide-mobile"><?=htmlspecialchars($cont['REF_TYPE'])?></td><td><?=htmlspecialchars($cont['CONTACT_NAME'])?></td><td class="tbl-hide-mobile"><?=htmlspecialchars($cont['ORG_NAME'])?></td><td class="tbl-hide-mobile"><?=htmlspecialchars($cont['EMAIL_ADDRESS']??'')?></td><td class="tbl-hide-mobile"><?=htmlspecialchars($cont['PHONE_NUMBER']??'')?></td></tr>
             <?php endforeach; ?>
             </tbody>
           </table>
@@ -1321,10 +1365,10 @@ function rowActions($fa, $table, $id, $activeTab) {
       <thead>
         <tr>
           <th>Player</th>
-          <th>Position</th>
-          <th>Class</th>
+          <th class="tbl-hide-mobile">Position</th>
+          <th class="tbl-hide-mobile">Class</th>
           <th style="min-width:220px;">URL Slug <span class="text-muted fw-normal">(uru.soccer/<em>slug</em>)</span></th>
-          <th>Preview</th>
+          <th class="tbl-hide-mobile">Preview</th>
         </tr>
       </thead>
       <tbody>
@@ -1334,8 +1378,8 @@ function rowActions($fa, $table, $id, $activeTab) {
         ?>
         <tr>
           <td><?= htmlspecialchars($sp['FIRST_NAME'] . ' ' . $sp['LAST_NAME']) ?></td>
-          <td class="text-muted small"><?= htmlspecialchars($sp['POSITION'] ?? '') ?></td>
-          <td class="text-muted small"><?= htmlspecialchars($sp['GRAD_CLASS']) ?></td>
+          <td class="text-muted small tbl-hide-mobile"><?= htmlspecialchars($sp['POSITION'] ?? '') ?></td>
+          <td class="text-muted small tbl-hide-mobile"><?= htmlspecialchars($sp['GRAD_CLASS']) ?></td>
           <td>
             <input type="hidden" name="slugs[<?= $sp['ID'] ?>]" value="">
             <input type="text" class="form-control form-control-sm font-monospace slug-input"
@@ -1344,7 +1388,7 @@ function rowActions($fa, $table, $id, $activeTab) {
                    pattern="[a-z0-9\-]+"
                    data-default="<?= htmlspecialchars($defaultSlug) ?>">
           </td>
-          <td>
+          <td class="tbl-hide-mobile">
             <a href="https://uru.soccer/<?= htmlspecialchars($currentSlug) ?>" target="_blank"
                class="text-muted small slug-preview">uru.soccer/<?= htmlspecialchars($currentSlug) ?></a>
           </td>
@@ -1434,8 +1478,8 @@ document.querySelectorAll('.slug-input').forEach(function(inp){
       <thead>
         <tr>
           <th>Slug</th>
-          <th>Destination</th>
-          <th>Label</th>
+          <th class="tbl-hide-mobile">Destination</th>
+          <th class="tbl-hide-mobile">Label</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -1444,10 +1488,10 @@ document.querySelectorAll('.slug-input').forEach(function(inp){
         <?php foreach ($allRedirs as $r): ?>
         <tr class="<?= $r['IS_ACTIVE'] ? '' : 'opacity-50' ?>">
           <td><code>uru.soccer/<?= htmlspecialchars($r['SLUG']) ?></code></td>
-          <td class="text-muted small" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <td class="text-muted small tbl-hide-mobile" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
             <a href="<?= htmlspecialchars($r['DEST_URL']) ?>" target="_blank" style="color:inherit;"><?= htmlspecialchars($r['DEST_URL']) ?></a>
           </td>
-          <td class="text-muted small"><?= htmlspecialchars($r['LABEL']) ?></td>
+          <td class="text-muted small tbl-hide-mobile"><?= htmlspecialchars($r['LABEL']) ?></td>
           <td>
             <form method="POST" action="admin.php?section=redirects" class="d-inline">
               <input type="hidden" name="ACTION" value="TOGGLE_REDIRECT">
