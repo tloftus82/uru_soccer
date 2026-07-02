@@ -136,6 +136,15 @@ if ($filterDateTo   !== '') $where[] = "DATE(A.VIEW_DATE_TIME) <= '".mysqli_real
 if ($hideBots) {
     $where[] = "NOT ($botSql)";
     $where[] = "(SELECT COUNT(*) FROM PP_VIEW_LOG B WHERE B.IP_ADDRESS = A.IP_ADDRESS AND ABS(TIMESTAMPDIFF(SECOND, B.VIEW_DATE_TIME, A.VIEW_DATE_TIME)) <= 10) < 3";
+    // Exclude spoofed / impossible browser versions at SQL level so counts match display
+    $where[] = "NOT (
+        A.USER_AGENT REGEXP 'MSIE[[:space:]]+[0-9]+' AND CAST(REGEXP_SUBSTR(A.USER_AGENT,'MSIE[[:space:]]+([0-9]+)',1,1,'i',1) AS UNSIGNED) < 12
+        OR A.USER_AGENT REGEXP 'Firefox/[0-9]+' AND CAST(REGEXP_SUBSTR(A.USER_AGENT,'Firefox/([0-9]+)',1,1,'i',1) AS UNSIGNED) < 68
+        OR A.USER_AGENT REGEXP 'Chrome/[0-9]+' AND CAST(REGEXP_SUBSTR(A.USER_AGENT,'Chrome/([0-9]+)',1,1,'i',1) AS UNSIGNED) < 74
+        OR A.USER_AGENT REGEXP 'OPR/[0-9]+' AND CAST(REGEXP_SUBSTR(A.USER_AGENT,'OPR/([0-9]+)',1,1,'i',1) AS UNSIGNED) < 60
+        OR A.USER_AGENT REGEXP 'Version/[0-9]+.*Safari' AND CAST(REGEXP_SUBSTR(A.USER_AGENT,'Version/([0-9]+)',1,1,'i',1) AS UNSIGNED) < 12
+        OR (A.USER_AGENT REGEXP 'Windows ' AND A.USER_AGENT NOT REGEXP 'Windows NT (5\\.[012]|6\\.[0-3]|10\\.0)')
+    )";
 }
 if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 
