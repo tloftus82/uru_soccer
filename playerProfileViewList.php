@@ -164,6 +164,7 @@ $botCount = (int)$botRow['cnt'];
 // Chart data built after PHP filtering (below, from $filteredRows)
 $byPlayer = [];
 $byViewer = [];
+$byIp     = [];
 
 // ── Fetch all matching rows, filter in PHP, then paginate ────────────────────
 // Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
@@ -242,11 +243,14 @@ $uniqueIPs     = count(array_unique(array_filter(array_column($filteredRows, 'IP
 foreach ($filteredRows as $fr) {
     $pName = $fr['PLAYER'] ?? '—';
     $vName = $fr['VIEWER'] ?? '—';
+    $ip    = $fr['IP_ADDRESS'] ?? '';
     $byPlayer[$pName] = ($byPlayer[$pName] ?? 0) + 1;
     $byViewer[$vName] = ($byViewer[$vName] ?? 0) + 1;
+    if ($ip) $byIp[$ip] = ($byIp[$ip] ?? 0) + 1;
 }
 arsort($byPlayer); $byPlayer = array_slice($byPlayer, 0, 10, true);
 arsort($byViewer); $byViewer = array_slice($byViewer, 0, 10, true);
+arsort($byIp);     $byIp     = array_slice($byIp,     0, 10, true);
 $totalPages = max(1, (int)ceil($totalViews / $perPage));
 $page       = max(1, min($page, $totalPages));
 $offset     = ($page - 1) * $perPage;
@@ -421,7 +425,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   <!-- ── Charts Row ────────────────────────────────────────────────────────── -->
   <?php if ($totalViews > 0): ?>
   <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="bg-white rounded-3 p-3 shadow-sm h-100">
         <div class="section-head"><i class="fas fa-user-circle me-2"></i>Views by Player</div>
         <?php $maxP = max(array_values($byPlayer)); foreach ($byPlayer as $name => $cnt): ?>
@@ -435,7 +439,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <?php endforeach; ?>
       </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="bg-white rounded-3 p-3 shadow-sm h-100">
         <div class="section-head"><i class="fas fa-users me-2"></i>Views by Viewer</div>
         <?php $maxV = max(array_values($byViewer)); foreach ($byViewer as $name => $cnt): ?>
@@ -449,6 +453,24 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <?php endforeach; ?>
       </div>
     </div>
+    <?php if ($byIp): ?>
+    <div class="col-md-4">
+      <div class="bg-white rounded-3 p-3 shadow-sm h-100">
+        <div class="section-head"><i class="fas fa-network-wired me-2"></i>Views by IP</div>
+        <?php $maxI = max(array_values($byIp)); foreach ($byIp as $ip => $cnt): ?>
+        <div class="chart-row">
+          <div class="chart-label text-muted" style="font-family:monospace;font-size:11px;">
+            <a href="admin.php?section=siteviews&q=<?= urlencode($ip) ?>" style="color:inherit;" title="Site log for this IP"><?= htmlspecialchars($ip) ?></a>
+          </div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-inner" style="width:<?= round($cnt/$maxI*100) ?>%;background:#8e44ad;"></div>
+          </div>
+          <div class="chart-count"><?= $cnt ?></div>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
   </div>
   <?php endif; ?>
 
