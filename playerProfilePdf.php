@@ -11,9 +11,17 @@ include('dbConnect/dbConnect.inc.php');
   $pageName = $_SERVER['REQUEST_URI'];
   $userIp = $_SERVER['REMOTE_ADDR'];
   $hostName = gethostbyaddr($userIp);
-  $ipDetails = json_decode(file_get_contents("http://ipinfo.io/".$userIp."/json"));
-  $ipLocation = $ipDetails->city.", ".$ipDetails->region.", ".$ipDetails->country;
-  $ipOrg = $ipDetails->org;
+  $ipLocation = ''; $ipOrg = '';
+  if (function_exists('curl_init')) {
+    $ch = curl_init("https://ipapi.co/{$userIp}/json/");
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'URUSoccer/1.0']);
+    $ipRaw = curl_exec($ch); curl_close($ch);
+    $ipDetails = $ipRaw ? @json_decode($ipRaw) : null;
+    if ($ipDetails && !empty($ipDetails->city)) {
+      $ipLocation = $ipDetails->city.', '.$ipDetails->region.', '.$ipDetails->country_name;
+      $ipOrg      = $ipDetails->org ?? '';
+    }
+  }
 
   //check to see if authorized viewer
   $viewCode = "NULL";
