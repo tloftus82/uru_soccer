@@ -167,22 +167,9 @@ $botRow  = mysqli_fetch_assoc(mysqli_query($cn,
      WHERE ($whereBotOff) AND ($botSql)"));
 $botCount = (int)$botRow['cnt'];
 
-// ── Bar chart data (top 10 per group, from DB) ─────────────────────────────────
-$byPlayerRaw = mysqli_fetch_all(mysqli_query($cn,
-    "SELECT CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS NAME, COUNT(*) AS CNT
-     FROM PP_VIEW_LOG A
-     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
-     WHERE $whereStr GROUP BY A.PLAYER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
-$byPlayer = array_column($byPlayerRaw, 'CNT', 'NAME');
-
-$byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
-    "SELECT CONCAT(B.FIRST_NAME,' ',B.LAST_NAME) AS NAME, COUNT(*) AS CNT
-     FROM PP_VIEW_LOG A
-     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
-     WHERE $whereStr GROUP BY A.VIEWER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
-$byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
+// Chart data built after PHP filtering (below, from $filteredRows)
+$byPlayer = [];
+$byViewer = [];
 
 // ── Fetch all matching rows, filter in PHP, then paginate ────────────────────
 // Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
@@ -252,6 +239,16 @@ foreach ($allRows as $r) {
 }
 
 $totalViews = count($filteredRows);
+
+// Build chart data from the filtered set so they match the detail table exactly
+foreach ($filteredRows as $fr) {
+    $pName = $fr['PLAYER'] ?? '—';
+    $vName = $fr['VIEWER'] ?? '—';
+    $byPlayer[$pName] = ($byPlayer[$pName] ?? 0) + 1;
+    $byViewer[$vName] = ($byViewer[$vName] ?? 0) + 1;
+}
+arsort($byPlayer); $byPlayer = array_slice($byPlayer, 0, 10, true);
+arsort($byViewer); $byViewer = array_slice($byViewer, 0, 10, true);
 $totalPages = max(1, (int)ceil($totalViews / $perPage));
 $page       = max(1, min($page, $totalPages));
 $offset     = ($page - 1) * $perPage;
