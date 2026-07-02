@@ -8,6 +8,14 @@ if (!isset($_COOKIE['uru_admin']) || $_COOKIE['uru_admin'] !== COOKIE_TOKEN) {
 
 include('dbConnect/dbConnect.inc.php');
 
+// ── Delete single record ──────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    $del_id = (int)$_POST['delete_id'];
+    if ($del_id > 0) mysqli_query($cn, "DELETE FROM PP_VIEW_LOG WHERE ID = $del_id");
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : ''));
+    exit;
+}
+
 // Ensure all extended columns exist before any SELECT references them
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER      VARCHAR(500)  NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT    VARCHAR(500)  NULL");
@@ -160,7 +168,7 @@ $byViewer = [];
 // ── Fetch all matching rows, filter in PHP, then paginate ────────────────────
 // Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
 // datacenter org, etc.) runs before pagination and the displayed count is exact.
-$sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
+$sql = "SELECT A.ID, A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE, IFNULL(A.REDIRECT_SLUG,'') AS REDIRECT_SLUG,
                IFNULL(A.PAGE_URL,'') AS PAGE_URL,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
@@ -634,6 +642,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
 
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
+              'row_id'   => $row['ID'],
               'url'      => $profileUrl,
               'ip'       => $row['IP_ADDRESS'],
               'org'      => $row['IP_ORG'],
@@ -702,6 +711,12 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   <div class="detail-card" id="detailCard">
     <div class="dc-head"><i class="fas fa-circle-info me-1"></i>View Detail</div>
     <dl id="detailBody"></dl>
+    <form id="deleteRowForm" method="POST" style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,.1);">
+      <input type="hidden" name="delete_id" id="deleteRowId">
+      <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this view record?')">
+        <i class="fas fa-trash me-1"></i>Delete This Record
+      </button>
+    </form>
   </div>
 
 </div>
@@ -749,6 +764,7 @@ $('#viewTable').DataTable({
 
   function populate(btn) {
     var data = JSON.parse(btn.getAttribute('data-dc'));
+    document.getElementById('deleteRowId').value = data.row_id || '';
     var html = '';
     for (var k in LABELS) {
       if (!data[k]) continue;
