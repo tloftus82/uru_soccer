@@ -283,6 +283,7 @@
   <link rel="stylesheet" href="css/owl.carousel.css" />
   <link rel="stylesheet" href="css/swiper.css" />
   <link rel="stylesheet" href="css/fontawesome.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->
   <style>
     .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0 8px;}
