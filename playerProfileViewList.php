@@ -516,6 +516,9 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                     }
                 }
             }
+            // Hide PHP-detected bots (Spoof UA, IP Burst, datacenter) when filter is on
+            if ($botName && $hideBots) continue;
+
             if ($botName) {
               $deviceBadge = '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">'
                            . htmlspecialchars($botName).'</span>';
