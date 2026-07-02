@@ -1,0 +1,109 @@
+/* URU Soccer — mobile & responsive overrides */
+
+/* Prevent horizontal overflow on all screens */
+html {
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Tablet & mobile (≤1199px) ───────────────────────────── */
+@media (max-width: 1199px) {
+
+  /* Layout: stack to single column */
+  .wrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  .wrapper:before {
+    display: none !important;
+  }
+
+  /* Background hero: full width, fixed height */
+  .background-bg {
+    position: relative !important;
+    width: 100% !important;
+    height: 38vw !important;
+    min-height: 200px;
+    max-height: 360px;
+  }
+  .background-filter.circle {
+    clip-path: circle(120% at 50% 0%) !important;
+    -webkit-clip-path: circle(120% at 50% 0%) !important;
+  }
+
+  /* Section padding */
+  .section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Header: full width, no side gaps */
+  .header {
+    left: 0 !important;
+    right: 0 !important;
+    box-sizing: border-box;
+    width: 100% !important;
+  }
+}
+
+/* ── Small mobile (≤767px) ───────────────────────────────── */
+@media (max-width: 767px) {
+
+  .background-bg {
+    height: 52vw !important;
+    min-height: 180px;
+    max-height: 260px;
+  }
+
+  .section {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-top: 28px !important;
+    padding-bottom: 28px !important;
+  }
+
+  .h-title {
+    font-size: 24px !important;
+    line-height: 1.25 !important;
+    word-break: break-word;
+  }
+  .h-text {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Two-column player grid already handled in playerProfiles.php inline style,
+     but make sure it doesn't bust out */
+  .player-grid {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Inline flex fliers: stack on very small screens */
+  .h-text > div[style] {
+    flex-wrap: wrap !important;
+  }
+  .h-text > div[style] > div[style*="width:calc(50%"],
+  .h-text > div[style] > a[style*="width:calc(50%"] {
+    width: 100% !important;
+    flex: none !important;
+  }
+}
+
+/* ── Columns used on profile pages ──────────────────────── */
+@media (max-width: 767px) {
+  .cols .col {
+    width: 100% !important;
+    float: none !important;
+  }
+}

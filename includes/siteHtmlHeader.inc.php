@@ -54,6 +54,7 @@
   <link rel="stylesheet" href="css/owl.carousel.css" />
   <link rel="stylesheet" href="css/swiper.css" />
   <link rel="stylesheet" href="css/fontawesome.css" />
-  <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->  
-		
+  <link rel="stylesheet" href="css/theme-colors/blue_uru.css" />  <!-- Theme Colors -- blue.css / green.css / orange.css / brown.css / purple.css / red.css / beige.css / green_light.css / yellow.css / yellow_light.css -->
+  <link rel="stylesheet" href="css/mobile.css" />
+
 </head>
