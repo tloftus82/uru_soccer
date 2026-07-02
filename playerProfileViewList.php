@@ -161,7 +161,7 @@ $byViewer = [];
 // Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
 // datacenter org, etc.) runs before pagination and the displayed count is exact.
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
-               A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
+               A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE, IFNULL(A.REDIRECT_SLUG,'') AS REDIRECT_SLUG,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
                A.VIDEO_WATCH_SECONDS, IFNULL(A.VIDEOS_WATCHED,'') AS VIDEOS_WATCHED,
@@ -628,8 +628,19 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               }
             }
 
+            // Build the profile URL they actually visited
+            $profileUrl = '';
+            if ($row['REDIRECT_SLUG'] && $row['VIEW_CODE']) {
+                $profileUrl = 'https://uru.soccer/' . $row['REDIRECT_SLUG'] . '/' . $row['VIEW_CODE'];
+            } elseif ($row['REDIRECT_SLUG']) {
+                $profileUrl = 'https://uru.soccer/' . $row['REDIRECT_SLUG'];
+            } elseif ($row['PLAYER_ID'] && $row['VIEW_CODE']) {
+                $profileUrl = 'https://uru.soccer/playerProfile.php?p=' . $row['PLAYER_ID'] . '&v=' . $row['VIEW_CODE'];
+            }
+
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
+              'url'      => $profileUrl,
               'ip'       => $row['IP_ADDRESS'],
               'org'      => $row['IP_ORG'],
               'host'     => $row['HOST_NAME'],
@@ -719,6 +730,7 @@ $('#viewTable').DataTable({
   var pinnedBtn = null;  // set when clicked
   var hoverBtn  = null;  // set when hovered
   var LABELS = {
+    url:'Profile URL',
     ip:'IP Address', org:'Organization', host:'Hostname',
     browser:'Browser / OS', ref:'Referrer', return:'Return Visit',
     time:'Time on Page', scroll:'Scroll Depth',
@@ -746,9 +758,14 @@ $('#viewTable').DataTable({
     var html = '';
     for (var k in LABELS) {
       if (!data[k]) continue;
-      var val = (k === 'links' || k === 'vidnames')
-        ? data[k].split(k === 'links' ? ',' : '\n').map(function(s){ return escHtml(s.trim()); }).join('<br>')
-        : escHtml(data[k]);
+      var val;
+      if (k === 'url') {
+        val = '<a href="'+escHtml(data[k])+'" target="_blank" style="color:#1a3a5c;word-break:break-all;">'+escHtml(data[k])+'</a>';
+      } else if (k === 'links' || k === 'vidnames') {
+        val = data[k].split(k === 'links' ? ',' : '\n').map(function(s){ return escHtml(s.trim()); }).join('<br>');
+      } else {
+        val = escHtml(data[k]);
+      }
       html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
     }
     if (!html) html = '<dd style="color:#aaa;grid-column:1/-1;">No detail available</dd>';
