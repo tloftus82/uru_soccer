@@ -136,14 +136,6 @@ if ($filterDateTo   !== '') $where[] = "DATE(A.VIEW_DATE_TIME) <= '".mysqli_real
 if ($hideBots) {
     $where[] = "NOT ($botSql)";
     $where[] = "(SELECT COUNT(*) FROM PP_VIEW_LOG B WHERE B.IP_ADDRESS = A.IP_ADDRESS AND ABS(TIMESTAMPDIFF(SECOND, B.VIEW_DATE_TIME, A.VIEW_DATE_TIME)) <= 10) < 3";
-    // Exclude spoofed / impossible browser versions at SQL level so counts match display.
-    // Uses only basic REGEXP (no REGEXP_SUBSTR) for MariaDB compatibility.
-    // MSIE = any Internet Explorer (all versions dead); Windows bare version = impossible OS string.
-    $where[] = "NOT (
-        A.USER_AGENT REGEXP 'MSIE[[:space:]]+[0-9]'
-        OR (A.USER_AGENT REGEXP 'Windows[[:space:]]+[0-9]'
-            AND A.USER_AGENT NOT REGEXP 'Windows NT (5\\.[012]|6\\.[0-3]|10\\.0)')
-    )";
 }
 if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 
@@ -192,7 +184,9 @@ $byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
      WHERE $whereStr GROUP BY A.VIEWER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
 $byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
 
-// ── Fetch page of rows ────────────────────────────────────────────────────────
+// ── Fetch all matching rows, filter in PHP, then paginate ────────────────────
+// Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
+// datacenter org, etc.) runs before pagination and the displayed count is exact.
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
@@ -210,10 +204,58 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
         LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
         LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
         WHERE $whereStr
-        ORDER BY A.VIEW_DATE_TIME DESC
-        LIMIT $perPage OFFSET $offset";
+        ORDER BY A.VIEW_DATE_TIME DESC";
 
-$displayViews = mysqli_fetch_all(mysqli_query($cn, $sql), MYSQLI_ASSOC);
+$allRows = mysqli_fetch_all(mysqli_query($cn, $sql), MYSQLI_ASSOC);
+
+// PHP-level bot filtering pass (catches Spoof UA, datacenter org, etc.)
+$filteredRows = [];
+foreach ($allRows as $r) {
+    $uaR   = $r['USER_AGENT'] ?? '';
+    $uaL   = strtolower($uaR);
+    $isSpoofOrBot = false;
+    // Keyword bots
+    foreach (['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
+              'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
+              'crawler','spider','bot','scrapy','wget','curl','python-requests',
+              'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
+        if (strpos($uaL, $b) !== false) { $isSpoofOrBot = true; break; }
+    }
+    // Spoofed UA
+    if (!$isSpoofOrBot && (
+        preg_match('/Firefox\/([\d]+)/i',        $uaR, $m) && (int)$m[1] < 68  ||
+        preg_match('/Chrome\/([\d]+)/i',          $uaR, $m) && (int)$m[1] < 74  ||
+        preg_match('/OPR\/([\d]+)/i',             $uaR, $m) && (int)$m[1] < 60  ||
+        preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaR, $m) && (int)$m[1] < 74  ||
+        preg_match('/Version\/([\d]+).*Safari/i', $uaR, $m) && (int)$m[1] < 12  ||
+        preg_match('/MSIE\s+([\d]+)/i',           $uaR, $m) && (int)$m[1] < 12  ||
+        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaR, $m) && (int)$m[1] < 11  ||
+        (preg_match('/Windows\s+([\d.]+)/i', $uaR, $m) &&
+         !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaR))
+    )) { $isSpoofOrBot = true; }
+    // IP burst
+    if (!$isSpoofOrBot && ($r['BURST_COUNT'] ?? 1) >= 3) { $isSpoofOrBot = true; }
+    // Datacenter org/host
+    if (!$isSpoofOrBot) {
+        $orgL  = strtolower($r['IP_ORG']   ?? '');
+        $hostL = strtolower($r['HOST_NAME'] ?? '');
+        foreach (['amazon','amazonaws','google','microsoft','azure','cloudflare',
+                  'digitalocean','linode','vultr','ovh','hetzner','datacenter',
+                  'data center','hosting','vps','godlike','server farm'] as $dc) {
+            if (strpos($orgL, $dc) !== false || strpos($hostL, $dc) !== false) {
+                $isSpoofOrBot = true; break;
+            }
+        }
+    }
+    if ($hideBots && $isSpoofOrBot) continue;
+    $filteredRows[] = $r;
+}
+
+$totalViews = count($filteredRows);
+$totalPages = max(1, (int)ceil($totalViews / $perPage));
+$page       = max(1, min($page, $totalPages));
+$offset     = ($page - 1) * $perPage;
+$displayViews = array_slice($filteredRows, $offset, $perPage);
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 $players = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_PLAYERS WHERE IS_ACTIVE=1 ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
@@ -524,8 +566,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                     }
                 }
             }
-            // Hide PHP-detected bots (Spoof UA, IP Burst, datacenter) when filter is on
-            if ($botName && $hideBots) continue;
 
             if ($botName) {
               $deviceBadge = '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">'
