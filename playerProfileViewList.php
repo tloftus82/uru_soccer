@@ -114,6 +114,7 @@ $botPatterns = [
     'server','vps','dedicated','colocation','colo','teleport','crawl','spider',
     'bot','scraper','semrush','ahrefs','moz.com','majestic','pingdom','uptime',
     'godlike','server farm',
+    'tencent','alibaba','baidu','huawei','chinanet','china telecom','china unicom',
 ];
 
 // ── Filters from GET ───────────────────────────────────────────────────────────

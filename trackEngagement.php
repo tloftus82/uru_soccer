@@ -129,7 +129,8 @@ function computeHumanScore($row) {
               'crawler','spider','bot','scrapy','wget','curl','python-requests',
               'facebookexternalhit','twitterbot','linkedinbot',
               'amazon','amazonaws','google','microsoft','azure','cloudflare',
-              'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps'];
+              'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps',
+              'tencent','alibaba','baidu','huawei','chinanet'];
     foreach ($botKw as $b) {
         if (strpos($ua, $b) !== false) return 3;
     }
@@ -148,7 +149,7 @@ function computeHumanScore($row) {
          !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
     ) { return 4; }
 
-    $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
+    $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps','tencent','alibaba','baidu','huawei','chinanet'];
     foreach ($dcKw as $kw) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
     }
