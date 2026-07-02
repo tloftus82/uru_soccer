@@ -1,4 +1,7 @@
 <?php
+// Prevent search engines from indexing or following links on PDF responses
+header('X-Robots-Tag: noindex, nofollow');
+
 require('libraries/fpdf/fpdf.php');
 include 'libraries/qr/qrlib.php';
 
@@ -200,7 +203,7 @@ $pdf->SetXY(0.75, 6.9);
 $pdf->Cell(8, 0.5, 'ACT / SAT:  '.$playerInfo['ACT_SCORE'].'/'.$playerInfo['SAT_SCORE'].'', 0, 1, 'L');
 $pdf->SetXY(0.75, 7.2);
 $dispRank = $playerInfo['CLASS_RANK'];
-if($displayRankPct == 1){$dispRank .= ' • Top '.$playerInfo['RANK_PERCENT'].'%';} 
+if($displayRankPct == 1){$dispRank .= ' ï¿½ Top '.$playerInfo['RANK_PERCENT'].'%';} 
 $pdf->Cell(8, 0.5, 'Rank:  '.$dispRank.'', 0, 1, 'L');
 
 $data = 'https://uru.soccer/playerProfile.php?p='.$playerId.'&v=56ed5e';

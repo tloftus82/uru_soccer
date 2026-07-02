@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 
 Disallow: /admin.php
+Disallow: /playerProfilePdf.php
 Disallow: /dbConnect/
 Disallow: /playerProfileViewList.php
 Disallow: /playerProfileEditNew.php
