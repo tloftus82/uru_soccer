@@ -495,6 +495,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Viewer</th>
             <th>Location</th>
             <th>Organization</th>
+            <th>IP Address</th>
             <th>Device</th>
             <th>Human %</th>
             <th>Engagement</th>
@@ -667,6 +668,11 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
+            <td class="text-nowrap" style="font-size:11px;font-family:monospace;">
+              <?php if ($row['IP_ADDRESS']): ?>
+              <a href="admin.php?section=siteviews&q=<?= urlencode($row['IP_ADDRESS']) ?>" title="See site log for this IP" style="color:#1a3a5c;"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
+              <?php endif; ?>
+            </td>
             <?php
               $hs = humanScore($row, $botPatterns);
               if      ($hs <= 15) $hsCls = 'hs-bot';
