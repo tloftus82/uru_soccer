@@ -68,8 +68,11 @@
   $ref_e      = mysqli_real_escape_string($cn, $referrer);
   $ua_e       = mysqli_real_escape_string($cn, $userAgent);
 
-  mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG, REFERRER, USER_AGENT)
-    VALUES ($playerId, $viewerId, '$vc_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e', '$ref_e', '$ua_e')");
+  mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS PAGE_URL VARCHAR(500) NULL");
+  $pageUrl   = 'https://uru.soccer' . $pageName;
+  $pageUrl_e = mysqli_real_escape_string($cn, substr($pageUrl, 0, 500));
+  mysqli_query($cn, "INSERT INTO PP_VIEW_LOG (PLAYER_ID, VIEWER_ID, VIEW_CODE, PAGE_URL, VIEW_DATE_TIME, AUTHENTICATED, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG, REFERRER, USER_AGENT)
+    VALUES ($playerId, $viewerId, '$vc_e', '$pageUrl_e', NOW(), $authenticated, '$ip_e', '', '$loc_e', '$org_e', '$ref_e', '$ua_e')");
   $newRowId = mysqli_insert_id($cn);
 
   mysqli_query($cn, "INSERT INTO SITE_VIEW_LOG (PAGE, VIEW_DATE_TIME, IP_ADDRESS, HOST_NAME, IP_LOCATION, IP_ORG)

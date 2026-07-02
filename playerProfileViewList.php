@@ -162,6 +162,7 @@ $byViewer = [];
 // datacenter org, etc.) runs before pagination and the displayed count is exact.
 $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
                A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE, IFNULL(A.REDIRECT_SLUG,'') AS REDIRECT_SLUG,
+               IFNULL(A.PAGE_URL,'') AS PAGE_URL,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
                A.VIDEO_WATCH_SECONDS, IFNULL(A.VIDEOS_WATCHED,'') AS VIDEOS_WATCHED,
@@ -170,7 +171,6 @@ $sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_
                IFNULL(A.IS_RETURN_VISIT,0) AS IS_RETURN_VISIT,
                COALESCE(CONCAT(C.FIRST_NAME,' ',C.LAST_NAME), A.REDIRECT_SLUG, A.VIEW_CODE) AS PLAYER,
                COALESCE(CONCAT(B.FIRST_NAME,' ',B.LAST_NAME), A.VIEW_CODE) AS VIEWER,
-               COALESCE(C.URL_SLUG, LOWER(REPLACE(CONCAT(C.FIRST_NAME,'-',C.LAST_NAME),' ','-'))) AS PLAYER_SLUG,
                (SELECT COUNT(*) FROM PP_VIEW_LOG B
                 WHERE B.IP_ADDRESS = A.IP_ADDRESS
                 AND ABS(TIMESTAMPDIFF(SECOND, B.VIEW_DATE_TIME, A.VIEW_DATE_TIME)) <= 10) AS BURST_COUNT
@@ -629,22 +629,8 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               }
             }
 
-            // Build the profile URL they actually visited
-            $profileUrl = '';
-            $defaultVc  = '56ed5e'; // default public view code (no viewer tracking)
-            if ($row['REDIRECT_SLUG']) {
-                // External redirect slug
-                $profileUrl = 'https://uru.soccer/' . $row['REDIRECT_SLUG'];
-            } elseif ($row['PLAYER_SLUG'] ?? '') {
-                $slug = $row['PLAYER_SLUG'];
-                $vc   = $row['VIEW_CODE'] ?? '';
-                // Only append view code if it's a real viewer-specific code
-                if ($vc && $vc !== $defaultVc) {
-                    $profileUrl = 'https://uru.soccer/' . $slug . '/' . $vc;
-                } else {
-                    $profileUrl = 'https://uru.soccer/' . $slug;
-                }
-            }
+            // Use the actual URL stored at visit time
+            $profileUrl = $row['PAGE_URL'] ?? '';
 
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
