@@ -142,22 +142,8 @@ if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 $whereStr    = implode(' AND ', $where);
 $whereBotOff = implode(' AND ', array_filter($where, fn($w) => $w !== "NOT ($botSql)"));
 
-// ── Summary stats via DB (fast, no full fetch) ────────────────────────────────
-$statsRow = mysqli_fetch_assoc(mysqli_query($cn,
-    "SELECT COUNT(*) AS total,
-            COUNT(DISTINCT A.PLAYER_ID) AS u_players,
-            COUNT(DISTINCT A.VIEWER_ID) AS u_viewers,
-            COUNT(DISTINCT A.IP_ADDRESS) AS u_ips
-     FROM PP_VIEW_LOG A
-     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
-     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
-     WHERE $whereStr"));
-
-$totalViews    = (int)$statsRow['total'];
-$uniquePlayers = (int)$statsRow['u_players'];
-$uniqueViewers = (int)$statsRow['u_viewers'];
-$uniqueIPs     = (int)$statsRow['u_ips'];
-$totalPages    = max(1, (int)ceil($totalViews / $perPage));
+// Stats are computed after PHP filtering below (from $filteredRows)
+$totalViews = 0; $uniquePlayers = 0; $uniqueViewers = 0; $uniqueIPs = 0;
 
 // Bot count (always without bot filter so stat card is meaningful)
 $botRow  = mysqli_fetch_assoc(mysqli_query($cn,
@@ -238,7 +224,10 @@ foreach ($allRows as $r) {
     $filteredRows[] = $r;
 }
 
-$totalViews = count($filteredRows);
+$totalViews    = count($filteredRows);
+$uniquePlayers = count(array_unique(array_filter(array_column($filteredRows, 'PLAYER_ID'))));
+$uniqueViewers = count(array_unique(array_filter(array_column($filteredRows, 'VIEWER_ID'))));
+$uniqueIPs     = count(array_unique(array_filter(array_column($filteredRows, 'IP_ADDRESS'))));
 
 // Build chart data from the filtered set so they match the detail table exactly
 foreach ($filteredRows as $fr) {
@@ -338,25 +327,31 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
 
   <!-- ── Summary Cards ──────────────────────────────────────────────────────── -->
   <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
       <div class="stat-card">
         <div class="val"><?= number_format($totalViews) ?></div>
         <div class="lbl">Total Views</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
       <div class="stat-card green">
         <div class="val"><?= $uniquePlayers ?></div>
         <div class="lbl">Players Viewed</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
       <div class="stat-card orange">
         <div class="val"><?= $uniqueViewers ?></div>
         <div class="lbl">Unique Viewers</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-6 col-md-2">
+      <div class="stat-card" style="border-left-color:#8e44ad;">
+        <div class="val" style="color:#8e44ad;"><?= $uniqueIPs ?></div>
+        <div class="lbl">Unique IPs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
       <div class="stat-card red">
         <div class="val"><?= $botCount ?></div>
         <div class="lbl">Likely Bots<?= $hideBots ? ' (hidden)' : ' (shown)' ?></div>
