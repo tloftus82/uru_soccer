@@ -777,7 +777,8 @@ $fa         = "admin.php?section=lookups";
   <a href="admin.php?section=siteviews" class="<?= $section === 'siteviews' ? 'active' : '' ?>"><i class="fas fa-chart-bar me-1"></i>Site Views</a>
   <a href="admin.php?section=dbdump" class="<?= $section === 'dbdump' ? 'active' : '' ?>"><i class="fas fa-database me-1"></i>DB Dump</a>
   <a href="admin.php?section=clearlogs" class="<?= $section === 'clearlogs' ? 'active' : '' ?>"><i class="fas fa-trash-alt me-1"></i>Clear Logs</a>
-  <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>View Log</a>
+  <a href="playerProfileViewList.php" style="margin-left:auto;"><i class="fas fa-eye me-1"></i>Profile Views</a>
+  <a href="siteViewList.php"><i class="fas fa-list-alt me-1"></i>Site Views</a>
 </div>
 
 <div class="container-fluid px-4 pt-3">

@@ -6,6 +6,7 @@ Disallow: /reEnrichIPs.php
 Disallow: /playerProfilePdf.php
 Disallow: /dbConnect/
 Disallow: /playerProfileViewList.php
+Disallow: /siteViewList.php
 Disallow: /playerProfileEditNew.php
 Disallow: /playerProfileEdit.php
 Disallow: /mailer/
