@@ -1729,6 +1729,8 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
     'PP_VIDEOS'          => 'SELECT A.ID, A.PLAYER_ID, B.ORG_NAME, C.TIME_PER_DESC, D.VIDEO_TYPE_DESC, A.VIDEO_URL, A.VIDEO_LENGTH_M, A.SORT_ORDER FROM PP_VIDEOS A LEFT JOIN PP_ORGANIZATIONS B ON B.ID=A.ORG_ID LEFT JOIN PP_TIME_PERIODS C ON C.ID=A.TIME_PER_ID LEFT JOIN PP_VIDEO_TYPES D ON D.ID=A.VIDEO_TYPE_ID ORDER BY A.PLAYER_ID,A.SORT_ORDER',
     'PP_REFERENCES'      => 'SELECT A.ID, A.PLAYER_ID, B.REF_TYPE, C.FIRST_NAME, C.LAST_NAME, C.EMAIL_ADDRESS, C.PHONE_NUMBER, D.ORG_NAME, A.IS_ACTIVE, A.SORT_ORDER FROM PP_REFERENCES A LEFT JOIN PP_REF_TYPES B ON B.ID=A.REF_TYPE_ID LEFT JOIN PP_CONTACTS C ON C.ID=A.REF_CONTACT_ID LEFT JOIN PP_ORGANIZATIONS D ON D.ID=C.ORG_ID ORDER BY A.PLAYER_ID,A.SORT_ORDER',
     'PP_ALLOWED_VIEWERS' => 'SELECT ID, FIRST_NAME, LAST_NAME, VIEW_CODE FROM PP_ALLOWED_VIEWERS ORDER BY LAST_NAME,FIRST_NAME',
+    'PP_VIEW_LOG'        => 'SELECT * FROM PP_VIEW_LOG ORDER BY ID DESC',
+    'SITE_VIEW_LOG'      => 'SELECT * FROM SITE_VIEW_LOG ORDER BY ID DESC',
   ];
   $selectedTable = $_GET['t'] ?? array_key_first($dumpTables);
   if (!isset($dumpTables[$selectedTable])) $selectedTable = array_key_first($dumpTables);
@@ -1753,6 +1755,7 @@ document.querySelector('input[name="SLUG"]')?.addEventListener('input', function
   <div class="d-flex align-items-center gap-3 mb-2">
     <span class="text-muted small"><?= count($dumpRows) ?> row<?= count($dumpRows) !== 1 ? 's' : '' ?></span>
     <button class="btn btn-sm btn-outline-primary" onclick="copyDump()"><i class="fas fa-copy me-1"></i>Copy to clipboard</button>
+    <button class="btn btn-sm btn-outline-success" onclick="downloadCsv('<?= htmlspecialchars($selectedTable) ?>')"><i class="fas fa-download me-1"></i>Download CSV</button>
   </div>
 
   <!-- Table -->
@@ -1790,6 +1793,22 @@ function copyDump() {
     btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
     setTimeout(function(){ btn.innerHTML = '<i class="fas fa-copy me-1"></i>Copy to clipboard'; }, 2000);
   });
+}
+function downloadCsv(tableName) {
+  var tbl = document.getElementById('dumpTable');
+  if (!tbl) return;
+  var rows = [];
+  var headers = Array.from(tbl.querySelectorAll('thead th')).map(function(th){ return '"'+th.innerText.trim().replace(/"/g,'""')+'"'; });
+  rows.push(headers.join(','));
+  tbl.querySelectorAll('tbody tr').forEach(function(tr){
+    var cells = Array.from(tr.querySelectorAll('td')).map(function(td){ return '"'+td.innerText.trim().replace(/"/g,'""')+'"'; });
+    rows.push(cells.join(','));
+  });
+  var blob = new Blob([rows.join('\r\n')], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = tableName + '.csv';
+  a.click();
 }
 </script>
 
