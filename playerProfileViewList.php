@@ -231,7 +231,8 @@ foreach ($allRows as $r) {
             }
         }
     }
-    if ($hideBots && $isSpoofOrBot) continue;
+    $hs = humanScore($r, $botPatterns);
+    if ($hideBots && ($isSpoofOrBot || $hs <= 25)) continue;
     $filteredRows[] = $r;
 }
 
