@@ -124,10 +124,14 @@ function computeHumanScore($row) {
     $sd   = $row['SCROLL_DEPTH'];
     $score = 50;
 
+    // Social link-preview crawlers score low but aren't hard-clamped to 3
+    $socialPrev = ['facebookexternalhit','twitterbot','linkedinbot','pinterest','whatsapp','slackbot','telegrambot','discordbot'];
+    foreach ($socialPrev as $sp) {
+        if (strpos($ua, $sp) !== false) { $score -= 30; break; }
+    }
     $botKw = ['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
               'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
               'crawler','spider','bot','scrapy','wget','curl','python-requests',
-              'facebookexternalhit','twitterbot','linkedinbot',
               'amazon','amazonaws','google','microsoft','azure','cloudflare',
               'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps',
               'tencent','alibaba','baidu','huawei','chinanet'];

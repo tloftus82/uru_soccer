@@ -129,8 +129,10 @@ body { background:#f4f6fa; font-size:13px; }
 .tl-dot.site    { background:#6c757d; box-shadow:0 0 0 2px #6c757d; }
 
 .tl-card { background:#fff; border-radius:8px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,.07); border-left:3px solid #dee2e6; }
-.tl-card.profile { border-left-color:#0d6efd; }
-.tl-card.site    { border-left-color:#adb5bd; }
+.tl-card.profile      { border-left-color:#0d6efd; }
+.tl-card.site         { border-left-color:#adb5bd; }
+.tl-card.link-preview { border-left-color:#16a34a; background:#f0fdf4; }
+.tl-dot.link-preview  { background:#16a34a; box-shadow:0 0 0 2px #16a34a; }
 
 .tl-time { font-size:11px; color:#888; font-family:monospace; }
 .tl-title { font-weight:600; font-size:13px; margin:2px 0 6px; }
@@ -247,9 +249,29 @@ body { background:#f4f6fa; font-size:13px; }
   </div>
 
   <div class="timeline">
-  <?php foreach ($combined as $i => $row):
-    $isProfile = $row['SRC'] === 'profile';
-    $cls       = $isProfile ? 'profile' : 'site';
+  <?php
+  $socialPreviewKw = ['facebookexternalhit','twitterbot','linkedinbot','pinterest','whatsapp','slackbot','telegrambot','discordbot'];
+  foreach ($combined as $i => $row):
+    $isProfile    = $row['SRC'] === 'profile';
+    $uaLower      = strtolower($row['USER_AGENT'] ?? '');
+    $isLinkPreview = false;
+    $linkPreviewSrc = '';
+    foreach ($socialPreviewKw as $sp) {
+        if (strpos($uaLower, $sp) !== false) {
+            $isLinkPreview = true;
+            if (strpos($uaLower, 'facebook') !== false) $linkPreviewSrc = 'Facebook';
+            elseif (strpos($uaLower, 'twitter') !== false || strpos($uaLower, 'twitterbot') !== false) $linkPreviewSrc = 'Twitter/X';
+            elseif (strpos($uaLower, 'linkedin') !== false) $linkPreviewSrc = 'LinkedIn';
+            elseif (strpos($uaLower, 'pinterest') !== false) $linkPreviewSrc = 'Pinterest';
+            elseif (strpos($uaLower, 'whatsapp') !== false) $linkPreviewSrc = 'WhatsApp';
+            elseif (strpos($uaLower, 'slack') !== false) $linkPreviewSrc = 'Slack';
+            elseif (strpos($uaLower, 'telegram') !== false) $linkPreviewSrc = 'Telegram';
+            elseif (strpos($uaLower, 'discord') !== false) $linkPreviewSrc = 'Discord';
+            break;
+        }
+    }
+    $cls = $isProfile ? 'profile' : 'site';
+    if ($isLinkPreview) $cls = 'link-preview';
   ?>
     <div class="tl-item">
       <div class="tl-dot <?= $cls ?>"></div>
@@ -258,7 +280,10 @@ body { background:#f4f6fa; font-size:13px; }
         <!-- Time + type badge -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <span class="tl-time"><?= fmtTime($row['VIEW_DATE_TIME']) ?></span>
-          <?php if ($isProfile): ?>
+          <?php if ($isLinkPreview): ?>
+            <span class="tl-badge" style="background:#f0fdf4;color:#166534;"><i class="fas fa-share-nodes me-1"></i><?= $linkPreviewSrc ?: 'Social' ?> Link Share</span>
+            <span class="tl-badge" style="background:#f3f4f6;color:#6b7280;font-size:9px;">Preview Crawler</span>
+          <?php elseif ($isProfile): ?>
             <span class="tl-badge badge-profile"><i class="fas fa-user me-1"></i>Profile View</span>
             <?php if ($row['AUTHENTICATED']): ?>
               <span class="tl-badge badge-auth"><i class="fas fa-check me-1"></i>Authenticated</span>

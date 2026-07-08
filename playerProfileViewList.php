@@ -208,12 +208,18 @@ foreach ($allRows as $r) {
     $uaR   = $r['USER_AGENT'] ?? '';
     $uaL   = strtolower($uaR);
     $isSpoofOrBot = false;
+    // Social link-preview crawlers — not bots, flag separately
+    $isLinkPreview = false;
+    foreach (['facebookexternalhit','twitterbot','linkedinbot','pinterest','whatsapp','slackbot','telegrambot','discordbot'] as $sp) {
+        if (strpos($uaL, $sp) !== false) { $isLinkPreview = true; break; }
+    }
     // Keyword bots
-    foreach (['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
-              'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
-              'crawler','spider','bot','scrapy','wget','curl','python-requests',
-              'facebookexternalhit','twitterbot','linkedinbot'] as $b) {
-        if (strpos($uaL, $b) !== false) { $isSpoofOrBot = true; break; }
+    if (!$isLinkPreview) {
+        foreach (['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
+                  'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
+                  'crawler','spider','bot','scrapy','wget','curl','python-requests'] as $b) {
+            if (strpos($uaL, $b) !== false) { $isSpoofOrBot = true; break; }
+        }
     }
     // Spoofed UA
     if (!$isSpoofOrBot && (
@@ -243,7 +249,7 @@ foreach ($allRows as $r) {
     }
     $hs = humanScore($r, $botPatterns);
     if ($hideBots && ($isSpoofOrBot || $hs <= 35)) continue;
-    $filteredRows[] = $r;
+    $filteredRows[] = array_merge($r, ['_link_preview' => $isLinkPreview]);
 }
 
 $totalViews    = count($filteredRows);
@@ -721,7 +727,12 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               elseif  ($hs <= 80) $hsCls = 'hs-high';
               else                $hsCls = 'hs-sure';
             ?>
-            <td><?= $deviceBadge ?></td>
+            <td>
+              <?= $deviceBadge ?>
+              <?php if ($row['_link_preview'] ?? false): ?>
+                <span class="eng-pill" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;" title="Social link preview crawler — triggered by a real share"><i class="fas fa-share-nodes" style="font-size:9px;"></i> Link Share</span>
+              <?php endif; ?>
+            </td>
             <td><span class="human-score <?= $hsCls ?>"><?= $hs ?>%</span></td>
             <td>
               <div class="eng-icons">
