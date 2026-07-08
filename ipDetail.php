@@ -67,7 +67,7 @@ if ($ip_e !== '') {
     foreach ($siteRows as $r) {
         $combined[] = array_merge($r, ['_sort' => $r['VIEW_DATE_TIME']]);
     }
-    usort($combined, fn($a, $b) => strcmp($a['_sort'], $b['_sort']));
+    usort($combined, fn($a, $b) => strcmp($b['_sort'], $a['_sort']));
 
     // IP meta from first enriched record
     foreach ($combined as $r) {
@@ -215,9 +215,9 @@ body { background:#f4f6fa; font-size:13px; }
         <?php endif; ?>
       </div>
       <div class="text-end">
-        <div style="font-size:11px;color:#888;">First seen</div>
+        <div style="font-size:11px;color:#888;">Last seen</div>
         <div style="font-size:12px;font-weight:600;"><?= fmtTime($combined[0]['VIEW_DATE_TIME']) ?></div>
-        <div style="font-size:11px;color:#888;margin-top:6px;">Last seen</div>
+        <div style="font-size:11px;color:#888;margin-top:6px;">First seen</div>
         <div style="font-size:12px;font-weight:600;"><?= fmtTime(end($combined)['VIEW_DATE_TIME']) ?></div>
       </div>
     </div>
