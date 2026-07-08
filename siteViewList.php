@@ -397,7 +397,7 @@ table.log-table td { vertical-align:middle; border-color:#f0f0f0; }
                 </span>
               </td>
               <td class="ip-cell">
-                <a href="siteViewList.php?q=<?= urlencode($row['IP_ADDRESS']) ?>"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
+                <a href="ipDetail.php?ip=<?= urlencode($row['IP_ADDRESS']) ?>"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
                 <?php if ($row['HOST_NAME'] && $row['HOST_NAME'] !== $row['IP_ADDRESS']): ?>
                   <div style="color:#aaa;font-size:10px;"><?= htmlspecialchars($row['HOST_NAME']) ?></div>
                 <?php endif; ?>

@@ -472,7 +472,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <?php $maxI = max(array_values($byIp)); foreach ($byIp as $ip => $cnt): ?>
         <div class="chart-row">
           <div class="chart-label text-muted" style="font-family:monospace;font-size:11px;">
-            <a href="admin.php?section=siteviews&q=<?= urlencode($ip) ?>" style="color:inherit;" title="Site log for this IP"><?= htmlspecialchars($ip) ?></a>
+            <a href="ipDetail.php?ip=<?= urlencode($ip) ?>" style="color:inherit;" title="Site log for this IP"><?= htmlspecialchars($ip) ?></a>
           </div>
           <div class="chart-bar-wrap">
             <div class="chart-bar-inner" style="width:<?= round($cnt/$maxI*100) ?>%;background:#8e44ad;"></div>
@@ -710,7 +710,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
             <td style="font-size:11px;font-family:monospace;max-width:120px;word-break:break-all;line-height:1.3;">
               <?php if ($row['IP_ADDRESS']): ?>
-              <a href="admin.php?section=siteviews&q=<?= urlencode($row['IP_ADDRESS']) ?>" title="See site log for this IP" style="color:#1a3a5c;"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
+              <a href="ipDetail.php?ip=<?= urlencode($row['IP_ADDRESS']) ?>" title="See site log for this IP" style="color:#1a3a5c;"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
               <?php endif; ?>
             </td>
             <?php
