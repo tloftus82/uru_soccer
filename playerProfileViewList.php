@@ -72,6 +72,16 @@ function humanScore($row, $botPatterns) {
     foreach ($dcKeywords as $kw) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
     }
+    // Geography: recruiting is US/Canada — international visits are almost never real coaches
+    $loc = $row['IP_LOCATION'] ?? '';
+    if ($loc !== '') {
+        $parts   = explode(', ', $loc);
+        $country = trim(end($parts));
+        $domestic = ['United States', 'Canada'];
+        if (!in_array($country, $domestic)) {
+            $score -= 30;
+        }
+    }
     if ($top !== null && $top == 0)                         $score -= 25;
     elseif ($top !== null && $top < 4)                      $score -= 12;
     if ($sd !== null && $sd == 0)                           $score -= 12;

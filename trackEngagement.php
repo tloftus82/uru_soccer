@@ -154,6 +154,13 @@ function computeHumanScore($row) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
     }
 
+    $loc     = $row['IP_LOCATION'] ?? '';
+    if ($loc !== '') {
+        $parts   = explode(', ', $loc);
+        $country = trim(end($parts));
+        if (!in_array($country, ['United States', 'Canada'])) { $score -= 30; }
+    }
+
     if ($ua === '')                                                         $score -= 35;
     if (preg_match('/(chrome|firefox|safari|edg|opera)\/[\d.]+/i', $ua))  $score += 12;
     if (preg_match('/iphone|ipad|ipados|android/i', $ua))                  $score += 10;
