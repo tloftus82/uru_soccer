@@ -248,7 +248,7 @@ foreach ($allRows as $r) {
         }
     }
     $hs = humanScore($r, $botPatterns);
-    if ($hideBots && ($isSpoofOrBot || $hs <= 35)) continue;
+    if ($hideBots && !$isLinkPreview && ($isSpoofOrBot || $hs <= 35)) continue;
     $filteredRows[] = array_merge($r, ['_link_preview' => $isLinkPreview]);
 }
 
