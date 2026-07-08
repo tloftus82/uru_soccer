@@ -158,7 +158,7 @@ function computeHumanScore($row) {
     if ($loc !== '') {
         $parts   = explode(', ', $loc);
         $country = trim(end($parts));
-        if (!in_array($country, ['United States', 'Canada'])) { $score -= 30; }
+        if (!in_array($country, ['United States', 'Canada'])) { $score -= 40; }
     }
 
     if ($ua === '')                                                         $score -= 35;

@@ -79,7 +79,7 @@ function humanScore($row, $botPatterns) {
         $country = trim(end($parts));
         $domestic = ['United States', 'Canada'];
         if (!in_array($country, $domestic)) {
-            $score -= 30;
+            $score -= 40;
         }
     }
     if ($top !== null && $top == 0)                         $score -= 25;
@@ -242,7 +242,7 @@ foreach ($allRows as $r) {
         }
     }
     $hs = humanScore($r, $botPatterns);
-    if ($hideBots && ($isSpoofOrBot || $hs <= 25)) continue;
+    if ($hideBots && ($isSpoofOrBot || $hs <= 35)) continue;
     $filteredRows[] = $r;
 }
 
