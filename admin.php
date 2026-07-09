@@ -82,7 +82,7 @@ $flashMsg  = '';
 $flashType = 'success';
 
 // ── POST: Player actions ──────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_POST['ACTION']) && in_array($_POST['ACTION'], ['SAVE_PLAYER','ADD_ACCOLADE','EDIT_ACCOLADE','DELETE_ACCOLADE','ADD_VIDEO','DELETE_VIDEO','ADD_REFERENCE','UPDATE_REFERENCES','DELETE_REFERENCE']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_POST['ACTION']) && in_array($_POST['ACTION'], ['SAVE_PLAYER','ADD_ACCOLADE','EDIT_ACCOLADE','DELETE_ACCOLADE','ADD_VIDEO','EDIT_VIDEO','DELETE_VIDEO','ADD_REFERENCE','UPDATE_REFERENCES','DELETE_REFERENCE']))) {
     $action = $_POST['ACTION'] ?? '';
 
     if ($action === 'SAVE_PLAYER') {
@@ -194,6 +194,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
         $sort  = (int)($_POST['SORT_ORDER']         ?? 0);
         mysqli_query($cn, "INSERT INTO PP_VIDEOS (PLAYER_ID,ORG_ID,TIME_PER_ID,VIDEO_TYPE_ID,VIDEO_LENGTH_M,IMG_THUMBNAIL,VIDEO_URL,SORT_ORDER) VALUES ($playerId,$orgId,$tpId,$vtId,$lenM,$thumb,'$url',$sort)");
         $flashMsg = "Video added!";
+    }
+    if ($action === 'EDIT_VIDEO') {
+        $id    = (int)($_POST['VIDEO_ID']       ?? 0);
+        $orgId = sqlVal($cn, $_POST['ORG_ID']   ?? '');
+        $tpId  = (int)($_POST['TIME_PER_ID']    ?? 0);
+        $vtId  = (int)($_POST['VIDEO_TYPE_ID']  ?? 0);
+        $lenM  = (int)($_POST['VIDEO_LENGTH_M'] ?? 0);
+        $url   = esc($cn, trim($_POST['VIDEO_URL'] ?? ''));
+        if ($id && $url) {
+            mysqli_query($cn, "UPDATE PP_VIDEOS SET ORG_ID=$orgId, TIME_PER_ID=$tpId, VIDEO_TYPE_ID=$vtId, VIDEO_LENGTH_M=$lenM, VIDEO_URL='$url' WHERE ID=$id AND PLAYER_ID=$playerId");
+            $flashMsg = "Video updated!";
+        }
     }
     if ($action === 'DELETE_VIDEO') {
         $id = (int)($_POST['VIDEO_ID'] ?? 0);
@@ -1045,17 +1057,70 @@ $fa         = "admin.php?section=lookups";
         <input type="hidden" name="ORDER" id="videoOrder">
       </form>
       <table class="table table-hover table-sm align-middle">
-        <thead><tr><th style="width:30px"></th><th>Type</th><th class="tbl-hide-mobile">Time Period</th><th class="tbl-hide-mobile">Org</th><th class="tbl-hide-mobile">Length</th><th>URL</th><th style="width:60px"></th></tr></thead>
+        <thead><tr><th style="width:30px"></th><th>Type</th><th class="tbl-hide-mobile">Time Period</th><th class="tbl-hide-mobile">Org</th><th class="tbl-hide-mobile">Length</th><th>URL</th><th style="width:90px"></th></tr></thead>
         <tbody id="videoBody">
         <?php foreach ($videos as $vid): ?>
-        <tr data-id="<?=$vid['ID']?>">
+        <tr data-id="<?=$vid['ID']?>" id="vid-row-<?=$vid['ID']?>">
           <td class="drag-handle text-muted" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></td>
           <td><?=htmlspecialchars($vid['VIDEO_TYPE_DESC'])?></td>
           <td class="tbl-hide-mobile"><?=htmlspecialchars($vid['TIME_PER_DESC']??'—')?></td>
-          <td class="tbl-hide-mobile"><?=htmlspecialchars($vid['ORG_NAME']??'—')?></td>
+          <td class="tbl-hide-mobile"><?=htmlspecialchars($vid['ORG_NAME']??'N/A')?></td>
           <td class="tbl-hide-mobile"><?=(int)$vid['VIDEO_LENGTH_M']?> min</td>
           <td><a href="<?=htmlspecialchars($vid['VIDEO_URL'])?>" target="_blank" class="text-truncate d-inline-block" style="max-width:180px"><?=htmlspecialchars($vid['VIDEO_URL'])?></a></td>
-          <td><form method="POST" action="<?=$formAction?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_VIDEO"><input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']?>"><input type="hidden" name="ACTIVE_TAB" value="tab-videos"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form></td>
+          <td class="d-flex gap-1">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openVideoEdit(<?=$vid['ID']?>)"><i class="fas fa-pencil-alt"></i></button>
+            <form method="POST" action="<?=$formAction?>" onsubmit="return confirm('Delete?')"><input type="hidden" name="ACTION" value="DELETE_VIDEO"><input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']?>"><input type="hidden" name="ACTIVE_TAB" value="tab-videos"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button></form>
+          </td>
+        </tr>
+        <!-- Inline edit row -->
+        <tr id="vid-edit-<?=$vid['ID']?>" style="display:none;background:#f8f9ff;">
+          <td colspan="7" class="p-3">
+            <form method="POST" action="<?=$formAction?>">
+              <input type="hidden" name="ACTION" value="EDIT_VIDEO">
+              <input type="hidden" name="VIDEO_ID" value="<?=$vid['ID']?>">
+              <input type="hidden" name="ACTIVE_TAB" value="tab-videos">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                  <label class="form-label form-label-sm">Video Type</label>
+                  <select class="form-select form-select-sm" name="VIDEO_TYPE_ID">
+                    <?php foreach($videoTypes as $vt):?>
+                    <option value="<?=$vt['ID']?>" <?=$vt['ID']==$vid['VIDEO_TYPE_ID']?'selected':''?>><?=htmlspecialchars($vt['VIDEO_TYPE_DESC'])?></option>
+                    <?php endforeach;?>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label form-label-sm">Time Period</label>
+                  <select class="form-select form-select-sm" name="TIME_PER_ID">
+                    <option value="0">— None —</option>
+                    <?php foreach($timePeriods as $tp):?>
+                    <option value="<?=$tp['ID']?>" <?=$tp['ID']==$vid['TIME_PER_ID']?'selected':''?>><?=htmlspecialchars($tp['TIME_PER_DESC'])?></option>
+                    <?php endforeach;?>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label form-label-sm">Organization</label>
+                  <select class="form-select form-select-sm" name="ORG_ID">
+                    <option value="">N/A</option>
+                    <?php foreach($allOrgs as $org):?>
+                    <option value="<?=$org['ID']?>" <?=$org['ID']==$vid['ORG_ID']?'selected':''?>><?=htmlspecialchars($org['ORG_NAME'])?></option>
+                    <?php endforeach;?>
+                  </select>
+                </div>
+                <div class="col-md-1">
+                  <label class="form-label form-label-sm">Length (min)</label>
+                  <input type="number" class="form-control form-control-sm" name="VIDEO_LENGTH_M" value="<?=(int)$vid['VIDEO_LENGTH_M']?>" min="0">
+                </div>
+                <div class="col-md-8 mt-2">
+                  <label class="form-label form-label-sm">Video URL</label>
+                  <input type="url" class="form-control form-control-sm" name="VIDEO_URL" value="<?=htmlspecialchars($vid['VIDEO_URL'])?>" required>
+                </div>
+                <div class="col-md-4 mt-2 d-flex gap-2 align-items-end">
+                  <button type="submit" class="btn btn-uru btn-sm"><i class="fas fa-save me-1"></i>Save</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeVideoEdit(<?=$vid['ID']?>)">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </td>
         </tr>
         <?php endforeach; ?>
         </tbody>
@@ -2073,6 +2138,14 @@ initSortable('videoBody',    'videoOrder',    'videoOrderForm');
 initSortable('refBody',      'refOrder',      'refOrderForm');
 initSortable('tpBody',       'tpOrder',       'tpOrderForm');
 
+function openVideoEdit(id) {
+  document.getElementById('vid-row-' + id).style.display = 'none';
+  document.getElementById('vid-edit-' + id).style.display = '';
+}
+function closeVideoEdit(id) {
+  document.getElementById('vid-edit-' + id).style.display = 'none';
+  document.getElementById('vid-row-' + id).style.display = '';
+}
 function deleteRef(id){
   if(!confirm('Remove this reference?')) return;
   document.getElementById('deleteRefId').value=id;
