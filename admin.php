@@ -201,9 +201,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($section === 'players' || isset($_
         $tpId  = (int)($_POST['TIME_PER_ID']    ?? 0);
         $vtId  = (int)($_POST['VIDEO_TYPE_ID']  ?? 0);
         $lenM  = (int)($_POST['VIDEO_LENGTH_M'] ?? 0);
-        $url   = esc($cn, trim($_POST['VIDEO_URL'] ?? ''));
+        $url   = esc($cn, trim($_POST['VIDEO_URL']      ?? ''));
+        $thumb = sqlVal($cn, trim($_POST['IMG_THUMBNAIL'] ?? ''));
         if ($id && $url) {
-            mysqli_query($cn, "UPDATE PP_VIDEOS SET ORG_ID=$orgId, TIME_PER_ID=$tpId, VIDEO_TYPE_ID=$vtId, VIDEO_LENGTH_M=$lenM, VIDEO_URL='$url' WHERE ID=$id AND PLAYER_ID=$playerId");
+            mysqli_query($cn, "UPDATE PP_VIDEOS SET ORG_ID=$orgId, TIME_PER_ID=$tpId, VIDEO_TYPE_ID=$vtId, VIDEO_LENGTH_M=$lenM, IMG_THUMBNAIL=$thumb, VIDEO_URL='$url' WHERE ID=$id AND PLAYER_ID=$playerId");
             $flashMsg = "Video updated!";
         }
     }
@@ -1110,9 +1111,13 @@ $fa         = "admin.php?section=lookups";
                   <label class="form-label form-label-sm">Length (min)</label>
                   <input type="number" class="form-control form-control-sm" name="VIDEO_LENGTH_M" value="<?=(int)$vid['VIDEO_LENGTH_M']?>" min="0">
                 </div>
-                <div class="col-md-8 mt-2">
+                <div class="col-md-6 mt-2">
                   <label class="form-label form-label-sm">Video URL</label>
                   <input type="url" class="form-control form-control-sm" name="VIDEO_URL" value="<?=htmlspecialchars($vid['VIDEO_URL'])?>" required>
+                </div>
+                <div class="col-md-6 mt-2">
+                  <label class="form-label form-label-sm">Thumbnail URL</label>
+                  <input type="text" class="form-control form-control-sm" name="IMG_THUMBNAIL" value="<?=htmlspecialchars($vid['IMG_THUMBNAIL']??'')?>" placeholder="https://...">
                 </div>
                 <div class="col-md-4 mt-2 d-flex gap-2 align-items-end">
                   <button type="submit" class="btn btn-uru btn-sm"><i class="fas fa-save me-1"></i>Save</button>
