@@ -36,7 +36,6 @@ $d = [
     ['num'=>0,  'name'=>'Millie Squier',        'grad'=>'2029','pos'=>'CB · W',  'hs'=>'Dakota Valley High School',        'email'=>'milliesquier@gmail.com',          'phone'=>'(605) 670-1907','profile'=>'uru.soccer/millie-squier',     'qrSlug'=>'millie-squier',     'video'=>'','committed'=>''],
     ['num'=>1,  'name'=>'Ava Squier',           'grad'=>'2029','pos'=>'CB · W',  'hs'=>'Dakota Valley High School',        'email'=>'avasquier8@gmail.com',            'phone'=>'(605) 670-2408','profile'=>'uru.soccer/ava-squier',        'qrSlug'=>'ava-squier',        'video'=>'','committed'=>''],
     // 2030
-    ['num'=>29, 'name'=>'Yuliana Hernandez',    'grad'=>'2030','pos'=>'ST',      'hs'=>'MOC-Floyd Valley High School',     'email'=>'yulianahernandez.490@icloud.com', 'phone'=>'(712) 231-9825','profile'=>'uru.soccer/yuliana-hernandez', 'qrSlug'=>'yuliana-hernandez', 'video'=>'','committed'=>''],
   ],
 ];
 
