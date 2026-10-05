@@ -3,9 +3,7 @@ define('ADMIN_HASH', '63b38ded3ce608f47342f48fe9ac1639');
 $token   = hash('sha256', ADMIN_HASH . 'uru_admin_salt');
 $isAdmin = ($_COOKIE['uru_admin'] ?? '') === $token;
 
-$dataFile = __DIR__ . '/data.json';
-
-$defaultData = [
+$d = [
   'event'   => ['name' => 'USA Cup Weekend', 'dates' => 'July 10–12, 2026', 'subtitle' => 'HIGH SCHOOL GIRLS', 'location' => 'Sioux City, Iowa'],
   'showQr'  => true,
   'staff'   => [
@@ -28,20 +26,6 @@ $defaultData = [
     ['num'=>66, 'name'=>'Ava Peters',               'grad'=>'2028','pos'=>'W · ST',    'hs'=>'Bishop Heelan High School',          'email'=>'pava6610@gmail.com',          'phone'=>'(712) 540-5650','profile'=>'uru.soccer/ava-peters',        'qrSlug'=>'ava-peters',        'video'=>'','committed'=>''],
   ],
 ];
-
-// Handle AJAX save
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin) {
-  $posted = json_decode(file_get_contents('php://input'), true);
-  if (is_array($posted)) {
-    file_put_contents($dataFile, json_encode($posted, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    header('Content-Type: application/json');
-    echo json_encode(['ok' => true]);
-    exit;
-  }
-}
-
-$d = file_exists($dataFile) ? json_decode(file_get_contents($dataFile), true) : $defaultData;
-if (!is_array($d)) $d = $defaultData;
 
 $ev      = $d['event'];
 $staff   = $d['staff'];
@@ -101,7 +85,6 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
 .btn-red { background:#c0392b; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer; border-radius:3px; }
 .btn-sm { padding:3px 8px; font-size:11px; }
 .admin-sep { width:1px; height:28px; background:#3d5068; flex-shrink:0; }
-.saved-msg { color:#2ecc71; font-size:12px; font-weight:600; display:none; }
 
 /* ── Edit panel (drawer) ── */
 .edit-drawer {
@@ -146,9 +129,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
     <div class="admin-sep"></div>
     <label class="qr-toggle"><input type="checkbox" id="showQrChk" <?= $showQr ? 'checked' : '' ?> onchange="toggleQr(this.checked)"> Show QR Codes</label>
     <div class="admin-sep"></div>
-    <button class="btn-gold" onclick="saveData()">&#10003; Save</button>
     <button class="btn-gold" style="background:#3f4750;color:#fff;" onclick="window.print()">&#128438; Print / PDF</button>
-    <span class="saved-msg" id="savedMsg">Saved!</span>
   </div>
 
   <!-- Edit drawer -->
@@ -323,8 +304,6 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
 
 <?php if ($isAdmin): ?>
 <script>
-const SAVE_URL = 'https://uru.soccer/dfc/';
-
 function toggleDrawer() {
   document.getElementById('editDrawer').classList.toggle('open');
 }
@@ -369,20 +348,6 @@ function collectData() {
     });
   });
   return { event, showQr, staff, players };
-}
-
-async function saveData() {
-  const data = collectData();
-  try {
-    const res = await fetch(SAVE_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
-    const j = await res.json();
-    if (j.ok) {
-      renderPage(data);
-      const msg = document.getElementById('savedMsg');
-      msg.style.display = 'inline';
-      setTimeout(() => msg.style.display = 'none', 2500);
-    }
-  } catch(e) { alert('Save failed: ' + e.message); }
 }
 
 function toggleQr(on) {
