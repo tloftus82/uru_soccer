@@ -124,17 +124,12 @@ function computeHumanScore($row) {
     $sd   = $row['SCROLL_DEPTH'];
     $score = 50;
 
-    // Social link-preview crawlers score low but aren't hard-clamped to 3
-    $socialPrev = ['facebookexternalhit','twitterbot','linkedinbot','pinterest','whatsapp','slackbot','telegrambot','discordbot'];
-    foreach ($socialPrev as $sp) {
-        if (strpos($ua, $sp) !== false) { $score -= 30; break; }
-    }
     $botKw = ['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
               'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
               'crawler','spider','bot','scrapy','wget','curl','python-requests',
+              'facebookexternalhit','twitterbot','linkedinbot',
               'amazon','amazonaws','google','microsoft','azure','cloudflare',
-              'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps',
-              'tencent','alibaba','baidu','huawei','chinanet'];
+              'digitalocean','linode','vultr','ovh','hetzner','datacenter','hosting','server','vps'];
     foreach ($botKw as $b) {
         if (strpos($ua, $b) !== false) return 3;
     }
@@ -147,22 +142,13 @@ function computeHumanScore($row) {
         preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
         preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
         preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
-        preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
-        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
         (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
          !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
     ) { return 4; }
 
-    $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps','tencent','alibaba','baidu','huawei','chinanet'];
+    $dcKw = ['amazon','google','microsoft','azure','digitalocean','linode','vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
     foreach ($dcKw as $kw) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
-    }
-
-    $loc     = $row['IP_LOCATION'] ?? '';
-    if ($loc !== '') {
-        $parts   = explode(', ', $loc);
-        $country = trim(end($parts));
-        if (!in_array($country, ['United States', 'Canada'])) { $score -= 40; }
     }
 
     if ($ua === '')                                                         $score -= 35;

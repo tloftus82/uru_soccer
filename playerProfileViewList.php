@@ -8,14 +8,6 @@ if (!isset($_COOKIE['uru_admin']) || $_COOKIE['uru_admin'] !== COOKIE_TOKEN) {
 
 include('dbConnect/dbConnect.inc.php');
 
-// ── Delete single record ──────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
-    $del_id = (int)$_POST['delete_id'];
-    if ($del_id > 0) mysqli_query($cn, "DELETE FROM PP_VIEW_LOG WHERE ID = $del_id");
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : ''));
-    exit;
-}
-
 // Ensure all extended columns exist before any SELECT references them
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS REFERRER      VARCHAR(500)  NULL");
 mysqli_query($cn, "ALTER TABLE PP_VIEW_LOG ADD COLUMN IF NOT EXISTS USER_AGENT    VARCHAR(500)  NULL");
@@ -57,8 +49,6 @@ function humanScore($row, $botPatterns) {
         preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
         preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
         preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
-        preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
-        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
         // Windows version strings that don't match any real NT release
         (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
          !in_array($m[1], ['NT', '95', '98', 'NT 4.0','NT 5.0','NT 5.1','NT 5.2','NT 6.0','NT 6.1','NT 6.2','NT 6.3','NT 10.0']) &&
@@ -71,16 +61,6 @@ function humanScore($row, $botPatterns) {
                    'vultr','ovh','hetzner','datacenter','data center','hosting','vps'];
     foreach ($dcKeywords as $kw) {
         if (strpos($org, $kw) !== false || strpos($host, $kw) !== false) { $score -= 20; break; }
-    }
-    // Geography: recruiting is US/Canada — international visits are almost never real coaches
-    $loc = $row['IP_LOCATION'] ?? '';
-    if ($loc !== '') {
-        $parts   = explode(', ', $loc);
-        $country = trim(end($parts));
-        $domestic = ['United States', 'Canada'];
-        if (!in_array($country, $domestic)) {
-            $score -= 40;
-        }
     }
     if ($top !== null && $top == 0)                         $score -= 25;
     elseif ($top !== null && $top < 4)                      $score -= 12;
@@ -124,7 +104,6 @@ $botPatterns = [
     'server','vps','dedicated','colocation','colo','teleport','crawl','spider',
     'bot','scraper','semrush','ahrefs','moz.com','majestic','pingdom','uptime',
     'godlike','server farm',
-    'tencent','alibaba','baidu','huawei','chinanet','china telecom','china unicom',
 ];
 
 // ── Filters from GET ───────────────────────────────────────────────────────────
@@ -142,7 +121,7 @@ $offset         = ($page - 1) * $perPage;
 $botSqlParts = [];
 foreach ($botPatterns as $p) {
     $ps = mysqli_real_escape_string($cn, $p);
-    $botSqlParts[] = "LOWER(CONCAT(IFNULL(A.IP_ORG,''),' ',IFNULL(A.HOST_NAME,''))) LIKE '%$ps%'";
+    $botSqlParts[] = "LOWER(CONCAT(IFNULL(A.IP_ORG,''),' ',IFNULL(A.HOST_NAME,''),' ',IFNULL(A.USER_AGENT,''))) LIKE '%$ps%'";
 }
 $botSql = implode(' OR ', $botSqlParts);
 
@@ -161,8 +140,22 @@ if ($hideUnauth)            $where[] = "A.AUTHENTICATED = 1";
 $whereStr    = implode(' AND ', $where);
 $whereBotOff = implode(' AND ', array_filter($where, fn($w) => $w !== "NOT ($botSql)"));
 
-// Stats are computed after PHP filtering below (from $filteredRows)
-$totalViews = 0; $uniquePlayers = 0; $uniqueViewers = 0; $uniqueIPs = 0;
+// ── Summary stats via DB (fast, no full fetch) ────────────────────────────────
+$statsRow = mysqli_fetch_assoc(mysqli_query($cn,
+    "SELECT COUNT(*) AS total,
+            COUNT(DISTINCT A.PLAYER_ID) AS u_players,
+            COUNT(DISTINCT A.VIEWER_ID) AS u_viewers,
+            COUNT(DISTINCT A.IP_ADDRESS) AS u_ips
+     FROM PP_VIEW_LOG A
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr"));
+
+$totalViews    = (int)$statsRow['total'];
+$uniquePlayers = (int)$statsRow['u_players'];
+$uniqueViewers = (int)$statsRow['u_viewers'];
+$uniqueIPs     = (int)$statsRow['u_ips'];
+$totalPages    = max(1, (int)ceil($totalViews / $perPage));
 
 // Bot count (always without bot filter so stat card is meaningful)
 $botRow  = mysqli_fetch_assoc(mysqli_query($cn,
@@ -172,17 +165,26 @@ $botRow  = mysqli_fetch_assoc(mysqli_query($cn,
      WHERE ($whereBotOff) AND ($botSql)"));
 $botCount = (int)$botRow['cnt'];
 
-// Chart data built after PHP filtering (below, from $filteredRows)
-$byPlayer = [];
-$byViewer = [];
-$byIp     = [];
+// ── Bar chart data (top 10 per group, from DB) ─────────────────────────────────
+$byPlayerRaw = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT CONCAT(C.FIRST_NAME,' ',C.LAST_NAME) AS NAME, COUNT(*) AS CNT
+     FROM PP_VIEW_LOG A
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr GROUP BY A.PLAYER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
+$byPlayer = array_column($byPlayerRaw, 'CNT', 'NAME');
 
-// ── Fetch all matching rows, filter in PHP, then paginate ────────────────────
-// Fetching all rows (no SQL LIMIT) so PHP-level bot filtering (Spoof UA,
-// datacenter org, etc.) runs before pagination and the displayed count is exact.
-$sql = "SELECT A.ID, A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
-               A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE, IFNULL(A.REDIRECT_SLUG,'') AS REDIRECT_SLUG,
-               IFNULL(A.PAGE_URL,'') AS PAGE_URL,
+$byViewerRaw = mysqli_fetch_all(mysqli_query($cn,
+    "SELECT CONCAT(B.FIRST_NAME,' ',B.LAST_NAME) AS NAME, COUNT(*) AS CNT
+     FROM PP_VIEW_LOG A
+     LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
+     LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
+     WHERE $whereStr GROUP BY A.VIEWER_ID ORDER BY CNT DESC LIMIT 10"), MYSQLI_ASSOC);
+$byViewer = array_column($byViewerRaw, 'CNT', 'NAME');
+
+// ── Fetch page of rows ────────────────────────────────────────────────────────
+$sql = "SELECT A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION, A.IP_ORG, A.AUTHENTICATED,
+               A.PLAYER_ID, A.VIEWER_ID, A.VIEW_CODE,
                IFNULL(A.REFERRER,'') AS REFERRER, IFNULL(A.USER_AGENT,'') AS USER_AGENT,
                A.TIME_ON_PAGE, A.SCROLL_DEPTH, IFNULL(A.VIDEO_PLAYED,0) AS VIDEO_PLAYED,
                A.VIDEO_WATCH_SECONDS, IFNULL(A.VIDEOS_WATCHED,'') AS VIDEOS_WATCHED,
@@ -198,81 +200,10 @@ $sql = "SELECT A.ID, A.VIEW_DATE_TIME, A.IP_ADDRESS, A.HOST_NAME, A.IP_LOCATION,
         LEFT JOIN PP_ALLOWED_VIEWERS B ON B.ID = A.VIEWER_ID
         LEFT JOIN PP_PLAYERS C ON C.ID = A.PLAYER_ID
         WHERE $whereStr
-        ORDER BY A.VIEW_DATE_TIME DESC";
+        ORDER BY A.VIEW_DATE_TIME DESC
+        LIMIT $perPage OFFSET $offset";
 
-$allRows = mysqli_fetch_all(mysqli_query($cn, $sql), MYSQLI_ASSOC);
-
-// PHP-level bot filtering pass (catches Spoof UA, datacenter org, etc.)
-$filteredRows = [];
-foreach ($allRows as $r) {
-    $uaR   = $r['USER_AGENT'] ?? '';
-    $uaL   = strtolower($uaR);
-    $isSpoofOrBot = false;
-    // Social link-preview crawlers — not bots, flag separately
-    $isLinkPreview = false;
-    foreach (['facebookexternalhit','twitterbot','linkedinbot','pinterest','whatsapp','slackbot','telegrambot','discordbot'] as $sp) {
-        if (strpos($uaL, $sp) !== false) { $isLinkPreview = true; break; }
-    }
-    // Keyword bots
-    if (!$isLinkPreview) {
-        foreach (['googlebot','bingbot','slurp','duckduckbot','baiduspider','yandexbot',
-                  'semrushbot','ahrefsbot','mj12bot','dotbot','petalbot','gptbot',
-                  'crawler','spider','bot','scrapy','wget','curl','python-requests'] as $b) {
-            if (strpos($uaL, $b) !== false) { $isSpoofOrBot = true; break; }
-        }
-    }
-    // Spoofed UA
-    if (!$isSpoofOrBot && (
-        preg_match('/Firefox\/([\d]+)/i',        $uaR, $m) && (int)$m[1] < 68  ||
-        preg_match('/Chrome\/([\d]+)/i',          $uaR, $m) && (int)$m[1] < 74  ||
-        preg_match('/OPR\/([\d]+)/i',             $uaR, $m) && (int)$m[1] < 60  ||
-        preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaR, $m) && (int)$m[1] < 74  ||
-        preg_match('/Version\/([\d]+).*Safari/i', $uaR, $m) && (int)$m[1] < 12  ||
-        preg_match('/MSIE\s+([\d]+)/i',           $uaR, $m) && (int)$m[1] < 12  ||
-        preg_match('/Trident\/.*rv:([\d]+)/i',    $uaR, $m) && (int)$m[1] < 11  ||
-        (preg_match('/Windows\s+([\d.]+)/i', $uaR, $m) &&
-         !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaR))
-    )) { $isSpoofOrBot = true; }
-    // IP burst
-    if (!$isSpoofOrBot && ($r['BURST_COUNT'] ?? 1) >= 3) { $isSpoofOrBot = true; }
-    // Datacenter org/host
-    if (!$isSpoofOrBot) {
-        $orgL  = strtolower($r['IP_ORG']   ?? '');
-        $hostL = strtolower($r['HOST_NAME'] ?? '');
-        foreach (['amazon','amazonaws','google','microsoft','azure','cloudflare',
-                  'digitalocean','linode','vultr','ovh','hetzner','datacenter',
-                  'data center','hosting','vps','godlike','server farm'] as $dc) {
-            if (strpos($orgL, $dc) !== false || strpos($hostL, $dc) !== false) {
-                $isSpoofOrBot = true; break;
-            }
-        }
-    }
-    $hs = humanScore($r, $botPatterns);
-    if ($hideBots && !$isLinkPreview && ($isSpoofOrBot || $hs <= 35)) continue;
-    $filteredRows[] = array_merge($r, ['_link_preview' => $isLinkPreview]);
-}
-
-$totalViews    = count($filteredRows);
-$uniquePlayers = count(array_unique(array_filter(array_column($filteredRows, 'PLAYER_ID'))));
-$uniqueViewers = count(array_unique(array_filter(array_column($filteredRows, 'VIEWER_ID'))));
-$uniqueIPs     = count(array_unique(array_filter(array_column($filteredRows, 'IP_ADDRESS'))));
-
-// Build chart data from the filtered set so they match the detail table exactly
-foreach ($filteredRows as $fr) {
-    $pName = $fr['PLAYER'] ?? '—';
-    $vName = $fr['VIEWER'] ?? '—';
-    $ip    = $fr['IP_ADDRESS'] ?? '';
-    $byPlayer[$pName] = ($byPlayer[$pName] ?? 0) + 1;
-    $byViewer[$vName] = ($byViewer[$vName] ?? 0) + 1;
-    if ($ip) $byIp[$ip] = ($byIp[$ip] ?? 0) + 1;
-}
-arsort($byPlayer); $byPlayer = array_slice($byPlayer, 0, 10, true);
-arsort($byViewer); $byViewer = array_slice($byViewer, 0, 10, true);
-arsort($byIp);     $byIp     = array_slice($byIp,     0, 10, true);
-$totalPages = max(1, (int)ceil($totalViews / $perPage));
-$page       = max(1, min($page, $totalPages));
-$offset     = ($page - 1) * $perPage;
-$displayViews = array_slice($filteredRows, $offset, $perPage);
+$displayViews = mysqli_fetch_all(mysqli_query($cn, $sql), MYSQLI_ASSOC);
 
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 $players = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME FROM PP_PLAYERS WHERE IS_ACTIVE=1 ORDER BY LAST_NAME,FIRST_NAME"), MYSQLI_ASSOC);
@@ -358,31 +289,25 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
 
   <!-- ── Summary Cards ──────────────────────────────────────────────────────── -->
   <div class="row g-3 mb-4">
-    <div class="col-6 col-md-2">
+    <div class="col-6 col-md-3">
       <div class="stat-card">
         <div class="val"><?= number_format($totalViews) ?></div>
         <div class="lbl">Total Views</div>
       </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-6 col-md-3">
       <div class="stat-card green">
         <div class="val"><?= $uniquePlayers ?></div>
         <div class="lbl">Players Viewed</div>
       </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-6 col-md-3">
       <div class="stat-card orange">
         <div class="val"><?= $uniqueViewers ?></div>
         <div class="lbl">Unique Viewers</div>
       </div>
     </div>
-    <div class="col-6 col-md-2">
-      <div class="stat-card" style="border-left-color:#8e44ad;">
-        <div class="val" style="color:#8e44ad;"><?= $uniqueIPs ?></div>
-        <div class="lbl">Unique IPs</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-2">
+    <div class="col-6 col-md-3">
       <div class="stat-card red">
         <div class="val"><?= $botCount ?></div>
         <div class="lbl">Likely Bots<?= $hideBots ? ' (hidden)' : ' (shown)' ?></div>
@@ -443,7 +368,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   <!-- ── Charts Row ────────────────────────────────────────────────────────── -->
   <?php if ($totalViews > 0): ?>
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="bg-white rounded-3 p-3 shadow-sm h-100">
         <div class="section-head"><i class="fas fa-user-circle me-2"></i>Views by Player</div>
         <?php $maxP = max(array_values($byPlayer)); foreach ($byPlayer as $name => $cnt): ?>
@@ -457,7 +382,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <?php endforeach; ?>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="bg-white rounded-3 p-3 shadow-sm h-100">
         <div class="section-head"><i class="fas fa-users me-2"></i>Views by Viewer</div>
         <?php $maxV = max(array_values($byViewer)); foreach ($byViewer as $name => $cnt): ?>
@@ -471,24 +396,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
         <?php endforeach; ?>
       </div>
     </div>
-    <?php if ($byIp): ?>
-    <div class="col-md-4">
-      <div class="bg-white rounded-3 p-3 shadow-sm h-100">
-        <div class="section-head"><i class="fas fa-network-wired me-2"></i>Views by IP</div>
-        <?php $maxI = max(array_values($byIp)); foreach ($byIp as $ip => $cnt): ?>
-        <div class="chart-row">
-          <div class="chart-label text-muted" style="font-family:monospace;font-size:11px;">
-            <a href="ipDetail.php?ip=<?= urlencode($ip) ?>" style="color:inherit;" title="Site log for this IP"><?= htmlspecialchars($ip) ?></a>
-          </div>
-          <div class="chart-bar-wrap">
-            <div class="chart-bar-inner" style="width:<?= round($cnt/$maxI*100) ?>%;background:#8e44ad;"></div>
-          </div>
-          <div class="chart-count"><?= $cnt ?></div>
-        </div>
-        <?php endforeach; ?>
-      </div>
-    </div>
-    <?php endif; ?>
   </div>
   <?php endif; ?>
 
@@ -536,7 +443,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <th>Viewer</th>
             <th>Location</th>
             <th>Organization</th>
-            <th>IP Address</th>
             <th>Device</th>
             <th>Human %</th>
             <th>Engagement</th>
@@ -585,8 +491,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                     preg_match('/OPR\/([\d]+)/i',             $uaRaw, $m) && (int)$m[1] < 60  ||
                     preg_match('/Edg(?:e)?\/([\d]+)/i',       $uaRaw, $m) && (int)$m[1] < 74  ||
                     preg_match('/Version\/([\d]+).*Safari/i', $uaRaw, $m) && (int)$m[1] < 12  ||
-                    preg_match('/MSIE\s+([\d]+)/i',           $uaRaw, $m) && (int)$m[1] < 12  ||
-                    preg_match('/Trident\/.*rv:([\d]+)/i',    $uaRaw, $m) && (int)$m[1] < 11  ||
                     (preg_match('/Windows\s+([\d.]+)/i', $uaRaw, $m) &&
                      !preg_match('/Windows NT (5\.[012]|6\.[0-3]|10\.0)/i', $uaRaw))
                 ) { $botName = 'Spoof UA'; }
@@ -608,7 +512,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
                     }
                 }
             }
-
             if ($botName) {
               $deviceBadge = '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;">'
                            . htmlspecialchars($botName).'</span>';
@@ -677,13 +580,8 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               }
             }
 
-            // Use the actual URL stored at visit time
-            $profileUrl = $row['PAGE_URL'] ?? '';
-
             // Detail card data (JSON-safe)
             $dc = htmlspecialchars(json_encode([
-              'row_id'   => $row['ID'],
-              'url'      => $profileUrl,
               'ip'       => $row['IP_ADDRESS'],
               'org'      => $row['IP_ORG'],
               'host'     => $row['HOST_NAME'],
@@ -714,11 +612,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
             <td class="text-nowrap" title="<?= htmlspecialchars($row['VIEWER']) ?>"><?= htmlspecialchars(mb_strimwidth($row['VIEWER'], 0, 20, '…')) ?></td>
             <td><?= htmlspecialchars($row['IP_LOCATION']) ?></td>
             <td><?= htmlspecialchars($row['IP_ORG']) ?></td>
-            <td style="font-size:11px;font-family:monospace;max-width:120px;word-break:break-all;line-height:1.3;">
-              <?php if ($row['IP_ADDRESS']): ?>
-              <a href="ipDetail.php?ip=<?= urlencode($row['IP_ADDRESS']) ?>" title="See site log for this IP" style="color:#1a3a5c;"><?= htmlspecialchars($row['IP_ADDRESS']) ?></a>
-              <?php endif; ?>
-            </td>
             <?php
               $hs = humanScore($row, $botPatterns);
               if      ($hs <= 15) $hsCls = 'hs-bot';
@@ -727,12 +620,7 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
               elseif  ($hs <= 80) $hsCls = 'hs-high';
               else                $hsCls = 'hs-sure';
             ?>
-            <td>
-              <?= $deviceBadge ?>
-              <?php if ($row['_link_preview'] ?? false): ?>
-                <span class="eng-pill" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;" title="Social link preview crawler — triggered by a real share"><i class="fas fa-share-nodes" style="font-size:9px;"></i> Link Share</span>
-              <?php endif; ?>
-            </td>
+            <td><?= $deviceBadge ?></td>
             <td><span class="human-score <?= $hsCls ?>"><?= $hs ?>%</span></td>
             <td>
               <div class="eng-icons">
@@ -756,12 +644,6 @@ $viewers = mysqli_fetch_all(mysqli_query($cn, "SELECT ID, CONCAT(FIRST_NAME,' ',
   <div class="detail-card" id="detailCard">
     <div class="dc-head"><i class="fas fa-circle-info me-1"></i>View Detail</div>
     <dl id="detailBody"></dl>
-    <form id="deleteRowForm" method="POST" style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,.1);">
-      <input type="hidden" name="delete_id" id="deleteRowId">
-      <button type="submit" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this view record?')">
-        <i class="fas fa-trash me-1"></i>Delete This Record
-      </button>
-    </form>
   </div>
 
 </div>
@@ -784,7 +666,6 @@ $('#viewTable').DataTable({
   var pinnedBtn = null;  // set when clicked
   var hoverBtn  = null;  // set when hovered
   var LABELS = {
-    url:'Profile URL',
     ip:'IP Address', org:'Organization', host:'Hostname',
     browser:'Browser / OS', ref:'Referrer', return:'Return Visit',
     time:'Time on Page', scroll:'Scroll Depth',
@@ -809,18 +690,12 @@ $('#viewTable').DataTable({
 
   function populate(btn) {
     var data = JSON.parse(btn.getAttribute('data-dc'));
-    document.getElementById('deleteRowId').value = data.row_id || '';
     var html = '';
     for (var k in LABELS) {
       if (!data[k]) continue;
-      var val;
-      if (k === 'url') {
-        val = '<a href="'+escHtml(data[k])+'" target="_blank" style="color:#1a3a5c;word-break:break-all;">'+escHtml(data[k])+'</a>';
-      } else if (k === 'links' || k === 'vidnames') {
-        val = data[k].split(k === 'links' ? ',' : '\n').map(function(s){ return escHtml(s.trim()); }).join('<br>');
-      } else {
-        val = escHtml(data[k]);
-      }
+      var val = (k === 'links' || k === 'vidnames')
+        ? data[k].split(k === 'links' ? ',' : '\n').map(function(s){ return escHtml(s.trim()); }).join('<br>')
+        : escHtml(data[k]);
       html += '<dt>'+LABELS[k]+'</dt><dd>'+val+'</dd>';
     }
     if (!html) html = '<dd style="color:#aaa;grid-column:1/-1;">No detail available</dd>';
