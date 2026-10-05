@@ -208,7 +208,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
       <img src="assets/diablos-crest.png" alt="Diablos FC crest" style="height:68px;width:auto;flex-shrink:0;">
       <div>
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;line-height:0.95;letter-spacing:0.3px;color:#18160f;text-transform:uppercase;white-space:nowrap;">DIABLOS FOOTBALL CLUB</div>
-        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:4px;color:#C8920A;text-transform:uppercase;margin-top:4px;">HIGH SCHOOL GIRLS · RECRUITING ROSTER</div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:4px;color:#C8920A;text-transform:uppercase;margin-top:4px;">HIGH SCHOOL GIRLS · ROSTER</div>
       </div>
     </header>
 
