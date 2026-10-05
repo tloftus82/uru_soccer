@@ -24,7 +24,7 @@ $d = [
     ['num'=>23, 'name'=>'Collins Nessa',        'grad'=>'2028','pos'=>'D',       'hs'=>'MOC-Floyd Valley High School',     'email'=>'collins.nessa10@gmail.com',       'phone'=>'(712) 395-0822','profile'=>'uru.soccer/collins-nessa',     'qrSlug'=>'collins-nessa',     'video'=>'','committed'=>''],
     ['num'=>6,  'name'=>'Vanessa Padilla',      'grad'=>'2028','pos'=>'',        'hs'=>'South Sioux City High School',    'email'=>'sofia.marquez10@icloud.com',      'phone'=>'(402) 987-4114',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
     ['num'=>10, 'name'=>'Ava Peters',           'grad'=>'2028','pos'=>'W · ST',  'hs'=>'Bishop Heelan High School',        'email'=>'pava6610@gmail.com',              'phone'=>'(712) 540-5650','profile'=>'uru.soccer/ava-peters',        'qrSlug'=>'ava-peters',        'video'=>'','committed'=>''],
-    ['num'=>18, 'name'=>'Annabella Reyes',      'grad'=>'2028','pos'=>'',        'hs'=>'Bishop Heelan High School',       'email'=>'',                                'phone'=>'(712) 535-1499',             'profile'=>'uru.soccer/annabella-reyes',   'qrSlug'=>'',                  'video'=>'Highlight Video','committed'=>''],
+    ['num'=>18, 'name'=>'Annabella Reyes',      'grad'=>'2028','pos'=>'',        'hs'=>'Bishop Heelan High School',       'email'=>'annabellareyes18@icloud.com',     'phone'=>'(712) 535-1499',             'profile'=>'uru.soccer/annabella-reyes',   'qrSlug'=>'',                  'video'=>'Highlight Video','committed'=>''],
     ['num'=>13, 'name'=>'Peyton Rose',          'grad'=>'2028','pos'=>'CB',      'hs'=>'Sioux City North High School',     'email'=>'prosie1325@gmail.com',            'phone'=>'(712) 203-4208','profile'=>'uru.soccer/peyton-rose',       'qrSlug'=>'peyton-rose',       'video'=>'','committed'=>''],
     ['num'=>19, 'name'=>'Brooke Swier',         'grad'=>'2028','pos'=>'',        'hs'=>'MOC-Floyd Valley High School',     'email'=>'swier.brooke@gmail.com',          'phone'=>'(712) 463-0160',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
     // 2029
@@ -230,13 +230,13 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
 
     <!-- ROSTER -->
     <div style="padding:4px 34px 0;flex:1;display:flex;flex-direction:column;overflow:hidden;" id="rosterWrap">
-      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;background:#18160f;color:#fff;font-family:'Oswald',sans-serif;font-weight:500;font-size:9px;letter-spacing:0.8px;text-transform:uppercase;">
+      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 2fr 1.8fr;background:#18160f;color:#fff;font-family:'Oswald',sans-serif;font-weight:500;font-size:9px;letter-spacing:0.8px;text-transform:uppercase;">
         <div style="padding:5px 4px;text-align:center;">#</div>
         <div style="padding:5px 8px;">Player / High School</div>
         <div style="padding:5px 4px;text-align:center;">Class</div>
         <div style="padding:5px 8px;">Position(s)</div>
-        <div style="padding:5px 8px;">Profile / Video</div>
         <div style="padding:5px 8px;">Contact</div>
+        <div style="padding:5px 8px;">Profile / Video</div>
       </div>
       <div id="rosterRows" style="flex:1;display:flex;flex-direction:column;">
       <?php foreach ($players as $i => $p):
@@ -247,7 +247,7 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
         $profileUrl = $profile ? 'https://' . ltrim($profile, '/') : '';
         $phoneClean = preg_replace('/[^0-9]/', '', $phone);
       ?>
-      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
+      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 2fr 1.8fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
         <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;"><?= (int)$p['num'] ?></div>
         <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
           <div style="font-weight:700;font-size:12.5px;color:#18160f;line-height:1.1;"><?= h($p['name']) ?></div>
@@ -257,20 +257,20 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
           <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;"><?= h($p['grad']) ?></span>
         </div>
         <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;"><?= h($p['pos']) ?></div>
-        <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
-          <?php if ($profileUrl): ?>
-          <a href="<?= h($profileUrl) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;"><?= h($profile) ?></a>
-          <?php endif; ?>
-          <?php if (!empty($p['video'])): ?>
-          <div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
-          <?php endif; ?>
-        </div>
         <div style="padding:2px 8px;">
           <?php if ($email): ?>
           <a href="mailto:<?= h($email) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.25;word-break:break-all;text-decoration:none;display:block;"><?= h($email) ?></a>
           <?php endif; ?>
           <?php if ($phone): ?>
           <a href="tel:+1<?= h($phoneClean) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.2;text-decoration:none;display:block;"><?= h($phone) ?></a>
+          <?php endif; ?>
+        </div>
+        <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+          <?php if ($profileUrl): ?>
+          <a href="<?= h($profileUrl) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;"><?= h($profile) ?></a>
+          <?php endif; ?>
+          <?php if (!empty($p['video'])): ?>
+          <div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
           <?php endif; ?>
         </div>
       </div>
@@ -376,7 +376,7 @@ function renderPage(data) {
     const profile    = (p.profile || '').trim();
     const profileUrl = profile ? 'https://' + profile.replace(/^\/+/, '') : '';
     const phoneClean = (p.phone || '').replace(/[^0-9]/g, '');
-    return `<div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
+    return `<div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 2fr 1.8fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
       <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;">${p.num}</div>
       <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
         <div style="font-weight:700;font-size:12.5px;color:#18160f;line-height:1.1;">${esc(p.name)}</div>
@@ -386,13 +386,13 @@ function renderPage(data) {
         <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;">${esc(p.grad)}</span>
       </div>
       <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;">${esc(p.pos)}</div>
-      <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
-        ${profileUrl ? `<a href="${esc(profileUrl)}" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;">${esc(profile)}</a>` : ''}
-        ${p.video ? `<div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
-      </div>
       <div style="padding:2px 8px;">
         ${p.email ? `<a href="mailto:${esc(p.email)}" style="font-size:11.5px;color:#1a56a0;line-height:1.25;word-break:break-all;text-decoration:none;display:block;">${esc(p.email)}</a>` : ''}
         ${p.phone ? `<a href="tel:+1${phoneClean}" style="font-size:11.5px;color:#1a56a0;line-height:1.2;text-decoration:none;display:block;">${esc(p.phone)}</a>` : ''}
+      </div>
+      <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+        ${profileUrl ? `<a href="${esc(profileUrl)}" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;">${esc(profile)}</a>` : ''}
+        ${p.video ? `<div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
       </div>
     </div>`;
   }).join('');
