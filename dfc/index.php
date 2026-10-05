@@ -8,7 +8,6 @@ $d = [
   'showQr'  => true,
   'staff'   => [
     ['role' => 'Head Coach',       'name' => 'Ariel Covarrubias', 'email' => 'aconejo99@gmail.com',       'phone' => '(712) 574-6009'],
-    ['role' => 'Assistant Coach',  'name' => 'Eric Reyes',         'email' => 'hamiltondetail@gmail.com', 'phone' => '(712) 212-0618'],
     ['role' => 'Team Manager',     'name' => 'Tom Loftus',         'email' => 'tloftus@gmail.com',        'phone' => '(712) 389-0141'],
   ],
   'players' => [
@@ -218,22 +217,11 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
   <div class="page-shadow" style="width:11in;height:8.5in;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,0.45);display:flex;flex-direction:column;" id="pageRoot">
 
     <!-- MASTHEAD -->
-    <header style="display:flex;align-items:stretch;border-bottom:5px solid #E9A900;" id="masthead">
-      <div style="flex:1;display:flex;align-items:center;gap:20px;padding:3px 34px;">
-        <img src="assets/diablos-crest.png" alt="Diablos FC crest" style="height:78px;width:auto;flex-shrink:0;">
-        <div style="min-width:0;">
-          <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:31px;line-height:0.95;letter-spacing:0.3px;color:#18160f;text-transform:uppercase;white-space:nowrap;">DIABLOS FOOTBALL CLUB</div>
-          <div id="ev-subtitle-display" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:4.5px;color:#C8920A;text-transform:uppercase;margin-top:3px;"><?= h($ev['subtitle']) ?></div>
-          <div id="ev-location-display" style="font-size:12px;color:#777;margin-top:5px;line-height:1.3;"><?= h($ev['location']) ?></div>
-        </div>
-      </div>
-      <div style="flex-shrink:0;display:flex;align-items:center;padding:0 20px;border-left:1px solid #eee;">
-        <img src="assets/usa-cup.png" alt="USA Cup" style="height:60px;width:auto;">
-      </div>
-      <div style="flex-shrink:0;background:#3f4750;color:#fff;padding:7px 26px;display:flex;flex-direction:column;justify-content:center;min-width:200px;">
-        <div style="font-size:8.5px;letter-spacing:3px;color:#E9A900;text-transform:uppercase;font-weight:600;">EVENT</div>
-        <div id="ev-name-display" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:19px;line-height:1.05;margin-top:3px;"><?= h($ev['name']) ?></div>
-        <div id="ev-dates-display" style="font-size:12px;color:#E9A900;font-weight:600;margin-top:2px;"><?= h($ev['dates']) ?></div>
+    <header style="display:flex;align-items:center;border-bottom:5px solid #E9A900;padding:4px 34px;gap:20px;" id="masthead">
+      <img src="assets/diablos-crest.png" alt="Diablos FC crest" style="height:68px;width:auto;flex-shrink:0;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;line-height:0.95;letter-spacing:0.3px;color:#18160f;text-transform:uppercase;white-space:nowrap;">DIABLOS FOOTBALL CLUB</div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:4px;color:#C8920A;text-transform:uppercase;margin-top:4px;">HIGH SCHOOL GIRLS · RECRUITING ROSTER</div>
       </div>
     </header>
 
@@ -254,51 +242,42 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
     </div>
 
     <!-- ROSTER -->
-    <div style="padding:6px 34px 0;flex:1;display:flex;flex-direction:column;" id="rosterWrap">
-      <div style="display:grid;grid-template-columns:34px 1.6fr 54px 82px 1.2fr 1.9fr 2fr;background:#18160f;color:#fff;font-family:'Oswald',sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;">
-        <div style="padding:6px 4px;text-align:center;">#</div>
-        <div style="padding:6px 8px;">Player / High School</div>
-        <div style="padding:6px 4px;text-align:center;">Class</div>
-        <div style="padding:6px 8px;">Position(s)</div>
-        <div style="padding:6px 8px;">Commitment</div>
-        <div style="padding:6px 8px;">Profile / Video</div>
-        <div style="padding:6px 8px;">Contact</div>
+    <div style="padding:4px 34px 0;flex:1;display:flex;flex-direction:column;overflow:hidden;" id="rosterWrap">
+      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;background:#18160f;color:#fff;font-family:'Oswald',sans-serif;font-weight:500;font-size:9px;letter-spacing:0.8px;text-transform:uppercase;">
+        <div style="padding:5px 4px;text-align:center;">#</div>
+        <div style="padding:5px 8px;">Player / High School</div>
+        <div style="padding:5px 4px;text-align:center;">Class</div>
+        <div style="padding:5px 8px;">Position(s)</div>
+        <div style="padding:5px 8px;">Profile / Video</div>
+        <div style="padding:5px 8px;">Contact</div>
       </div>
       <div id="rosterRows" style="flex:1;display:flex;flex-direction:column;">
       <?php foreach ($players as $i => $p):
-        $committed = trim($p['committed'] ?? '');
-        $rowBg     = $committed ? '#fdf8ec' : ($i % 2 ? '#faf9f5' : '#ffffff');
-        $gradColor = $committed ? ($gradColors[$p['grad']] ?? '#555') : '#18160f';
-        $qr        = $showQr ? qrPath($p['qrSlug'] ?? '') : '';
+        $rowBg = $i % 2 ? '#faf9f5' : '#ffffff';
+        $qr    = $showQr ? qrPath($p['qrSlug'] ?? '') : '';
       ?>
-      <div style="display:grid;grid-template-columns:34px 1.6fr 54px 82px 1.2fr 1.9fr 2fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
-        <div style="padding:3px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:#C8920A;"><?= (int)$p['num'] ?></div>
-        <div style="padding:2px 8px;display:flex;flex-direction:column;justify-content:center;">
-          <div style="font-weight:700;font-size:14px;color:#18160f;line-height:1.05;"><?= h($p['name']) ?></div>
-          <div style="font-size:10px;color:#18160f;line-height:1.1;"><?= h($p['hs']) ?></div>
+      <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
+        <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;"><?= (int)$p['num'] ?></div>
+        <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+          <div style="font-weight:700;font-size:12.5px;color:#18160f;line-height:1.1;"><?= h($p['name']) ?></div>
+          <div style="font-size:9.5px;color:#555;line-height:1.1;"><?= h($p['hs']) ?></div>
         </div>
-        <div style="padding:3px 4px;display:flex;align-items:center;justify-content:center;">
-          <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;color:<?= $gradColor ?>;"><?= h($p['grad']) ?></span>
+        <div style="padding:2px 4px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;"><?= h($p['grad']) ?></span>
         </div>
-        <div style="padding:3px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:13px;letter-spacing:0.4px;color:#333;"><?= h($p['pos']) ?></div>
-        <div style="padding:3px 8px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;">
-          <?php if ($committed): ?>
-          <span style="display:block;background:#E9A900;color:#18160f;font-family:'Oswald',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:0.5px;text-transform:uppercase;padding:2px 6px 1px;border-radius:2px;line-height:1;">Committed</span>
-          <div style="font-size:11px;color:#18160f;font-weight:600;line-height:1.1;margin-top:1px;white-space:nowrap;"><?= h($committed) ?></div>
-          <?php endif; ?>
-        </div>
-        <div style="padding:2px 8px;display:flex;align-items:center;gap:8px;">
-          <?php if ($qr): ?><img src="<?= h($qr) ?>" alt="Scan profile" style="width:31px;height:31px;flex-shrink:0;display:block;"><?php endif; ?>
+        <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;"><?= h($p['pos']) ?></div>
+        <div style="padding:1px 8px;display:flex;align-items:center;gap:6px;">
+          <?php if ($qr): ?><img src="<?= h($qr) ?>" alt="Scan profile" style="width:26px;height:26px;flex-shrink:0;display:block;"><?php endif; ?>
           <div style="min-width:0;">
-            <div style="font-size:12.5px;color:#18160f;line-height:1.2;white-space:nowrap;"><?= h($p['profile'] ?? '') ?></div>
+            <div style="font-size:11.5px;color:#18160f;line-height:1.2;white-space:nowrap;"><?= h($p['profile'] ?? '') ?></div>
             <?php if (!empty($p['video'])): ?>
-            <div style="font-size:11px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
+            <div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
             <?php endif; ?>
           </div>
         </div>
-        <div style="padding:3px 8px;">
-          <div style="font-size:12.5px;color:#18160f;line-height:1.25;word-break:break-all;"><?= h($p['email'] ?? '') ?></div>
-          <div style="font-size:12.5px;color:#18160f;line-height:1.2;"><?= h($p['phone'] ?? '') ?></div>
+        <div style="padding:2px 8px;">
+          <div style="font-size:11.5px;color:#18160f;line-height:1.25;word-break:break-all;"><?= h($p['email'] ?? '') ?></div>
+          <div style="font-size:11.5px;color:#18160f;line-height:1.2;"><?= h($p['phone'] ?? '') ?></div>
         </div>
       </div>
       <?php endforeach; ?>
@@ -387,12 +366,6 @@ function addPlayerRow() {
 
 // Live-render the page from JS data without a full reload
 function renderPage(data) {
-  const ev = data.event;
-  document.getElementById('ev-name-display').textContent     = ev.name;
-  document.getElementById('ev-dates-display').textContent    = ev.dates;
-  document.getElementById('ev-subtitle-display').textContent = ev.subtitle;
-  document.getElementById('ev-location-display').textContent = ev.location;
-
   const gradColors = {'2026':'#C8920A','2027':'#18160f','2028':'#666','2029':'#999','2030':'#b3afa2'};
 
   // Staff strip
@@ -412,33 +385,28 @@ function renderPage(data) {
   // Roster rows
   const rows = document.getElementById('rosterRows');
   rows.innerHTML = data.players.map((p, i) => {
-    const committed = (p.committed || '').trim();
-    const rowBg   = committed ? '#fdf8ec' : (i % 2 ? '#faf9f5' : '#ffffff');
-    const gradClr = committed ? (gradColors[p.grad] || '#555') : '#18160f';
-    const qrSrc   = (data.showQr && p.qrSlug) ? `assets/qr/${p.qrSlug}.svg` : '';
-    return `<div style="display:grid;grid-template-columns:34px 1.6fr 54px 82px 1.2fr 1.9fr 2fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
-      <div style="padding:3px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:#C8920A;">${p.num}</div>
-      <div style="padding:2px 8px;display:flex;flex-direction:column;justify-content:center;">
-        <div style="font-weight:700;font-size:14px;color:#18160f;line-height:1.05;">${esc(p.name)}</div>
-        <div style="font-size:10px;color:#18160f;line-height:1.1;">${esc(p.hs)}</div>
+    const rowBg = i % 2 ? '#faf9f5' : '#ffffff';
+    const qrSrc = (data.showQr && p.qrSlug) ? `assets/qr/${p.qrSlug}.svg` : '';
+    return `<div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
+      <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;">${p.num}</div>
+      <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:700;font-size:12.5px;color:#18160f;line-height:1.1;">${esc(p.name)}</div>
+        <div style="font-size:9.5px;color:#555;line-height:1.1;">${esc(p.hs)}</div>
       </div>
-      <div style="padding:3px 4px;display:flex;align-items:center;justify-content:center;">
-        <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;color:${gradClr};">${esc(p.grad)}</span>
+      <div style="padding:2px 4px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;">${esc(p.grad)}</span>
       </div>
-      <div style="padding:3px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:13px;letter-spacing:0.4px;color:#333;">${esc(p.pos)}</div>
-      <div style="padding:3px 8px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;">
-        ${committed ? `<span style="display:block;background:#E9A900;color:#18160f;font-family:'Oswald',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:0.5px;text-transform:uppercase;padding:2px 6px 1px;border-radius:2px;line-height:1;">Committed</span><div style="font-size:11px;color:#18160f;font-weight:600;line-height:1.1;margin-top:1px;white-space:nowrap;">${esc(committed)}</div>` : ''}
-      </div>
-      <div style="padding:2px 8px;display:flex;align-items:center;gap:8px;">
-        ${qrSrc ? `<img src="${qrSrc}" alt="Scan profile" style="width:31px;height:31px;flex-shrink:0;display:block;">` : ''}
+      <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;">${esc(p.pos)}</div>
+      <div style="padding:1px 8px;display:flex;align-items:center;gap:6px;">
+        ${qrSrc ? `<img src="${qrSrc}" alt="Scan profile" style="width:26px;height:26px;flex-shrink:0;display:block;">` : ''}
         <div style="min-width:0;">
-          <div style="font-size:12.5px;color:#18160f;line-height:1.2;white-space:nowrap;">${esc(p.profile)}</div>
-          ${p.video ? `<div style="font-size:11px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
+          <div style="font-size:11.5px;color:#18160f;line-height:1.2;white-space:nowrap;">${esc(p.profile)}</div>
+          ${p.video ? `<div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
         </div>
       </div>
-      <div style="padding:3px 8px;">
-        <div style="font-size:12.5px;color:#18160f;line-height:1.25;word-break:break-all;">${esc(p.email)}</div>
-        <div style="font-size:12.5px;color:#18160f;line-height:1.2;">${esc(p.phone)}</div>
+      <div style="padding:2px 8px;">
+        <div style="font-size:11.5px;color:#18160f;line-height:1.25;word-break:break-all;">${esc(p.email)}</div>
+        <div style="font-size:11.5px;color:#18160f;line-height:1.2;">${esc(p.phone)}</div>
       </div>
     </div>`;
   }).join('');
