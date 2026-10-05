@@ -221,8 +221,8 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
           <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff;line-height:1.2;"><?= h($s['name']) ?></div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:11px;color:#fff;line-height:1.35;"><?= h($s['email']) ?></div>
-          <div style="font-size:11px;color:#fff;line-height:1.35;"><?= h($s['phone']) ?></div>
+          <a href="mailto:<?= h($s['email']) ?>" style="font-size:11px;color:#fff;line-height:1.35;text-decoration:none;display:block;"><?= h($s['email']) ?></a>
+          <a href="tel:+1<?= h(preg_replace('/[^0-9]/','',$s['phone'])) ?>" style="font-size:11px;color:#fff;line-height:1.35;text-decoration:none;display:block;"><?= h($s['phone']) ?></a>
         </div>
       </div>
       <?php endforeach; ?>
@@ -364,8 +364,8 @@ function renderPage(data) {
         <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff;line-height:1.2;">${esc(s.name)}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:11px;color:#fff;line-height:1.35;">${esc(s.email)}</div>
-        <div style="font-size:11px;color:#fff;line-height:1.35;">${esc(s.phone)}</div>
+        <a href="mailto:${esc(s.email)}" style="font-size:11px;color:#fff;line-height:1.35;text-decoration:none;display:block;">${esc(s.email)}</a>
+        <a href="tel:+1${(s.phone||'').replace(/[^0-9]/g,'')}" style="font-size:11px;color:#fff;line-height:1.35;text-decoration:none;display:block;">${esc(s.phone)}</a>
       </div>
     </div>`).join('');
 
