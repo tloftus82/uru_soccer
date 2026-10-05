@@ -5,7 +5,6 @@ $isAdmin = ($_COOKIE['uru_admin'] ?? '') === $token;
 
 $d = [
   'event'   => ['name' => 'USA Cup Weekend', 'dates' => 'July 10–12, 2026', 'subtitle' => 'HIGH SCHOOL GIRLS', 'location' => 'Sioux City, Iowa'],
-  'showQr'  => true,
   'staff'   => [
     ['role' => 'Head Coach',       'name' => 'Ariel Covarrubias', 'email' => 'aconejo99@gmail.com',       'phone' => '(712) 574-6009'],
     ['role' => 'Team Manager',     'name' => 'Tom Loftus',         'email' => 'tloftus@gmail.com',        'phone' => '(712) 389-0141'],
@@ -18,7 +17,7 @@ $d = [
     ['num'=>15, 'name'=>'Grace Jensen',         'grad'=>'2027','pos'=>'CM · LW', 'hs'=>'Sioux City North High School',     'email'=>'jenseng415@gmail.com',            'phone'=>'(712) 204-0934','profile'=>'uru.soccer/grace-jensen',      'qrSlug'=>'grace-jensen',      'video'=>'','committed'=>''],
     ['num'=>3,  'name'=>'Alexandra Loftus',     'grad'=>'2027','pos'=>'GK',      'hs'=>'Sioux City North High School',     'email'=>'allieloftus@gmail.com',           'phone'=>'(712) 266-5702','profile'=>'uru.soccer/alexandra-loftus',  'qrSlug'=>'alexandra-loftus',  'video'=>'Highlight & Match Video','committed'=>''],
     ['num'=>4,  'name'=>'Sophia Meyer',         'grad'=>'2027','pos'=>'W · CB',  'hs'=>'Dakota Valley High School',        'email'=>'smeyer0404@icloud.com',           'phone'=>'(712) 281-9099','profile'=>'uru.soccer/sophia-meyer',      'qrSlug'=>'sophia-meyer',      'video'=>'Highlight Video','committed'=>''],
-    ['num'=>9,  'name'=>'Paityn Pratt',         'grad'=>'2027','pos'=>'',        'hs'=>'',                                 'email'=>'',                                'phone'=>'',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
+    ['num'=>9,  'name'=>'Paityn Pratt',         'grad'=>'2027','pos'=>'',        'hs'=>'West Sioux High School',          'email'=>'',                                'phone'=>'',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
     ['num'=>8,  'name'=>'Alexa Seaton',         'grad'=>'2027','pos'=>'',        'hs'=>'South Sioux City High School',    'email'=>'',                                'phone'=>'',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
     ['num'=>27, 'name'=>'Freya Zink',           'grad'=>'2027','pos'=>'',        'hs'=>'Sioux City East High School',     'email'=>'',                                'phone'=>'',             'profile'=>'',                             'qrSlug'=>'',                  'video'=>'','committed'=>''],
     // 2028
@@ -42,16 +41,8 @@ $d = [
 $ev      = $d['event'];
 $staff   = $d['staff'];
 $players = $d['players'];
-$showQr  = $d['showQr'] ?? true;
 
 $gradColors = ['2026'=>'#C8920A','2027'=>'#18160f','2028'=>'#666','2029'=>'#999','2030'=>'#b3afa2'];
-
-function qrPath($qrSlug) {
-  if (!$qrSlug) return '';
-  $slug = basename($qrSlug); // prevent path traversal
-  $path = __DIR__ . '/assets/qr/' . $slug . '.svg';
-  return file_exists($path) ? 'assets/qr/' . $slug . '.svg' : '';
-}
 
 function h($s) { return htmlspecialchars($s ?? '', ENT_QUOTES); }
 ?><!DOCTYPE html>
@@ -138,8 +129,6 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
     <span style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#E9A900;letter-spacing:1px;">DFC EDITOR</span>
     <div class="admin-sep"></div>
     <button class="btn-slate" onclick="toggleDrawer()">&#9998; Edit Data</button>
-    <div class="admin-sep"></div>
-    <label class="qr-toggle"><input type="checkbox" id="showQrChk" <?= $showQr ? 'checked' : '' ?> onchange="toggleQr(this.checked)"> Show QR Codes</label>
     <div class="admin-sep"></div>
     <button class="btn-gold" style="background:#3f4750;color:#fff;" onclick="window.print()">&#128438; Print / PDF</button>
   </div>
@@ -251,8 +240,12 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
       </div>
       <div id="rosterRows" style="flex:1;display:flex;flex-direction:column;">
       <?php foreach ($players as $i => $p):
-        $rowBg = $i % 2 ? '#faf9f5' : '#ffffff';
-        $qr    = $showQr ? qrPath($p['qrSlug'] ?? '') : '';
+        $rowBg   = $i % 2 ? '#faf9f5' : '#ffffff';
+        $profile = trim($p['profile'] ?? '');
+        $email   = trim($p['email']   ?? '');
+        $phone   = trim($p['phone']   ?? '');
+        $profileUrl = $profile ? 'https://' . ltrim($profile, '/') : '';
+        $phoneClean = preg_replace('/[^0-9]/', '', $phone);
       ?>
       <div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:<?= $rowBg ?>;align-items:center;flex:1 1 0;min-height:0;">
         <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;"><?= (int)$p['num'] ?></div>
@@ -264,18 +257,21 @@ body { background:#525659; font-family:'Source Sans 3',sans-serif; -webkit-font-
           <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;"><?= h($p['grad']) ?></span>
         </div>
         <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;"><?= h($p['pos']) ?></div>
-        <div style="padding:1px 8px;display:flex;align-items:center;gap:6px;">
-          <?php if ($qr): ?><img src="<?= h($qr) ?>" alt="Scan profile" style="width:26px;height:26px;flex-shrink:0;display:block;"><?php endif; ?>
-          <div style="min-width:0;">
-            <div style="font-size:11.5px;color:#18160f;line-height:1.2;white-space:nowrap;"><?= h($p['profile'] ?? '') ?></div>
-            <?php if (!empty($p['video'])): ?>
-            <div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
-            <?php endif; ?>
-          </div>
+        <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+          <?php if ($profileUrl): ?>
+          <a href="<?= h($profileUrl) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;"><?= h($profile) ?></a>
+          <?php endif; ?>
+          <?php if (!empty($p['video'])): ?>
+          <div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; <?= h($p['video']) ?></div>
+          <?php endif; ?>
         </div>
         <div style="padding:2px 8px;">
-          <div style="font-size:11.5px;color:#18160f;line-height:1.25;word-break:break-all;"><?= h($p['email'] ?? '') ?></div>
-          <div style="font-size:11.5px;color:#18160f;line-height:1.2;"><?= h($p['phone'] ?? '') ?></div>
+          <?php if ($email): ?>
+          <a href="mailto:<?= h($email) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.25;word-break:break-all;text-decoration:none;display:block;"><?= h($email) ?></a>
+          <?php endif; ?>
+          <?php if ($phone): ?>
+          <a href="tel:+1<?= h($phoneClean) ?>" style="font-size:11.5px;color:#1a56a0;line-height:1.2;text-decoration:none;display:block;"><?= h($phone) ?></a>
+          <?php endif; ?>
         </div>
       </div>
       <?php endforeach; ?>
@@ -313,7 +309,6 @@ function collectData() {
     subtitle: document.getElementById('ev-subtitle').value,
     location: document.getElementById('ev-location').value,
   };
-  const showQr = document.getElementById('showQrChk').checked;
   const staff = [];
   document.querySelectorAll('#staffTable tbody tr').forEach(tr => {
     staff.push({
@@ -339,13 +334,7 @@ function collectData() {
       committed: tr.querySelector('.p-committed').value,
     });
   });
-  return { event, showQr, staff, players };
-}
-
-function toggleQr(on) {
-  const data = collectData();
-  data.showQr = on;
-  renderPage(data);
+  return { event, staff, players };
 }
 
 function removeRow(btn) { btn.closest('tr').remove(); }
@@ -383,8 +372,10 @@ function renderPage(data) {
   // Roster rows
   const rows = document.getElementById('rosterRows');
   rows.innerHTML = data.players.map((p, i) => {
-    const rowBg = i % 2 ? '#faf9f5' : '#ffffff';
-    const qrSrc = (data.showQr && p.qrSlug) ? `assets/qr/${p.qrSlug}.svg` : '';
+    const rowBg      = i % 2 ? '#faf9f5' : '#ffffff';
+    const profile    = (p.profile || '').trim();
+    const profileUrl = profile ? 'https://' + profile.replace(/^\/+/, '') : '';
+    const phoneClean = (p.phone || '').replace(/[^0-9]/g, '');
     return `<div style="display:grid;grid-template-columns:30px 1.7fr 48px 90px 1.8fr 2fr;border-bottom:1px solid #d6d1c7;background:${rowBg};align-items:center;flex:1 1 0;min-height:0;">
       <div style="padding:2px 4px;text-align:center;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#C8920A;">${p.num}</div>
       <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
@@ -395,16 +386,13 @@ function renderPage(data) {
         <span style="font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:#18160f;">${esc(p.grad)}</span>
       </div>
       <div style="padding:2px 8px;display:flex;align-items:center;font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.4px;color:#333;">${esc(p.pos)}</div>
-      <div style="padding:1px 8px;display:flex;align-items:center;gap:6px;">
-        ${qrSrc ? `<img src="${qrSrc}" alt="Scan profile" style="width:26px;height:26px;flex-shrink:0;display:block;">` : ''}
-        <div style="min-width:0;">
-          <div style="font-size:11.5px;color:#18160f;line-height:1.2;white-space:nowrap;">${esc(p.profile)}</div>
-          ${p.video ? `<div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
-        </div>
+      <div style="padding:1px 8px;display:flex;flex-direction:column;justify-content:center;">
+        ${profileUrl ? `<a href="${esc(profileUrl)}" style="font-size:11.5px;color:#1a56a0;line-height:1.2;white-space:nowrap;text-decoration:none;">${esc(profile)}</a>` : ''}
+        ${p.video ? `<div style="font-size:10px;color:#C8920A;font-weight:600;line-height:1.2;white-space:nowrap;">&#9654; ${esc(p.video)}</div>` : ''}
       </div>
       <div style="padding:2px 8px;">
-        <div style="font-size:11.5px;color:#18160f;line-height:1.25;word-break:break-all;">${esc(p.email)}</div>
-        <div style="font-size:11.5px;color:#18160f;line-height:1.2;">${esc(p.phone)}</div>
+        ${p.email ? `<a href="mailto:${esc(p.email)}" style="font-size:11.5px;color:#1a56a0;line-height:1.25;word-break:break-all;text-decoration:none;display:block;">${esc(p.email)}</a>` : ''}
+        ${p.phone ? `<a href="tel:+1${phoneClean}" style="font-size:11.5px;color:#1a56a0;line-height:1.2;text-decoration:none;display:block;">${esc(p.phone)}</a>` : ''}
       </div>
     </div>`;
   }).join('');
