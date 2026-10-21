@@ -17,3 +17,4 @@ Disallow: /convertToWebP.php
 Disallow: /compressImage.php
 
 Sitemap: https://uru.soccer/sitemap.xml
+Disallow: /phpinfo.php
